@@ -1,9 +1,12 @@
 .overlay {
+  --preloader-edge-gap: clamp(16px, 2vw, 32px);
   position: fixed;
   inset: 0;
   z-index: 9999;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: var(--preloader-edge-gap);
   overflow: hidden;
   background: #050505;
   color: var(--foreground);
@@ -14,9 +17,11 @@
 
 .signature {
   display: block;
-  width: min(78vw, 760px);
+  width: 100%;
+  max-width: none;
   height: auto;
   overflow: visible;
+  color: var(--accent);
   opacity: 0;
 }
 
