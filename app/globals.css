@@ -264,24 +264,39 @@ body {
 
 .practice-label {
   position: absolute;
-  left: 82%;
+  left: 86%;
   font-family: var(--font-mono);
   font-size: clamp(0.55rem, 0.85vw, 0.8rem);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
-.practice-intent {
+.practice-step-problem {
   top: 27.2%;
-  left: 86%;
 }
 
-.practice-interaction {
-  top: 67.8%;
+.practice-step-investigate {
+  top: 36.8%;
 }
 
-.practice-system {
-  top: 81.8%;
+.practice-step-design {
+  top: 46.4%;
+}
+
+.practice-step-build {
+  top: 56%;
+}
+
+.practice-step-verify {
+  top: 65.6%;
+}
+
+.practice-step-ship {
+  top: 75.2%;
+}
+
+.practice-step-operate {
+  top: 84.8%;
 }
 
 .practice-description {
@@ -1539,7 +1554,7 @@ body {
   }
 
   .practice-label {
-    left: 84%;
+    left: 62%;
     font-size: 0.52rem;
   }
 
@@ -2212,6 +2227,10 @@ body {
 }
 
 @media (max-width: 360px) {
+  .practice-label {
+    left: 60%;
+  }
+
   .capability-orbit {
     width: 24%;
     height: 52rem;

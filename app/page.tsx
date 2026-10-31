@@ -213,19 +213,21 @@ export default function Home() {
               </h2>
             </div>
             <div className="practice-drawing" aria-hidden="true">
-              <span className="practice-label practice-intent">Problem</span>
-              <span className="practice-label practice-intent">
+              <span className="practice-label practice-step-problem">
+                Problem
+              </span>
+              <span className="practice-label practice-step-investigate">
                 Investigate
               </span>
-              <span className="practice-label practice-intent">
+              <span className="practice-label practice-step-design">
                 Design and Architect
               </span>
-              <span className="practice-label practice-intent">Build</span>
-              <span className="practice-label practice-interaction">
+              <span className="practice-label practice-step-build">Build</span>
+              <span className="practice-label practice-step-verify">
                 Verify & Test
               </span>
-              <span className="practice-label practice-system">Ship</span>
-              <span className="practice-label practice-system">
+              <span className="practice-label practice-step-ship">Ship</span>
+              <span className="practice-label practice-step-operate">
                 Operate and improve
               </span>
             </div>
