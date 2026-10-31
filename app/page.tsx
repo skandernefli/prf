@@ -5,36 +5,36 @@ import type { CSSProperties } from "react";
 
 const productCapabilities = [
   [
-    "Product Strategy",
-    "Find the right problem to solve.",
+    "Product Engineering",
+    "Turn business requirements into production-ready software.",
     "17.5038%",
     "12%",
     "79.8656px",
   ],
   [
-    "UX Research",
-    "Understand people before shaping solutions.",
+    "System Integration",
+    "Connect APIs, platforms, and data into one workflow.",
     "3.75068%",
     "31%",
     "50.6294px",
   ],
   [
-    "Interaction Design",
-    "Make every action feel clear and natural.",
+    "Process Automation",
+    "Replace repetitive manual work with reliable software.",
     "0%",
     "50%",
     "28px",
   ],
   [
-    "Design Systems",
-    "Build consistency that grows with the product.",
+    "Data Engineering",
+    "Transform complex datasets into useful products.",
     "3.75068%",
     "69%",
     "34.3907px",
   ],
   [
-    "Prototyping",
-    "Make ideas tangible. Test what matters.",
+    "AI-Enabled Software",
+    "Build smarter workflows with AI-assisted engineering.",
     "17.5038%",
     "88%",
     "46.2335px",
@@ -43,36 +43,41 @@ const productCapabilities = [
 
 const aiCapabilities = [
   [
-    "AI Products",
-    "Turn intelligence into useful experiences.",
+    "Legacy Modernization",
+    "Modernize existing systems without disrupting operations.",
     "82.4962%",
     "12%",
     "79.8656px",
   ],
   [
-    "Agentic Systems",
-    "Multi agent orchestration with clear roles and handoffs.",
+    "Business Applications",
+    "Build internal tools that simplify complex operations.",
     "96.2493%",
     "31%",
     "50.6294px",
   ],
-  ["MCP", "Connect models to the tools they need.", "100%", "50%", "28px"],
   [
-    "RAG",
-    "Ground responses in relevant knowledge.",
+    "Commerce Systems",
+    "Connect storefronts, catalogs, and business platforms.",
+    "100%",
+    "50%",
+    "28px",
+  ],
+  [
+    "Performance & Reliability",
+    "Improve query speed, data quality, and system resilience.",
     "96.2493%",
     "69%",
     "34.3907px",
   ],
   [
-    "Automation",
-    "Turn repeated work into reliable workflows.",
+    "Production Engineering",
+    "Deliver tested, maintainable software ready for production.",
     "82.4962%",
     "88%",
     "46.2335px",
   ],
 ] as const;
-
 function CapabilityList({
   title,
   items,
@@ -202,23 +207,31 @@ export default function Home() {
           <div className="practice-intro">
             <div className="practice-copy">
               <h2 id="work-title">
-                <span>FROM WHAT</span>
-                <span>PEOPLE NEED</span>
-                <span>TO WHAT</span>
-                <span>FEELS RIGHT.</span>
+                <span>ENGINEERING</span>
+                <span>PRODUCTS</span>
+                <span>WITH IMPACT</span>
               </h2>
             </div>
             <div className="practice-drawing" aria-hidden="true">
-              <span className="practice-label practice-intent">INTENT</span>
-              <span className="practice-label practice-interaction">
-                INTERACTION
+              <span className="practice-label practice-intent">Problem</span>
+              <span className="practice-label practice-intent">
+                Investigate
               </span>
-              <span className="practice-label practice-system">SYSTEM</span>
+              <span className="practice-label practice-intent">
+                Design and Architect
+              </span>
+              <span className="practice-label practice-intent">Build</span>
+              <span className="practice-label practice-interaction">
+                Verify & Test
+              </span>
+              <span className="practice-label practice-system">Ship</span>
+              <span className="practice-label practice-system">
+                Operate and improve
+              </span>
             </div>
             <p className="practice-description">
-              Full-stack means more than just connecting a UI to an API. I
-              connect human intent, product behavior, and the systems
-              underneath. Owning the architecture end to end.
+              More than connecting a UI to an API. I connect human intent,
+              product behavior, and the systems underneath.
             </p>
           </div>
         </section>
@@ -237,12 +250,12 @@ export default function Home() {
           </div>
           <div className="capability-orbit">
             <CapabilityList
-              title="PRODUCT DESIGN"
+              title="Building Intelligent Software"
               items={productCapabilities}
               side="product"
             />
             <CapabilityList
-              title="AI SYSTEMS"
+              title="Making Software Work Better "
               items={aiCapabilities}
               side="ai"
             />

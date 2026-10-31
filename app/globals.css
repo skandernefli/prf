@@ -288,7 +288,7 @@ body {
   position: absolute;
   bottom: var(--hero-bottom-inset);
   left: var(--page-pad);
-  max-width: 38ch;
+  max-width: 90ch;
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--support-size);
