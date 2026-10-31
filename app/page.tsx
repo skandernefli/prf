@@ -1,22 +1,76 @@
-import { InlineSvg } from "@/components/portfolio/inline-svg";
-import { InlineReferenceSvg } from "@/components/portfolio/inline-reference-svg";
 import { InlineReferenceElement } from "@/components/portfolio/inline-reference-element";
+import { InlineReferenceSvg } from "@/components/portfolio/inline-reference-svg";
+import { InlineSvg } from "@/components/portfolio/inline-svg";
 import type { CSSProperties } from "react";
 
 const productCapabilities = [
-  ["Product Strategy", "Find the right problem to solve.", "17.5038%", "12%", "79.8656px"],
-  ["UX Research", "Understand people before shaping solutions.", "3.75068%", "31%", "50.6294px"],
-  ["Interaction Design", "Make every action feel clear and natural.", "0%", "50%", "28px"],
-  ["Design Systems", "Build consistency that grows with the product.", "3.75068%", "69%", "34.3907px"],
-  ["Prototyping", "Make ideas tangible. Test what matters.", "17.5038%", "88%", "46.2335px"],
+  [
+    "Product Strategy",
+    "Find the right problem to solve.",
+    "17.5038%",
+    "12%",
+    "79.8656px",
+  ],
+  [
+    "UX Research",
+    "Understand people before shaping solutions.",
+    "3.75068%",
+    "31%",
+    "50.6294px",
+  ],
+  [
+    "Interaction Design",
+    "Make every action feel clear and natural.",
+    "0%",
+    "50%",
+    "28px",
+  ],
+  [
+    "Design Systems",
+    "Build consistency that grows with the product.",
+    "3.75068%",
+    "69%",
+    "34.3907px",
+  ],
+  [
+    "Prototyping",
+    "Make ideas tangible. Test what matters.",
+    "17.5038%",
+    "88%",
+    "46.2335px",
+  ],
 ] as const;
 
 const aiCapabilities = [
-  ["AI Products", "Turn intelligence into useful experiences.", "82.4962%", "12%", "79.8656px"],
-  ["Agentic Systems", "Multi agent orchestration with clear roles and handoffs.", "96.2493%", "31%", "50.6294px"],
+  [
+    "AI Products",
+    "Turn intelligence into useful experiences.",
+    "82.4962%",
+    "12%",
+    "79.8656px",
+  ],
+  [
+    "Agentic Systems",
+    "Multi agent orchestration with clear roles and handoffs.",
+    "96.2493%",
+    "31%",
+    "50.6294px",
+  ],
   ["MCP", "Connect models to the tools they need.", "100%", "50%", "28px"],
-  ["RAG", "Ground responses in relevant knowledge.", "96.2493%", "69%", "34.3907px"],
-  ["Automation", "Turn repeated work into reliable workflows.", "82.4962%", "88%", "46.2335px"],
+  [
+    "RAG",
+    "Ground responses in relevant knowledge.",
+    "96.2493%",
+    "69%",
+    "34.3907px",
+  ],
+  [
+    "Automation",
+    "Turn repeated work into reliable workflows.",
+    "82.4962%",
+    "88%",
+    "46.2335px",
+  ],
 ] as const;
 
 function CapabilityList({
@@ -104,8 +158,8 @@ export default function Home() {
         Skip to content
       </a>
       <header className="site-header">
-        <a className="wordmark" href="#top" aria-label="DG home">
-          DG
+        <a className="wordmark" href="#top" aria-label="SN home">
+          SN
         </a>
         <button className="menu-button" type="button" aria-expanded="false">
           MENU
@@ -122,15 +176,15 @@ export default function Home() {
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-copy">
             <h1 className="hero-title" id="hero-title">
-              <span>I DESIGN</span>
-              <span>PRODUCTS</span>
-              <span>THAT THINK.</span>
+              <span>FROM</span>
+              <span>CONCEPT</span>
+              <span>TO LAUNCH</span>
             </h1>
             <div className="hero-footer">
               <div className="hero-support">
                 <p>
-                  Product designer working across digital experiences, AI
-                  products and intelligent systems.
+                  Designing the experience. Engineering the intelligence.
+                  End-to-end product ownership.
                 </p>
               </div>
               <a className="scroll-cue" href="#work">
@@ -140,7 +194,11 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="selected-work" id="work" aria-labelledby="work-title">
+        <section
+          className="selected-work"
+          id="work"
+          aria-labelledby="work-title"
+        >
           <div className="practice-intro">
             <div className="practice-copy">
               <h2 id="work-title">
@@ -158,8 +216,9 @@ export default function Home() {
               <span className="practice-label practice-system">SYSTEM</span>
             </div>
             <p className="practice-description">
-              I connect human intent, product behavior and the systems
-              underneath.
+              Full-stack means more than just connecting a UI to an API. I
+              connect human intent, product behavior, and the systems
+              underneath. Owning the architecture end to end.
             </p>
           </div>
         </section>
@@ -386,19 +445,22 @@ export default function Home() {
               description="Apply for a business loan, submit financial documents and move from eligibility to disbursement."
             />
             <div className="world-composition">
-              <figure className="world-object credit-pan">
+              <figure className="world-object credit-document credit-pan">
                 <InlineSvg asset="pan-identity-card-with-masked-personal-details-mvv7le41.svg" />
               </figure>
-              <figure className="world-object credit-gst">
+              <figure className="world-object credit-document credit-gst">
                 <InlineSvg asset="gst-return-with-filing-period-masked-gstin-and-tax-summary-mvv7lf08.svg" />
               </figure>
-              <ProjectTitle id="creditflow-title" className="world-title credit-title">
+              <ProjectTitle
+                id="creditflow-title"
+                className="world-title credit-title"
+              >
                 CREDIFLOW
               </ProjectTitle>
-              <figure className="world-object credit-bank">
+              <figure className="world-object credit-document credit-bank">
                 <InlineSvg asset="six-months-of-business-bank-statements-mvv7lkll.svg" />
               </figure>
-              <figure className="world-object credit-itr">
+              <figure className="world-object credit-document credit-itr">
                 <InlineSvg asset="three-years-of-income-tax-returns-mvv7lih1.svg" />
               </figure>
               <section className="world-object credit-application">
@@ -447,7 +509,11 @@ export default function Home() {
           </article>
         </div>
 
-        <section className="about-story" id="about" aria-labelledby="about-title">
+        <section
+          className="about-story"
+          id="about"
+          aria-labelledby="about-title"
+        >
           <div className="about-stage">
             <div className="about-profile">
               <div className="about-intro">
@@ -457,8 +523,8 @@ export default function Home() {
                   <span>HUMAN IMPRINT.</span>
                 </h2>
                 <p className="about-personal">
-                  Mine comes from understanding people, shaping how things
-                  feel, and building the systems that make them work.
+                  Mine comes from understanding people, shaping how things feel,
+                  and building the systems that make them work.
                 </p>
               </div>
               <div className="about-byline">

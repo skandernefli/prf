@@ -11,8 +11,8 @@
   --accent: #ff3b12;
   --meta-size: clamp(0.6875rem, 0.8vw, 0.8125rem);
   --support-size: clamp(0.75rem, 1.05vw, 0.9375rem);
-  --font-display: var(--font-archivo), "Archivo Variable", "Arial Narrow", Arial,
-    sans-serif;
+  --font-display:
+    var(--font-archivo), "Archivo Variable", "Arial Narrow", Arial, sans-serif;
   --font-mono: var(--font-plex), "IBM Plex Mono", ui-monospace, monospace;
   --page-pad: clamp(1.25rem, 2.65vw, 3rem);
   --header-pad-y: 1.7rem;
@@ -36,6 +36,7 @@
 
 html {
   scrollbar-gutter: stable;
+  overflow-x: clip;
   scroll-behavior: auto;
   background: var(--black);
   color: var(--ivory);
@@ -152,11 +153,10 @@ body {
 .hero-title {
   width: min(94vw, 88rem);
   margin: calc(50svh - 1.17em) 0 0;
-  font-size: min(
-    clamp(5rem, 14.7vw, 14rem),
-    calc((100svh - 10rem) / 2.34)
-  );
-  font-variation-settings: "wdth" 114, "wght" 800;
+  font-size: min(clamp(5rem, 14.7vw, 14rem), calc((100svh - 10rem) / 2.34));
+  font-variation-settings:
+    "wdth" 114,
+    "wght" 800;
   font-weight: 800;
   letter-spacing: -0.085em;
   line-height: 0.78;
@@ -235,7 +235,9 @@ body {
 .practice-copy h2,
 .capability-heading h2 {
   margin: 0;
-  font-variation-settings: "wdth" 100, "wght" 790;
+  font-variation-settings:
+    "wdth" 100,
+    "wght" 790;
   font-weight: 790;
   letter-spacing: -0.085em;
   line-height: 0.82;
@@ -296,8 +298,7 @@ body {
 .capabilities {
   position: relative;
   z-index: 3;
-  padding: clamp(4rem, 5vw, 6rem) var(--page-pad)
-    clamp(5rem, 7vw, 8rem);
+  padding: clamp(4rem, 5vw, 6rem) var(--page-pad) clamp(5rem, 7vw, 8rem);
   background: var(--black);
   color: var(--ivory);
 }
@@ -401,8 +402,10 @@ body {
   position: relative;
   height: var(--project-section-height);
   overflow: clip;
-  background: var(--world-bg, var(--black));
-  color: var(--world-fg, var(--ivory));
+  --world-bg: var(--black);
+  --world-fg: var(--ivory);
+  background: var(--world-bg);
+  color: var(--world-fg);
   font-family: var(--font-mono);
 }
 
@@ -1287,7 +1290,9 @@ body {
   margin: 0;
   font-family: var(--font-display);
   font-size: min(5.8vw, 6rem);
-  font-variation-settings: "wdth" 100, "wght" 790;
+  font-variation-settings:
+    "wdth" 100,
+    "wght" 790;
   font-weight: 790;
   letter-spacing: -0.055em;
   line-height: 0.94;
@@ -1315,7 +1320,9 @@ body {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(1.375rem, 2vw, 2rem);
-  font-variation-settings: "wdth" 100, "wght" 790;
+  font-variation-settings:
+    "wdth" 100,
+    "wght" 790;
   font-weight: 790;
   letter-spacing: -0.035em;
   line-height: 1.1;
@@ -1352,7 +1359,9 @@ body {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(3rem, 7.3vw, 7.5rem);
-  font-variation-settings: "wdth" 100, "wght" 790;
+  font-variation-settings:
+    "wdth" 100,
+    "wght" 790;
   font-weight: 790;
   letter-spacing: -0.06em;
   line-height: 0.94;
@@ -1585,11 +1594,11 @@ body {
   }
 
   .capability-product li > span {
-    right: var(--capability-clearance, 1rem);
+    right: 0.25rem;
   }
 
   .capability-ai li > span {
-    left: var(--capability-clearance, 1rem);
+    left: 0.25rem;
   }
 
   .project-worlds {
@@ -1640,7 +1649,10 @@ body {
     --eigna-book-span: calc(var(--world-unit) * 70);
     --eigna-title-height: calc(var(--world-unit) * 19.68);
     --eigna-gap: clamp(40px, calc(var(--world-unit) * 7), 80px);
-    --eigna-flat-top: max(200px, calc(var(--project-section-height) * 0.09 + 80px));
+    --eigna-flat-top: max(
+      200px,
+      calc(var(--project-section-height) * 0.09 + 80px)
+    );
     --eigna-lease-top: calc(
       var(--eigna-flat-top) + var(--eigna-flat-span) * 345 / 620 +
         var(--eigna-gap)
@@ -1740,9 +1752,7 @@ body {
     );
     --orbit-row-space: max(
       0px,
-      calc(
-        (var(--orbit-height) * 0.8 - var(--world-unit) * 130.4 - 292px) / 2
-      )
+      calc((var(--orbit-height) * 0.8 - var(--world-unit) * 130.4 - 292px) / 2)
     );
     --orbit-panel-top: calc(
       20% + var(--world-unit) * 47 + 4rem + var(--orbit-row-space)
@@ -1759,9 +1769,7 @@ body {
   }
 
   .orbit-assistant {
-    top: calc(
-      20% + var(--world-unit) * 47 + 4rem + var(--orbit-row-space)
-    );
+    top: calc(20% + var(--world-unit) * 47 + 4rem + var(--orbit-row-space));
     left: 7%;
     width: 86%;
     padding: 1rem;
