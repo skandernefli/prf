@@ -266,9 +266,9 @@ export default function Home() {
 
         <div className="project-worlds" id="projects">
           <article
-            className="project-world world-eigna world-light"
-            id="eigna"
-            aria-labelledby="eigna-title"
+            className="project-world world-kabri world-light"
+            id="kabri"
+            aria-labelledby="kabri-title"
           >
             <ProjectHeader
               number="01"
@@ -276,56 +276,65 @@ export default function Home() {
               description="Manage properties, tenants, rent, maintenance and finances from one place."
             />
             <div className="world-composition">
-              <figure className="world-object eigna-flat">
+              <figure className="world-object kabri-flat">
                 <InlineSvg asset="unit-03-occupied-two-bedroom-flat-with-living-room-kitchen-and-bathroom-mvv7k1zy.svg" />
               </figure>
-              <figure className="world-object eigna-lease">
+              <figure className="world-object kabri-lease">
                 <InlineSvg asset="unit-03-lease-signed-monthly-rent-32000-mvv7k5ze.svg" />
               </figure>
-              <figure className="world-object eigna-inspection">
+              <figure className="world-object kabri-inspection">
                 <InlineSvg asset="ai-inspection-compares-move-in-and-move-out-records-and-detects-wall-damage-with-94-percent-confidence-mvv7k4eb.svg" />
               </figure>
-              <ProjectTitle id="eigna-title">EIGNA</ProjectTitle>
-              <figure className="world-object eigna-repair">
+              <ProjectTitle id="kabri-title">KABRI</ProjectTitle>
+              <figure className="world-object kabri-repair">
                 <InlineSvg asset="wall-repair-completed-4800-becomes-an-expense-in-the-property-ledger-mvv7k3he.svg" />
               </figure>
-              <figure className="world-object eigna-book">
+              <figure className="world-object kabri-book">
                 <InlineSvg asset="property-03-ledger-rent-32000-repair-4800-other-expenses-1250-net-25950-the-same-repair-record-carries-into-itr--schedule-hp-mvv7k7e4.svg" />
               </figure>
             </div>
             <ProjectLink />
           </article>
-
           <article
-            className="project-world world-orbit"
-            id="orbit"
-            aria-labelledby="orbit-title"
+            className="project-world norma-scan"
+            id="norma"
+            aria-labelledby="norma-title"
           >
             <ProjectHeader
               number="02"
-              category="AGENTIC AI"
-              description="Ask for what you need and Orbit works across the right tools to get it done."
+              category="DOCUMENT AUTOMATION"
+              description="Upload accounting documents and turn them into reviewed, structured data ready to use."
             />
             <div className="world-composition">
-              <figure className="world-object orbit-tracks">
-                <InlineSvg asset="svg-19-mvv7k9wu.svg" />
+              <figure className="scan-ledger scan-ledger-top">
+                <InlineSvg asset="svg-37-mvv7l25k.svg" />
               </figure>
-              <figure className="world-object orbit-mail">
-                <InlineSvg asset="svg-20-mvv7kaze.svg" />
+              <figure className="scan-ledger scan-ledger-bottom">
+                <InlineSvg asset="svg-38-mvv7l40p.svg" />
               </figure>
-              <figure className="world-object orbit-fragment orbit-document">
-                <InlineSvg asset="svg-24-mvv7key1.svg" />
+              <ProjectTitle id="norma-title">NORMA</ProjectTitle>
+              <figure className="scan-paper scan-paper-acme">
+                <InlineReferenceSvg label="ACME SUPPLY invoice" />
               </figure>
-              <figure className="world-object orbit-fragment orbit-brief">
-                <InlineSvg asset="svg-26-mvv7kj06.svg" />
+              <figure className="scan-paper scan-paper-river">
+                <InlineReferenceSvg label="RIVER &amp; CO. invoice" />
               </figure>
-              <figure className="world-object orbit-fragment orbit-draft">
-                <InlineSvg asset="svg-22-mvv7kbn4.svg" />
+              <figure className="scan-paper scan-paper-river scan-paper-river-cover">
+                <InlineReferenceSvg label="RIVER &amp; CO. invoice" />
               </figure>
-              <ProjectTitle id="orbit-title">ORBIT</ProjectTitle>
-              <figure className="world-object orbit-assistant">
-                <InlineReferenceSvg label="Orbit finds the latest project update, analyzes the financials, and drafts a response to Alex across Search, Finance, Writing and Mail. Analysis included, ready for review before sending." />
+              <figure className="scan-paper scan-paper-front">
+                <InlineReferenceSvg label="Northridge invoice INV-1042, total 1,280.00, verified" />
               </figure>
+              <figure className="scan-paper scan-paper-main">
+                <InlineReferenceSvg label="Northridge invoice INV-1042, total 1,280.00, verified" />
+              </figure>
+              <figure className="scan-paper scan-paper-rejected">
+                <InlineReferenceSvg label="HARBOR LTD. invoice, rejected" />
+              </figure>
+              <InlineReferenceElement
+                label="Extracted invoice values"
+                className="scan-extracted"
+              />
             </div>
             <ProjectLink />
           </article>
@@ -370,81 +379,6 @@ export default function Home() {
                 className="world-object mesa-dashboard"
                 role="group"
               />
-            </div>
-            <ProjectLink />
-          </article>
-
-          <article
-            className="project-world papertrail-scan"
-            id="papertrail"
-            aria-labelledby="papertrail-title"
-          >
-            <ProjectHeader
-              number="04"
-              category="DOCUMENT AUTOMATION"
-              description="Upload accounting documents and turn them into reviewed, structured data ready to use."
-            />
-            <div className="world-composition">
-              <figure className="scan-ledger scan-ledger-top">
-                <InlineSvg asset="svg-37-mvv7l25k.svg" />
-              </figure>
-              <figure className="scan-ledger scan-ledger-bottom">
-                <InlineSvg asset="svg-38-mvv7l40p.svg" />
-              </figure>
-              <ProjectTitle id="papertrail-title">PAPERTRAIL</ProjectTitle>
-              <figure className="scan-paper scan-paper-acme">
-                <InlineReferenceSvg label="ACME SUPPLY invoice" />
-              </figure>
-              <figure className="scan-paper scan-paper-river">
-                <InlineReferenceSvg label="RIVER &amp; CO. invoice" />
-              </figure>
-              <figure className="scan-paper scan-paper-river scan-paper-river-cover">
-                <InlineReferenceSvg label="RIVER &amp; CO. invoice" />
-              </figure>
-              <figure className="scan-paper scan-paper-front">
-                <InlineReferenceSvg label="Northridge invoice INV-1042, total 1,280.00, verified" />
-              </figure>
-              <figure className="scan-paper scan-paper-main">
-                <InlineReferenceSvg label="Northridge invoice INV-1042, total 1,280.00, verified" />
-              </figure>
-              <figure className="scan-paper scan-paper-rejected">
-                <InlineReferenceSvg label="HARBOR LTD. invoice, rejected" />
-              </figure>
-              <InlineReferenceElement
-                label="Extracted invoice values"
-                className="scan-extracted"
-              />
-            </div>
-            <ProjectLink />
-          </article>
-
-          <article
-            className="project-world world-scribe world-light"
-            id="scribe"
-            aria-labelledby="scribe-title"
-          >
-            <ProjectHeader
-              number="05"
-              category="MEETING INTELLIGENCE"
-              description="Turn meetings into structured documents such as BRDs, SOPs and project charters."
-            />
-            <div className="world-composition">
-              <figure className="world-object scribe-audio">
-                <InlineSvg asset="meeting-recording-playback-kickoffmp4-24-minutes-16-seconds-mvv7l774.svg" />
-              </figure>
-              <figure className="world-object scribe-analysis">
-                <InlineSvg asset="ai-analyzes-the-meeting-to-identify-goals-owners-and-decisions-mvv7l7uu.svg" />
-              </figure>
-              <ProjectTitle id="scribe-title">SCRIBE</ProjectTitle>
-              <figure className="world-object scribe-charter">
-                <InlineSvg asset="generated-project-charter-goal-owners-and-key-decisions-a-revision-adds-the-approval-requirement-mvv7lan7.svg" />
-              </figure>
-              <figure className="world-object scribe-request">
-                <InlineReferenceSvg label="Revision request: Add an approval step." />
-              </figure>
-              <figure className="world-object scribe-reply">
-                <InlineSvg asset="scribe-replies-updated-in-version-2-mvv7lbwl.svg" />
-              </figure>
             </div>
             <ProjectLink />
           </article>

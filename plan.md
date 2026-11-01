@@ -110,7 +110,7 @@ Out of scope:
       - `a-plate-drawn-in-fine-architectural-lines-mvv7kq9l.svg`
       - `mealops-replies-order-placed-your-rice-bowl-is-on-its-way-mvv7kwbt.svg`
       - `meal-delivery-bag-on-the-way-arrives-at-1245-mvv7kzo8.svg`
-   4. **Papertrail** — near-black. Kicker `04 / DOCUMENT AUTOMATION`. Description: `Upload accounting documents and turn them into reviewed, structured data ready to use.` Large warm-ivory `PAPERTRAIL` title. Show the tilted invoice/document stack and extracted-values panel as in the HTML/screenshots; use the matching inline SVG composition from the saved HTML and supplied vectors, not a generic replacement.
+   4. **norma** — near-black. Kicker `04 / DOCUMENT AUTOMATION`. Description: `Upload accounting documents and turn them into reviewed, structured data ready to use.` Large warm-ivory `norma` title. Show the tilted invoice/document stack and extracted-values panel as in the HTML/screenshots; use the matching inline SVG composition from the saved HTML and supplied vectors, not a generic replacement.
    5. **Scribe** — warm ivory. Kicker `05 / MEETING INTELLIGENCE`. Description: `Turn meetings into structured documents such as BRDs, SOPs and project charters.` Large dark `SCRIBE` title. Show recording playback, AI analysis/summary, generated project charter, and reply/status UI. Use:
       - `meeting-recording-playback-kickoffmp4-24-minutes-16-seconds-mvv7l774.svg`
       - `ai-analyzes-the-meeting-to-identify-goals-owners-and-decisions-mvv7l7uu.svg`
@@ -177,7 +177,7 @@ Read `AGENTS.md`, the relevant Next.js 16 guide under `node_modules/next/dist/do
 - `references/screenshots/website_screenshot_mobile_sm.png` (320 CSS px)
 - `public/assets/` for the supplied SVG source artwork.
 
-Build the complete home page, not just the first viewport: fixed header; hero; practice intro; capabilities; all six project sections (Eigna, Orbit, MealOPS, Papertrail, Scribe, Crediflow); about; contact ending. Use all exact headings, body copy, project kickers, project ordering, and named assets from the “Exact page content and order” section of this plan. The screenshots are the visual authority for composition and responsive placements; the saved HTML is the authority for exact text and SVG contents.
+Build the complete home page, not just the first viewport: fixed header; hero; practice intro; capabilities; all six project sections (Eigna, Orbit, MealOPS, norma, Scribe, Crediflow); about; contact ending. Use all exact headings, body copy, project kickers, project ordering, and named assets from the “Exact page content and order” section of this plan. The screenshots are the visual authority for composition and responsive placements; the saved HTML is the authority for exact text and SVG contents.
 
 ### Visual requirements
 
@@ -189,7 +189,7 @@ Build the complete home page, not just the first viewport: fixed header; hero; p
 - Hero: viewport-height dark panel; heading lines `I DESIGN`, `PRODUCTS`, `THAT THINK.`; exact support copy; static `SCROLL TO FOLLOW THE THREAD` and down arrow in reference position.
 - Practice intro: ivory; four-line heading; retain `INTENT`, `INTERACTION`, `SYSTEM` labels in their reference positions.
 - Capabilities: dark; final `BEHIND IT.` phrase is vermilion; two groups with five exact name/description pairs each.
-- Projects: preserve each exact project kicker and description, alternating background, layered vector compositions, large title and `EXPLORE PROJECT` label. Use the matching assets specified in the plan; inspect every opaque `svg-*` asset's contents before choosing it. For Papertrail use the matching SVG composition embedded in the reference HTML and/or matching supplied artwork, not generic cards.
+- Projects: preserve each exact project kicker and description, alternating background, layered vector compositions, large title and `EXPLORE PROJECT` label. Use the matching assets specified in the plan; inspect every opaque `svg-*` asset's contents before choosing it. For norma use the matching SVG composition embedded in the reference HTML and/or matching supplied artwork, not generic cards.
 - About and contact: reproduce exact text and sparse composition, including the stacked contact heading, `LET'S TALK.`, and `BACK TO TOP`.
 
 ### Thread/animation exclusion

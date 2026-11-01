@@ -505,18 +505,18 @@ body {
   transform: translate(-0.0175em);
 }
 
-.world-eigna .world-title {
+.world-kabri .world-title {
   top: 43%;
 }
 
-.eigna-flat {
+.kabri-flat {
   top: 11.5%;
   left: 6%;
   z-index: 8;
   width: 42%;
 }
 
-.eigna-lease {
+.kabri-lease {
   top: 18%;
   left: 52.5%;
   z-index: 21;
@@ -524,21 +524,21 @@ body {
   rotate: -9deg;
 }
 
-.eigna-inspection {
+.kabri-inspection {
   top: 19%;
   left: 71%;
   z-index: 21;
   width: 25.5%;
 }
 
-.eigna-repair {
+.kabri-repair {
   top: 69%;
   left: 5%;
   z-index: 21;
   width: 28%;
 }
 
-.eigna-book {
+.kabri-book {
   top: 65%;
   left: 45%;
   z-index: 21;
@@ -845,14 +845,14 @@ body {
   font-size: 1.2em !important;
 }
 
-.papertrail-scan {
+.norma-scan {
   --world-bg: var(--black);
   --world-fg: var(--ivory);
   --sheet: var(--ivory);
   --sheet-edge: #bbb8b0;
 }
 
-.papertrail-scan .world-title {
+.norma-scan .world-title {
   top: 12.7%;
   right: 3.2%;
   left: 3.2%;
@@ -1656,107 +1656,107 @@ body {
     font-size: calc(var(--world-unit) * 24);
   }
 
-  .world-eigna {
-    --eigna-flat-span: calc(var(--world-unit) * 70);
-    --eigna-lease-span: calc(var(--world-unit) * 22);
-    --eigna-inspection-span: calc(var(--world-unit) * 45);
-    --eigna-repair-span: calc(var(--world-unit) * 39);
-    --eigna-book-span: calc(var(--world-unit) * 70);
-    --eigna-title-height: calc(var(--world-unit) * 19.68);
-    --eigna-gap: clamp(40px, calc(var(--world-unit) * 7), 80px);
-    --eigna-flat-top: max(
+  .world-kabri {
+    --kabri-flat-span: calc(var(--world-unit) * 70);
+    --kabri-lease-span: calc(var(--world-unit) * 22);
+    --kabri-inspection-span: calc(var(--world-unit) * 45);
+    --kabri-repair-span: calc(var(--world-unit) * 39);
+    --kabri-book-span: calc(var(--world-unit) * 70);
+    --kabri-title-height: calc(var(--world-unit) * 19.68);
+    --kabri-gap: clamp(40px, calc(var(--world-unit) * 7), 80px);
+    --kabri-flat-top: max(
       200px,
       calc(var(--project-section-height) * 0.09 + 80px)
     );
-    --eigna-lease-top: calc(
-      var(--eigna-flat-top) + var(--eigna-flat-span) * 345 / 620 +
-        var(--eigna-gap)
+    --kabri-lease-top: calc(
+      var(--kabri-flat-top) + var(--kabri-flat-span) * 345 / 620 +
+        var(--kabri-gap)
     );
-    --eigna-title-top: calc(
-      var(--eigna-lease-top) + var(--eigna-lease-span) * 218 / 205 + 20px +
-        var(--eigna-gap)
+    --kabri-title-top: calc(
+      var(--kabri-lease-top) + var(--kabri-lease-span) * 218 / 205 + 20px +
+        var(--kabri-gap)
     );
-    --eigna-repair-top: calc(
-      var(--eigna-title-top) + var(--eigna-title-height) + var(--eigna-gap)
+    --kabri-repair-top: calc(
+      var(--kabri-title-top) + var(--kabri-title-height) + var(--kabri-gap)
     );
-    --eigna-book-top: calc(
-      var(--eigna-repair-top) + var(--eigna-repair-span) * 275 / 400 +
-        var(--eigna-gap)
+    --kabri-book-top: calc(
+      var(--kabri-repair-top) + var(--kabri-repair-span) * 275 / 400 +
+        var(--kabri-gap)
     );
     height: calc(
-      var(--eigna-book-top) + var(--eigna-book-span) * 270 / 720 + 140px
+      var(--kabri-book-top) + var(--kabri-book-span) * 270 / 720 + 140px
     );
   }
 
-  .world-eigna .world-kicker,
-  .world-eigna .world-description {
+  .world-kabri .world-kicker,
+  .world-kabri .world-description {
     top: calc(var(--project-section-height) * 0.064);
   }
 
-  .world-eigna .world-kicker {
+  .world-kabri .world-kicker {
     top: calc(var(--project-section-height) * 0.05);
   }
 
-  .world-eigna .world-description {
+  .world-kabri .world-description {
     top: calc(var(--project-section-height) * 0.09);
   }
 
-  .world-eigna .world-title {
-    top: var(--eigna-title-top);
+  .world-kabri .world-title {
+    top: var(--kabri-title-top);
   }
 
-  .eigna-flat {
-    top: var(--eigna-flat-top);
+  .kabri-flat {
+    top: var(--kabri-flat-top);
     left: 6%;
-    width: var(--eigna-flat-span);
+    width: var(--kabri-flat-span);
   }
 
-  .eigna-lease {
-    top: var(--eigna-lease-top);
+  .kabri-lease {
+    top: var(--kabri-lease-top);
     left: 8%;
-    width: var(--eigna-lease-span);
+    width: var(--kabri-lease-span);
     rotate: -7deg;
   }
 
-  .eigna-inspection {
-    top: var(--eigna-lease-top);
+  .kabri-inspection {
+    top: var(--kabri-lease-top);
     left: 49%;
-    width: var(--eigna-inspection-span);
+    width: var(--kabri-inspection-span);
   }
 
-  .eigna-repair {
-    top: var(--eigna-repair-top);
+  .kabri-repair {
+    top: var(--kabri-repair-top);
     left: 4%;
-    width: var(--eigna-repair-span);
+    width: var(--kabri-repair-span);
   }
 
-  .eigna-book {
-    top: var(--eigna-book-top);
+  .kabri-book {
+    top: var(--kabri-book-top);
     left: 16%;
-    width: var(--eigna-book-span);
+    width: var(--kabri-book-span);
   }
 
-  .eigna-book svg text {
+  .kabri-book svg text {
     font-size: 20px;
   }
 
-  .eigna-book .eigna-net-row text {
+  .kabri-book .kabri-net-row text {
     font-size: 22px;
   }
 
-  .eigna-book svg > g > text {
+  .kabri-book svg > g > text {
     font-size: 14px;
   }
 
-  .eigna-book .eigna-tax-record text {
+  .kabri-book .kabri-tax-record text {
     font-size: 16px;
   }
 
-  .eigna-book .eigna-tax-record .eigna-tax-form {
+  .kabri-book .kabri-tax-record .kabri-tax-form {
     font-size: 12px;
   }
 
-  .eigna-book .eigna-tax-record .eigna-tax-status {
+  .kabri-book .kabri-tax-record .kabri-tax-status {
     font-size: 22px;
   }
 
@@ -1911,7 +1911,7 @@ body {
     padding-left: 12px;
   }
 
-  .papertrail-scan .world-title {
+  .norma-scan .world-title {
     top: 18%;
     right: 4%;
     left: 4%;
@@ -2208,20 +2208,20 @@ body {
 }
 
 @media (max-width: 450px) {
-  .world-eigna {
-    --eigna-flat-top: 240px;
-    --eigna-flat-span: calc(var(--world-unit) * 87);
-    --eigna-lease-span: calc(var(--world-unit) * 29);
-    --eigna-inspection-span: calc(var(--world-unit) * 51);
-    --eigna-repair-span: calc(var(--world-unit) * 62);
-    --eigna-book-span: calc(var(--world-unit) * 86);
+  .world-kabri {
+    --kabri-flat-top: 240px;
+    --kabri-flat-span: calc(var(--world-unit) * 87);
+    --kabri-lease-span: calc(var(--world-unit) * 29);
+    --kabri-inspection-span: calc(var(--world-unit) * 51);
+    --kabri-repair-span: calc(var(--world-unit) * 62);
+    --kabri-book-span: calc(var(--world-unit) * 86);
   }
 
-  .eigna-inspection {
+  .kabri-inspection {
     left: 46%;
   }
 
-  .eigna-book {
+  .kabri-book {
     left: 7%;
   }
 }
