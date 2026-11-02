@@ -2,6 +2,7 @@ import { InlineReferenceElement } from "@/components/portfolio/inline-reference-
 import { InlineReferenceSvg } from "@/components/portfolio/inline-reference-svg";
 import { InlineSvg } from "@/components/portfolio/inline-svg";
 import { ContactButtons } from "@/components/portfolio/contact-buttons";
+import { HeroThread } from "@/components/portfolio/hero-thread-layer";
 import { ThreadLayer } from "@/components/portfolio/thread-layer";
 import type { CSSProperties } from "react";
 
@@ -187,24 +188,26 @@ export default function Home() {
           aria-labelledby="hero-title"
           data-thread-anchor="hero"
         >
-          <div className="hero-copy">
-            <h1 className="hero-title" id="hero-title">
-              <span data-thread-anchor="hero-line-1">FROM</span>
-              <span data-thread-anchor="hero-line-2">CONCEPT</span>
-              <span data-thread-anchor="hero-line-3">TO LAUNCH</span>
-            </h1>
-            <div className="hero-footer">
-              <div className="hero-support">
-                <p>
-                  Designing the experience. Engineering the intelligence.
-                  End-to-end product ownership.
-                </p>
+          <HeroThread>
+            <div className="hero-copy">
+              <h1 className="hero-title" id="hero-title">
+                <span data-thread-anchor="hero-line-1">FROM</span>
+                <span data-thread-anchor="hero-line-2">CONCEPT</span>
+                <span data-thread-anchor="hero-line-3">TO LAUNCH</span>
+              </h1>
+              <div className="hero-footer">
+                <div className="hero-support">
+                  <p>
+                    Designing the experience. Engineering the intelligence.
+                    End-to-end product ownership.
+                  </p>
+                </div>
+                <a className="scroll-cue" href="#work">
+                  SCROLL TO FOLLOW THE THREAD <span aria-hidden="true">↓</span>
+                </a>
               </div>
-              <a className="scroll-cue" href="#work">
-                SCROLL TO FOLLOW THE THREAD <span aria-hidden="true">↓</span>
-              </a>
             </div>
-          </div>
+          </HeroThread>
         </section>
 
         <section
