@@ -15,11 +15,7 @@ export function InlineReferenceElement({
   role,
 }: InlineReferenceElementProps) {
   return (
-    <div
-      className={className}
-      role={role}
-      aria-label={label}
-    >
+    <div className={className} role={role} aria-label={label}>
       {label === "Extracted invoice values" ? (
         <>
           <p>EXTRACTED VALUES</p>
@@ -36,7 +32,7 @@ export function InlineReferenceElement({
                 <path d="M5 3.5h9l5 5v12H5z" />
                 <path d="M14 3.5v5h5M8 13h8M8 17h5" />
               </svg>
-              <dt>Invoice ID</dt>
+              <dt>Transaction ID</dt>
               <dd>INV-1042</dd>
             </div>
             <div>
@@ -52,7 +48,7 @@ export function InlineReferenceElement({
                 <path d="M15.5 8.5c-.7-.7-1.6-1-2.8-1-1.5 0-2.5.8-2.5 1.9 0 3 5.2 1.4 5.2 4.5 0 1.3-1.1 2.2-2.9 2.2-1.3 0-2.4-.4-3.1-1.2M12.5 5.5v13" />
               </svg>
               <dt>Total</dt>
-              <dd>1,280.00</dd>
+              <dd>2,280.00</dd>
             </div>
             <div>
               <svg
@@ -88,12 +84,19 @@ export function InlineReferenceElement({
             <span className="mesa-wallet-label">COMPANY WALLET</span>
           </span>
           <span className="mesa-wallet-amount">
-            <span>₹49,760</span>
-            <small className="mesa-wallet-debit">−₹240</small>
+            <span>C$49,760</span>
+            <small className="mesa-wallet-debit">−C$240</small>
           </span>
           <span className="mesa-wallet-status">
             <span className="mesa-wallet-before">BALANCE</span>
-            <span className="mesa-wallet-after">
+            <span
+              className="mesa-wallet-after"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <span className="mesa-paid-check">
                 <svg
                   aria-hidden="true"
@@ -116,11 +119,11 @@ export function InlineReferenceElement({
           <div className="mesa-dashboard-summary">
             <div>
               <strong>52</strong>
-              <span>Meals today</span>
+              <span>Products today</span>
             </div>
             <div>
-              <strong>₹12,480</strong>
-              <span>Company spend</span>
+              <strong>C$12,480</strong>
+              <span>Total sales</span>
             </div>
             <svg
               className="mesa-chart"

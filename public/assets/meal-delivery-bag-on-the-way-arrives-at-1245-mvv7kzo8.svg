@@ -19,6 +19,6 @@
     <g fill="currentColor" text-anchor="middle">
         <text x="125" y="205" font-size="10" letter-spacing="1.1">READY TO USE</text>
         <path d="M86 217h78" stroke="currentColor" stroke-width=".6" opacity=".5" />
-        <text x="125" y="235" font-size="8" opacity=".6" letter-spacing=".6">RENT OR PURCHASE</text>
+        <text x="125" y="235" font-size="8" opacity=".6" letter-spacing=".6">RECYCLABLE</text>
     </g>
 </svg>

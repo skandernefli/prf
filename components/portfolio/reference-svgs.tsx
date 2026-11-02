@@ -25,13 +25,13 @@ export function AcmeInvoiceSvg(props: SVGProps<SVGSVGElement>) {
         </text>
         <g fontSize="6.5">
           <text x="313" y="41">
-            SUPPLIES
+            VALUATION INDICATORS
           </text>
           <text x="313" y="51">
-            EQUIPMENT
+            TRANSACTION HISTORY
           </text>
           <text x="313" y="61">
-            SOLUTIONS
+            OWNERSHIP INFORMATION
           </text>
         </g>
         <text
@@ -42,7 +42,7 @@ export function AcmeInvoiceSvg(props: SVGProps<SVGSVGElement>) {
           fontWeight="650"
           letterSpacing="1.4"
         >
-          INVOICE
+          ANALYTICAL REPORTS
         </text>
       </g>
       <g stroke="var(--black)" strokeWidth=".6" opacity=".65">
@@ -56,16 +56,16 @@ export function AcmeInvoiceSvg(props: SVGProps<SVGSVGElement>) {
       </g>
       <g fill="var(--black)" fontSize="7.5" letterSpacing=".5">
         <text x="39" y="204">
-          DESCRIPTION
+          TIMELINE
         </text>
         <text x="181" y="204">
-          QTY
+          SELL
         </text>
         <text x="227" y="204">
-          UNIT
+          BUY
         </text>
         <text x="303" y="204">
-          AMOUNT
+          DATE
         </text>
       </g>
       <g fill="var(--black)" opacity=".25">
@@ -100,13 +100,13 @@ export function RiverInvoiceSvg(props: SVGProps<SVGSVGElement>) {
         </text>
         <g fontSize="6.5">
           <text x="313" y="41">
-            SUPPLIES
+            NOTARIAL INFORMATION
           </text>
           <text x="313" y="51">
-            EQUIPMENT
+            LEGAL CLAUSES
           </text>
           <text x="313" y="61">
-            SOLUTIONS
+            FINANCIAL TERMS
           </text>
         </g>
         <text
@@ -117,7 +117,7 @@ export function RiverInvoiceSvg(props: SVGProps<SVGSVGElement>) {
           fontWeight="650"
           letterSpacing="1.4"
         >
-          INVOICE
+          REGISTRY DEED
         </text>
       </g>
       <g stroke="var(--black)" strokeWidth=".6" opacity=".65">
@@ -131,16 +131,16 @@ export function RiverInvoiceSvg(props: SVGProps<SVGSVGElement>) {
       </g>
       <g fill="var(--black)" fontSize="7.5" letterSpacing=".5">
         <text x="39" y="204">
-          DESCRIPTION
+          PARTIES INVOLVED
         </text>
         <text x="181" y="204">
-          QTY
+          ID
         </text>
         <text x="227" y="204">
-          UNIT
+          NAT
         </text>
         <text x="303" y="204">
-          AMOUNT
+          DATE
         </text>
       </g>
       <g fill="var(--black)" opacity=".25">
@@ -175,13 +175,13 @@ export function NorthridgeInvoiceVerifiedSvg(props: SVGProps<SVGSVGElement>) {
         </text>
         <g fontSize="6.5">
           <text x="313" y="41">
-            SUPPLIES
+            LEGAL REFERENCES
           </text>
           <text x="313" y="51">
-            EQUIPMENT
+            BUYER INFORMATION
           </text>
           <text x="313" y="61">
-            SOLUTIONS
+            SELLER INFORMATION
           </text>
         </g>
         <text
@@ -192,7 +192,7 @@ export function NorthridgeInvoiceVerifiedSvg(props: SVGProps<SVGSVGElement>) {
           fontWeight="650"
           letterSpacing="1.4"
         >
-          INVOICE
+          TRANSACTION
         </text>
       </g>
       <g stroke="var(--black)" strokeWidth=".6" opacity=".65">
@@ -206,13 +206,13 @@ export function NorthridgeInvoiceVerifiedSvg(props: SVGProps<SVGSVGElement>) {
       </g>
       <g fill="var(--black)" fontSize="7.5" letterSpacing=".5">
         <text x="39" y="204">
-          DESCRIPTION
+          PROPERTY CHARACTERISTICS
         </text>
         <text x="181" y="204">
-          QTY
+          BUY
         </text>
         <text x="227" y="204">
-          UNIT
+          SELL
         </text>
         <text x="303" y="204">
           AMOUNT
@@ -220,13 +220,13 @@ export function NorthridgeInvoiceVerifiedSvg(props: SVGProps<SVGSVGElement>) {
       </g>
       <g className="scan-fields" fill="var(--black)">
         <text x="132" y="142" fontSize="9">
-          Invoice ID
+          Transaction ID
         </text>
         <text x="132" y="166" fontSize="16">
-          INV-1042
+          NO-1042
         </text>
         <text x="292" y="311" fontSize="9">
-          Total
+          Sale price
         </text>
         <text x="292" y="333" fontSize="14">
           1,280.00
@@ -319,13 +319,13 @@ export function HarborInvoiceRejectedSvg(props: SVGProps<SVGSVGElement>) {
         </text>
         <g fontSize="6.5">
           <text x="313" y="41">
-            SUPPLIES
+            FINANCIAL TERMS
           </text>
           <text x="313" y="51">
-            EQUIPMENT
+            LEGAL CLAUSES
           </text>
           <text x="313" y="61">
-            SOLUTIONS
+            NOTARIAL INFORMATION
           </text>
         </g>
         <text
@@ -336,7 +336,7 @@ export function HarborInvoiceRejectedSvg(props: SVGProps<SVGSVGElement>) {
           fontWeight="650"
           letterSpacing="1.4"
         >
-          INVOICE
+          COURT PROCEEDING
         </text>
       </g>
       <g stroke="var(--black)" strokeWidth=".6" opacity=".65">
@@ -350,16 +350,16 @@ export function HarborInvoiceRejectedSvg(props: SVGProps<SVGSVGElement>) {
       </g>
       <g fill="var(--black)" fontSize="7.5" letterSpacing=".5">
         <text x="39" y="204">
-          DESCRIPTION
+          ACT
         </text>
         <text x="181" y="204">
-          QTY
+          PALINT
         </text>
         <text x="227" y="204">
-          UNIT
+          DEF
         </text>
         <text x="303" y="204">
-          AMOUNT
+          VER
         </text>
       </g>
       <g fill="var(--black)" opacity=".25">
@@ -408,10 +408,10 @@ export function BowlstoryOrderMessageSvg(props: SVGProps<SVGSVGElement>) {
       />
       <g fill="var(--world-bg)" fontSize="16">
         <text x="21" y="52">
-          Order a rice bowl
+          Renting a wheelchair
         </text>
         <text x="21" y="77">
-          from Bowlstory.
+          from july to december.
         </text>
       </g>
     </svg>
@@ -439,10 +439,13 @@ export function BowlstoryOrderConfirmationSvg(props: SVGProps<SVGSVGElement>) {
           ORDER CONFIRMED
         </text>
         <text x="23" y="97">
-          Bowlstory
+          Physiogesique cream
+        </text>
+        <text x="204" y="97">
+          1
         </text>
         <text x="23" y="137">
-          Rice bowl
+          Foam tubes
         </text>
         <text x="204" y="137">
           1
@@ -451,10 +454,10 @@ export function BowlstoryOrderConfirmationSvg(props: SVGProps<SVGSVGElement>) {
           Total
         </text>
         <text x="217" y="163" textAnchor="end">
-          ₹240
+          C$78
         </text>
         <text x="23" y="249">
-          Enjoy lunch.
+          Happy to serve you!
         </text>
       </g>
       <path

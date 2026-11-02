@@ -346,8 +346,8 @@ export default function Home() {
           >
             <ProjectHeader
               number="03"
-              category="WORKPLACE MEALS"
-              description="A workplace meal platform for ordering food, managing benefits and running meal programs."
+              category="E-COMMERCE AND ASSISTIVE HEALTHCARE EQUIPMENT"
+              description="Modernized assistive equipment e-commerce with product discovery, filtering, and integrated product data."
             />
             <div className="world-composition">
               <figure className="world-object mesa-plate">
@@ -389,9 +389,9 @@ export default function Home() {
             aria-labelledby="creditflow-title"
           >
             <ProjectHeader
-              number="06"
-              category="DIGITAL LENDING"
-              description="Apply for a business loan, submit financial documents and move from eligibility to disbursement."
+              number="04"
+              category="LegalTech"
+              description="Digitized corporate legal workflows, simplifying business incorporation, compliance, and document management for entrepreneurs."
             />
             <div className="world-composition">
               <figure className="world-object credit-document credit-pan">
@@ -416,7 +416,7 @@ export default function Home() {
                 <p>APPLICATION / 0248</p>
                 <div>
                   <span>REQUESTED AMOUNT</span>
-                  <strong>₹25L</strong>
+                  <strong>C$25L</strong>
                 </div>
               </section>
               <section className="world-object credit-assessment">
@@ -424,17 +424,17 @@ export default function Home() {
                 <dl>
                   <div>
                     <dt>Revenue</dt>
-                    <dd>₹42L</dd>
+                    <dd>C$42K</dd>
                     <small>Annual</small>
                   </div>
                   <div>
                     <dt>Cash flow</dt>
-                    <dd>₹8.4L</dd>
+                    <dd>C$8.4K</dd>
                     <small>6 Months</small>
                   </div>
                   <div>
                     <dt>Obligations</dt>
-                    <dd>₹2.1L</dd>
+                    <dd>C$2.1K</dd>
                     <small>Annual</small>
                   </div>
                   <div>
@@ -445,9 +445,9 @@ export default function Home() {
                 </dl>
               </section>
               <section className="world-object credit-outcome">
-                <p className="credit-outcome-label">ELIGIBLE</p>
-                <span className="credit-up-to">UP TO</span>
-                <strong>₹18.5L</strong>
+                <p className="credit-outcome-label">AMOUNT</p>
+                <span className="credit-up-to">STARTING FROM</span>
+                <strong>C$500</strong>
                 <div className="credit-approval">
                   <span>OFFER READY</span>
                   <span>Review terms</span>
