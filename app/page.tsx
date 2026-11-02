@@ -1,6 +1,7 @@
 import { InlineReferenceElement } from "@/components/portfolio/inline-reference-element";
 import { InlineReferenceSvg } from "@/components/portfolio/inline-reference-svg";
 import { InlineSvg } from "@/components/portfolio/inline-svg";
+import { ContactButtons } from "@/components/portfolio/contact-buttons";
 import type { CSSProperties } from "react";
 
 const productCapabilities = [
@@ -591,13 +592,12 @@ export default function Home() {
           <div className="contact-stage">
             <div className="contact-copy">
               <h2 className="contact-statement" id="contact-title">
-                <span>HAVE A</span>
-                <span>PROBLEM</span>
-                <span>WORTH</span>
-                <span>UNTANGLING?</span>
+                <span>JUDGE ME</span>
+                <span>IN CONVERSATION.</span>
               </h2>
               <span className="contact-pull">LET&apos;S TALK.</span>
             </div>
+            <ContactButtons />
           </div>
           <div className="contact-bottom">
             <a className="contact-top" href="#top">
