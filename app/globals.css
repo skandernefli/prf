@@ -64,9 +64,53 @@ body {
 }
 
 .portfolio {
+  position: relative;
   min-width: 0;
   color: var(--ivory);
   font-family: var(--font-display);
+}
+
+.thread-layer {
+  position: absolute;
+  z-index: 18;
+  top: 0;
+  left: 0;
+  display: block;
+  max-width: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.thread-path {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 2.2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.thread-about-node {
+  fill: var(--signal);
+}
+
+.thread-about-label {
+  fill: var(--black);
+  font-family: var(--font-mono);
+  font-size: clamp(7px, 0.65vw, 9px);
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.thread-terminal {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 2.2px;
+}
+
+.thread-terminal-core {
+  fill: var(--signal);
 }
 
 .skip-link {
@@ -2630,5 +2674,12 @@ body {
   .capability-orbit {
     width: 24%;
     height: 52rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .thread-path,
+  .thread-terminal {
+    stroke-width: 1.8px;
   }
 }

@@ -6,9 +6,10 @@ type InlineSvgProps = {
 };
 
 export async function InlineSvg({ asset }: InlineSvgProps) {
-  "use cache";
-
-  const svg = await readFile(join(process.cwd(), "public", "assets", asset), "utf8");
+  const svg = await readFile(
+    join(process.cwd(), "public", "assets", asset),
+    "utf8",
+  );
 
   return <span dangerouslySetInnerHTML={{ __html: svg }} />;
 }

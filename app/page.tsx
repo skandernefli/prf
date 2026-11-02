@@ -2,6 +2,7 @@ import { InlineReferenceElement } from "@/components/portfolio/inline-reference-
 import { InlineReferenceSvg } from "@/components/portfolio/inline-reference-svg";
 import { InlineSvg } from "@/components/portfolio/inline-svg";
 import { ContactButtons } from "@/components/portfolio/contact-buttons";
+import { ThreadLayer } from "@/components/portfolio/thread-layer";
 import type { CSSProperties } from "react";
 
 const productCapabilities = [
@@ -90,9 +91,9 @@ function CapabilityList({
 }) {
   return (
     <section className={`capability-discipline capability-${side}`}>
-      <h3>{title}</h3>
+      <h3 data-thread-anchor={`capability-${side}-heading`}>{title}</h3>
       <ul>
-        {items.map(([name, description, left, top, clearance]) => (
+        {items.map(([name, description, left, top, clearance], index) => (
           <li
             key={name}
             style={
@@ -103,7 +104,7 @@ function CapabilityList({
               } as CSSProperties
             }
           >
-            <span>
+            <span data-thread-anchor={`capability-${side}-${index + 1}`}>
               <strong>{name}</strong>
               <small>{description}</small>
             </span>
@@ -178,13 +179,19 @@ export default function Home() {
         </nav>
       </header>
 
+      <ThreadLayer />
+
       <main id="main-content" tabIndex={-1}>
-        <section className="hero" aria-labelledby="hero-title">
+        <section
+          className="hero"
+          aria-labelledby="hero-title"
+          data-thread-anchor="hero"
+        >
           <div className="hero-copy">
             <h1 className="hero-title" id="hero-title">
-              <span>FROM</span>
-              <span>CONCEPT</span>
-              <span>TO LAUNCH</span>
+              <span data-thread-anchor="hero-line-1">FROM</span>
+              <span data-thread-anchor="hero-line-2">CONCEPT</span>
+              <span data-thread-anchor="hero-line-3">TO LAUNCH</span>
             </h1>
             <div className="hero-footer">
               <div className="hero-support">
@@ -213,22 +220,51 @@ export default function Home() {
                 <span>WITH IMPACT</span>
               </h2>
             </div>
-            <div className="practice-drawing" aria-hidden="true">
-              <span className="practice-label practice-step-problem">
+            <div
+              className="practice-drawing"
+              aria-hidden="true"
+              data-thread-anchor="practice-drawing"
+            >
+              <span
+                className="practice-label practice-step-problem"
+                data-thread-anchor="practice-step-1"
+              >
                 Problem
               </span>
-              <span className="practice-label practice-step-investigate">
+              <span
+                className="practice-label practice-step-investigate"
+                data-thread-anchor="practice-step-2"
+              >
                 Investigate
               </span>
-              <span className="practice-label practice-step-design">
+              <span
+                className="practice-label practice-step-design"
+                data-thread-anchor="practice-step-3"
+              >
                 Design and Architect
               </span>
-              <span className="practice-label practice-step-build">Build</span>
-              <span className="practice-label practice-step-verify">
+              <span
+                className="practice-label practice-step-build"
+                data-thread-anchor="practice-step-4"
+              >
+                Build
+              </span>
+              <span
+                className="practice-label practice-step-verify"
+                data-thread-anchor="practice-step-5"
+              >
                 Verify & Test
               </span>
-              <span className="practice-label practice-step-ship">Ship</span>
-              <span className="practice-label practice-step-operate">
+              <span
+                className="practice-label practice-step-ship"
+                data-thread-anchor="practice-step-6"
+              >
+                Ship
+              </span>
+              <span
+                className="practice-label practice-step-operate"
+                data-thread-anchor="practice-step-7"
+              >
                 Operate and improve
               </span>
             </div>
@@ -243,15 +279,22 @@ export default function Home() {
           className="capabilities"
           id="capabilities"
           aria-labelledby="capabilities-title"
+          data-thread-anchor="capabilities"
         >
-          <div className="capability-heading">
+          <div
+            className="capability-heading"
+            data-thread-anchor="capability-heading"
+          >
             <h2 id="capabilities-title">
               <span>I DESIGN THE EXPERIENCE.</span>
               <span>AND THE INTELLIGENCE</span>
               <span>BEHIND IT.</span>
             </h2>
           </div>
-          <div className="capability-orbit">
+          <div
+            className="capability-orbit"
+            data-thread-anchor="capability-orbit"
+          >
             <CapabilityList
               title="Building Intelligent Software"
               items={productCapabilities}
@@ -270,6 +313,7 @@ export default function Home() {
             className="project-world world-kabri world-light"
             id="kabri"
             aria-labelledby="kabri-title"
+            data-thread-anchor="project-kabri"
           >
             <ProjectHeader
               number="01"
@@ -277,20 +321,35 @@ export default function Home() {
               description="Automated product configuration, quotation generation, and order management for a manufacturing business."
             />
             <div className="world-composition">
-              <figure className="world-object kabri-flat">
+              <figure
+                className="world-object kabri-flat"
+                data-thread-anchor="kabri-flat"
+              >
                 <InlineSvg asset="unit-03-occupied-two-bedroom-flat-with-living-room-kitchen-and-bathroom-mvv7k1zy.svg" />
               </figure>
-              <figure className="world-object kabri-lease">
+              <figure
+                className="world-object kabri-lease"
+                data-thread-anchor="kabri-lease"
+              >
                 <InlineSvg asset="unit-03-lease-signed-monthly-rent-32000-mvv7k5ze.svg" />
               </figure>
-              <figure className="world-object kabri-inspection">
+              <figure
+                className="world-object kabri-inspection"
+                data-thread-anchor="kabri-inspection"
+              >
                 <InlineSvg asset="ai-inspection-compares-move-in-and-move-out-records-and-detects-wall-damage-with-94-percent-confidence-mvv7k4eb.svg" />
               </figure>
               <ProjectTitle id="kabri-title">KABRI</ProjectTitle>
-              <figure className="world-object kabri-repair">
+              <figure
+                className="world-object kabri-repair"
+                data-thread-anchor="kabri-repair"
+              >
                 <InlineSvg asset="wall-repair-completed-4800-becomes-an-expense-in-the-property-ledger-mvv7k3he.svg" />
               </figure>
-              <figure className="world-object kabri-book">
+              <figure
+                className="world-object kabri-book"
+                data-thread-anchor="kabri-book"
+              >
                 <InlineSvg asset="property-03-ledger-rent-32000-repair-4800-other-expenses-1250-net-25950-the-same-repair-record-carries-into-itr--schedule-hp-mvv7k7e4.svg" />
               </figure>
             </div>
@@ -300,6 +359,7 @@ export default function Home() {
             className="project-world norma-scan"
             id="norma"
             aria-labelledby="norma-title"
+            data-thread-anchor="project-norma"
           >
             <ProjectHeader
               number="02"
@@ -307,34 +367,59 @@ export default function Home() {
               description="A real estate intelligence platform unifying property data, analytics, and business insights."
             />
             <div className="world-composition">
-              <figure className="scan-ledger scan-ledger-top">
+              <figure
+                className="scan-ledger scan-ledger-top"
+                data-thread-anchor="norma-ledger-top"
+              >
                 <InlineSvg asset="svg-37-mvv7l25k.svg" />
               </figure>
-              <figure className="scan-ledger scan-ledger-bottom">
+              <figure
+                className="scan-ledger scan-ledger-bottom"
+                data-thread-anchor="norma-ledger-bottom"
+              >
                 <InlineSvg asset="svg-38-mvv7l40p.svg" />
               </figure>
               <ProjectTitle id="norma-title">NORMA</ProjectTitle>
-              <figure className="scan-paper scan-paper-acme">
+              <figure
+                className="scan-paper scan-paper-acme"
+                data-thread-anchor="norma-paper-acme"
+              >
                 <InlineReferenceSvg name="acme-invoice" />
               </figure>
-              <figure className="scan-paper scan-paper-river">
+              <figure
+                className="scan-paper scan-paper-river"
+                data-thread-anchor="norma-paper-river"
+              >
                 <InlineReferenceSvg name="river-invoice" />
               </figure>
-              <figure className="scan-paper scan-paper-river scan-paper-river-cover">
+              <figure
+                className="scan-paper scan-paper-river scan-paper-river-cover"
+                data-thread-anchor="norma-paper-river-cover"
+              >
                 <InlineReferenceSvg name="river-invoice" />
               </figure>
-              <figure className="scan-paper scan-paper-front">
+              <figure
+                className="scan-paper scan-paper-front"
+                data-thread-anchor="norma-paper-front"
+              >
                 <InlineReferenceSvg name="northridge-invoice-verified" />
               </figure>
-              <figure className="scan-paper scan-paper-main">
+              <figure
+                className="scan-paper scan-paper-main"
+                data-thread-anchor="norma-paper-main"
+              >
                 <InlineReferenceSvg name="northridge-invoice-verified" />
               </figure>
-              <figure className="scan-paper scan-paper-rejected">
+              <figure
+                className="scan-paper scan-paper-rejected"
+                data-thread-anchor="norma-paper-rejected"
+              >
                 <InlineReferenceSvg name="harbor-invoice-rejected" />
               </figure>
               <InlineReferenceElement
                 label="Extracted invoice values"
                 className="scan-extracted"
+                threadAnchor="norma-extracted"
               />
             </div>
             <ProjectLink />
@@ -344,6 +429,7 @@ export default function Home() {
             className="project-world world-mesa world-light"
             id="mesa"
             aria-labelledby="mesa-title"
+            data-thread-anchor="project-mesa"
           >
             <ProjectHeader
               number="03"
@@ -351,34 +437,54 @@ export default function Home() {
               description="Modernized assistive equipment e-commerce with product discovery, filtering, and integrated product data."
             />
             <div className="world-composition">
-              <figure className="world-object mesa-plate">
+              <figure
+                className="world-object mesa-plate"
+                data-thread-anchor="mesa-plate"
+              >
                 <InlineSvg asset="a-plate-drawn-in-fine-architectural-lines-mvv7kq9l.svg" />
               </figure>
-              <figure className="world-object mesa-fork">
+              <figure
+                className="world-object mesa-fork"
+                data-thread-anchor="mesa-fork"
+              >
                 <InlineSvg asset="a-fork-in-flat-linework-mvv7kqxu.svg" />
               </figure>
-              <figure className="world-object mesa-message">
+              <figure
+                className="world-object mesa-message"
+                data-thread-anchor="mesa-message"
+              >
                 <InlineReferenceSvg name="bowlstory-order-message" />
               </figure>
               <ProjectTitle id="mesa-title">SHOPOPS</ProjectTitle>
-              <figure className="world-object mesa-ticket">
+              <figure
+                className="world-object mesa-ticket"
+                data-thread-anchor="mesa-ticket"
+              >
                 <InlineReferenceSvg name="bowlstory-order-confirmation" />
               </figure>
-              <figure className="world-object mesa-reply">
+              <figure
+                className="world-object mesa-reply"
+                data-thread-anchor="mesa-reply"
+              >
                 <InlineSvg asset="mealops-replies-order-placed-your-rice-bowl-is-on-its-way-mvv7kwbt.svg" />
               </figure>
-              <figure className="world-object mesa-bag">
+              <figure
+                className="world-object mesa-bag"
+                data-thread-anchor="mesa-bag"
+              >
                 <InlineSvg asset="meal-delivery-bag-on-the-way-arrives-at-1245-mvv7kzo8.svg" />
               </figure>
               <InlineReferenceElement
                 label="Company wallet"
                 className="world-object mesa-wallet"
                 role="group"
+                threadAnchor="mesa-wallet"
               />
               <InlineReferenceElement
                 label="Company meal statistics"
                 className="world-object mesa-dashboard"
                 role="group"
+                threadAnchor="mesa-dashboard"
               />
             </div>
             <ProjectLink />
@@ -388,6 +494,7 @@ export default function Home() {
             className="project-world creditflow-world"
             id="creditflow"
             aria-labelledby="creditflow-title"
+            data-thread-anchor="project-creditflow"
           >
             <ProjectHeader
               number="04"
@@ -395,10 +502,16 @@ export default function Home() {
               description="Digitized corporate legal workflows, simplifying business incorporation, compliance, and document management for entrepreneurs."
             />
             <div className="world-composition">
-              <figure className="world-object credit-document credit-pan">
+              <figure
+                className="world-object credit-document credit-pan"
+                data-thread-anchor="credit-pan"
+              >
                 <InlineSvg asset="pan-identity-card-with-masked-personal-details-mvv7le41.svg" />
               </figure>
-              <figure className="world-object credit-document credit-gst">
+              <figure
+                className="world-object credit-document credit-gst"
+                data-thread-anchor="credit-gst"
+              >
                 <InlineSvg asset="gst-return-with-filing-period-masked-gstin-and-tax-summary-mvv7lf08.svg" />
               </figure>
               <ProjectTitle
@@ -407,20 +520,32 @@ export default function Home() {
               >
                 LEGALEXY
               </ProjectTitle>
-              <figure className="world-object credit-document credit-bank">
+              <figure
+                className="world-object credit-document credit-bank"
+                data-thread-anchor="credit-bank"
+              >
                 <InlineSvg asset="six-months-of-business-bank-statements-mvv7lkll.svg" />
               </figure>
-              <figure className="world-object credit-document credit-itr">
+              <figure
+                className="world-object credit-document credit-itr"
+                data-thread-anchor="credit-itr"
+              >
                 <InlineSvg asset="three-years-of-income-tax-returns-mvv7lih1.svg" />
               </figure>
-              <section className="world-object credit-application">
+              <section
+                className="world-object credit-application"
+                data-thread-anchor="credit-application"
+              >
                 <p>APPLICATION / 0248</p>
                 <div>
                   <span>REQUESTED AMOUNT</span>
                   <strong>C$25L</strong>
                 </div>
               </section>
-              <section className="world-object credit-assessment">
+              <section
+                className="world-object credit-assessment"
+                data-thread-anchor="credit-assessment"
+              >
                 <p>FINANCIAL ASSESSMENT</p>
                 <dl>
                   <div>
@@ -445,7 +570,10 @@ export default function Home() {
                   </div>
                 </dl>
               </section>
-              <section className="world-object credit-outcome">
+              <section
+                className="world-object credit-outcome"
+                data-thread-anchor="credit-outcome"
+              >
                 <p className="credit-outcome-label">AMOUNT</p>
                 <span className="credit-up-to">STARTING FROM</span>
                 <strong>C$500</strong>
@@ -459,27 +587,46 @@ export default function Home() {
           </article>
         </div>
 
-        <section className="why-me" id="why-me" aria-labelledby="why-me-title">
+        <section
+          className="why-me"
+          id="why-me"
+          aria-labelledby="why-me-title"
+          data-thread-anchor="why-me"
+        >
           <div className="why-me-inner">
             <p className="why-me-eyebrow">
               <span className="why-me-eyebrow-dot" aria-hidden="true" />
               WHY ME
             </p>
 
-            <h2 className="why-me-title" id="why-me-title">
+            <h2
+              className="why-me-title"
+              id="why-me-title"
+              data-thread-anchor="why-me-title"
+            >
               <span>The risk</span>
               <span>you’re weighing</span>
               <span>is smaller</span>
               <span>than it looks.</span>
             </h2>
-            <p className="why-me-intro">
+            <p className="why-me-intro" data-thread-anchor="why-me-intro">
               You’ve seen the work. Here’s what it means for your team.
             </p>
 
             <div className="why-me-points">
-              <article className="why-me-point">
-                <span className="why-me-node" aria-hidden="true" />
-                <div className="why-me-point-copy">
+              <article
+                className="why-me-point"
+                data-thread-anchor="why-me-point-1"
+              >
+                <span
+                  className="why-me-node"
+                  aria-hidden="true"
+                  data-thread-anchor="why-me-node-1"
+                />
+                <div
+                  className="why-me-point-copy"
+                  data-thread-anchor="why-me-copy-1"
+                >
                   <span className="why-me-number">01</span>
                   <h3 className="why-me-point-title">
                     I own outcomes, not tickets.
@@ -492,9 +639,19 @@ export default function Home() {
                 </div>
               </article>
 
-              <article className="why-me-point">
-                <span className="why-me-node" aria-hidden="true" />
-                <div className="why-me-point-copy">
+              <article
+                className="why-me-point"
+                data-thread-anchor="why-me-point-2"
+              >
+                <span
+                  className="why-me-node"
+                  aria-hidden="true"
+                  data-thread-anchor="why-me-node-2"
+                />
+                <div
+                  className="why-me-point-copy"
+                  data-thread-anchor="why-me-copy-2"
+                >
                   <span className="why-me-number">02</span>
                   <h3 className="why-me-point-title">
                     I ship, and I can prove it.
@@ -506,9 +663,19 @@ export default function Home() {
                 </div>
               </article>
 
-              <article className="why-me-point">
-                <span className="why-me-node" aria-hidden="true" />
-                <div className="why-me-point-copy">
+              <article
+                className="why-me-point"
+                data-thread-anchor="why-me-point-3"
+              >
+                <span
+                  className="why-me-node"
+                  aria-hidden="true"
+                  data-thread-anchor="why-me-node-3"
+                />
+                <div
+                  className="why-me-point-copy"
+                  data-thread-anchor="why-me-copy-3"
+                >
                   <span className="why-me-number">03</span>
                   <h3 className="why-me-point-title">
                     I use AI as leverage, not as a crutch.
@@ -521,9 +688,19 @@ export default function Home() {
                 </div>
               </article>
 
-              <article className="why-me-point">
-                <span className="why-me-node" aria-hidden="true" />
-                <div className="why-me-point-copy">
+              <article
+                className="why-me-point"
+                data-thread-anchor="why-me-point-4"
+              >
+                <span
+                  className="why-me-node"
+                  aria-hidden="true"
+                  data-thread-anchor="why-me-node-4"
+                />
+                <div
+                  className="why-me-point-copy"
+                  data-thread-anchor="why-me-copy-4"
+                >
                   <span className="why-me-number">04</span>
                   <h3 className="why-me-point-title">
                     I learn fast and don’t need babysitting.
@@ -536,9 +713,19 @@ export default function Home() {
                 </div>
               </article>
 
-              <article className="why-me-point">
-                <span className="why-me-node" aria-hidden="true" />
-                <div className="why-me-point-copy">
+              <article
+                className="why-me-point"
+                data-thread-anchor="why-me-point-5"
+              >
+                <span
+                  className="why-me-node"
+                  aria-hidden="true"
+                  data-thread-anchor="why-me-node-5"
+                />
+                <div
+                  className="why-me-point-copy"
+                  data-thread-anchor="why-me-copy-5"
+                >
                   <span className="why-me-number">05</span>
                   <h3 className="why-me-point-title">
                     I’m built for the long game.
@@ -561,8 +748,8 @@ export default function Home() {
           id="about"
           aria-labelledby="about-title"
         >
-          <div className="about-stage">
-            <div className="about-profile">
+          <div className="about-stage" data-thread-anchor="about-stage">
+            <div className="about-profile" data-thread-anchor="about-profile">
               <div className="about-intro">
                 <h2 className="about-heading" id="about-title">
                   <span>ONE THREAD,</span>
@@ -595,12 +782,21 @@ export default function Home() {
                 <span>JUDGE ME</span>
                 <span>IN CONVERSATION.</span>
               </h2>
-              <span className="contact-pull">LET&apos;S TALK.</span>
+              <span
+                className="contact-pull"
+                data-thread-anchor="contact-cta"
+              >
+                LET&apos;S TALK.
+              </span>
             </div>
             <ContactButtons />
           </div>
           <div className="contact-bottom">
-            <a className="contact-top" href="#top">
+            <a
+              className="contact-top"
+              href="#top"
+              data-thread-anchor="contact-back-to-top"
+            >
               BACK TO TOP <span aria-hidden="true">↑</span>
             </a>
           </div>

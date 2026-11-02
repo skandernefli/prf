@@ -114,6 +114,7 @@ export function ContactButtons() {
             href={`mailto:${emailValue}`}
             draggable={false}
             aria-label={`Send an email to ${emailValue}`}
+            data-thread-anchor="contact-email"
             onClick={(event) => {
               if (window.getSelection()?.toString().trim()) event.preventDefault();
             }}
@@ -162,6 +163,7 @@ export function ContactButtons() {
             rel="noopener noreferrer"
             draggable={false}
             aria-label="Open LinkedIn profile"
+            data-thread-anchor="contact-linkedin"
             onClick={(event) => {
               if (window.getSelection()?.toString().trim()) event.preventDefault();
             }}
@@ -207,7 +209,7 @@ export function ContactButtons() {
         </li>
 
         <li className="contact-item">
-          <div className="contact-link">
+          <div className="contact-link" data-thread-anchor="contact-phone">
             <span className="contact-label">03 / Phone &amp; WhatsApp</span>
             <span
               className="contact-value"

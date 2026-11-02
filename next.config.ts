@@ -1,22 +1,31 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
-  /* config options here */
   experimental: {
     agentFeedback: true,
+    ...(isDev && {
+      serverComponentsHmrCache: false,
+    }),
   },
-  cacheComponents: true,
-  partialPrefetching: true,
+
+  cacheComponents: false,
+
   turbopack: {
     rules: {
       "*.css": [
         {
-          condition: { not: { path: "*.module.css" } },
+          condition: {
+            not: { path: "*.module.css" },
+          },
           loaders: ["@tailwindcss/turbopack"],
           as: "*.css",
         },
         {
-          condition: { path: "*.module.css" },
+          condition: {
+            path: "*.module.css",
+          },
           loaders: ["@tailwindcss/turbopack"],
         },
       ],
