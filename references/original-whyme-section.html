@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why me — Conclusion section</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#ece7da; --ink:#141414; --red:#e8432b; --mute:#5d594f;
+  --display:"Inter Tight","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:var(--mono)}
+
+/* ---------- SECTION ---------- */
+#why-me{position:relative;background:var(--cream);overflow:hidden;
+  padding:16vh 4vw 12vh}
+.thread{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visible}
+.thread path{fill:none;stroke:var(--red);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.t-ghost{opacity:.14}
+.inner{position:relative;z-index:1}
+
+/* header */
+.eyebrow{font-size:12px;letter-spacing:.08em;display:flex;align-items:center;gap:10px}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--red);display:block}
+h2{font-family:var(--display);font-weight:800;text-transform:uppercase;
+  font-size:clamp(46px,9.6vw,156px);line-height:.88;letter-spacing:-.05em;margin-top:5vh}
+h2 span{display:block}
+h2 span:nth-child(2){padding-left:7vw}
+h2 span:nth-child(3){padding-left:2vw}
+h2 span:nth-child(4){padding-left:9vw;color:var(--red)}
+.sub{margin-top:5vh;font-size:13px;line-height:1.7;max-width:34ch}
+
+/* points */
+.points{margin-top:14vh}
+.pt{position:relative;padding:8vh 0}
+.node{position:absolute;top:calc(8vh + 2px);width:24px;height:24px;border-radius:50%;
+  border:2px solid var(--red);background:var(--cream);transform:translate(-50%,0);
+  transition:background .35s,box-shadow .35s}
+.node.on{background:var(--red);box-shadow:0 0 0 6px rgba(232,67,43,.18)}
+.pt:nth-child(odd) .node{left:35%}
+.pt:nth-child(even) .node{left:65%}
+.txt{width:min(540px,calc(65% - 56px))}
+.pt:nth-child(odd) .txt{margin-left:calc(35% + 56px)}
+.pt:nth-child(even) .txt{margin-left:auto;margin-right:calc(35% + 56px)}
+.num{font-size:12px;color:var(--red);letter-spacing:.06em;margin-bottom:14px;display:block}
+h3{font-family:var(--display);font-weight:800;text-transform:uppercase;
+  font-size:clamp(26px,3.5vw,50px);line-height:.95;letter-spacing:-.035em}
+.txt p{margin-top:18px;font-size:13.5px;line-height:1.75;color:var(--mute);max-width:46ch}
+
+/* straight answer */
+.answer{margin-top:10vh}
+.answer .lbl{font-size:12px;letter-spacing:.08em;display:block;margin-bottom:3vh}
+.answer .a1,.answer .a2{font-family:var(--display);font-weight:800;text-transform:uppercase;
+  font-size:clamp(34px,6.4vw,104px);line-height:.9;letter-spacing:-.045em;display:block}
+.answer .a2{color:var(--red);padding-left:6vw}
+.answer .a3{display:block;margin-top:4vh;padding-left:6vw;font-size:14px;line-height:1.75;max-width:44ch}
+
+/* CTA */
+.ctawrap{margin-top:22vh;display:flex;flex-direction:column;align-items:center;text-align:center}
+.cta{display:inline-flex;align-items:center;gap:14px;background:var(--ink);color:var(--cream);
+  font:500 14px/1 var(--mono);letter-spacing:.06em;text-decoration:none;
+  padding:24px 38px;border-radius:999px;transition:background .25s,transform .25s}
+.cta:hover{background:var(--red)}
+.cta:hover b{transform:translateX(5px)}
+.cta b{font-weight:500;display:inline-block;transition:transform .25s}
+.cta:focus-visible{outline:3px solid var(--red);outline-offset:6px}
+.micro{margin-top:96px;font-size:12px;line-height:1.7;max-width:46ch;color:var(--mute)}
+
+/* ---------- MOBILE ---------- */
+@media (max-width:760px){
+  #why-me{padding:12vh 20px 10vh}
+  h2 span:nth-child(n){padding-left:0}
+  h2 span:nth-child(even){padding-left:6vw}
+  .pt:nth-child(n) .node{left:12px}
+  .pt:nth-child(n) .txt{margin:0 0 0 44px;width:auto}
+  .answer .a2,.answer .a3{padding-left:0}
+  .ctawrap{margin-top:16vh}
+  .micro{margin-top:84px}
+}
+</style>
+</head>
+<body>
+
+<section id="why-me" aria-labelledby="why-title">
+  <!-- The thread. START/END are set in the script so it lines up with the sections above and below. -->
+  <svg class="thread" aria-hidden="true">
+    <path class="t-ghost"/>
+    <path class="t-draw"/>
+  </svg>
+
+  <div class="inner">
+    <span class="eyebrow"><i></i>WHY ME</span>
+
+    <h2 id="why-title">
+      <span>The risk</span>
+      <span>you’re weighing</span>
+      <span>is smaller</span>
+      <span>than it looks.</span>
+    </h2>
+    <p class="sub">You’ve seen the work. Here’s what it means for your team.</p>
+
+    <div class="points">
+      <article class="pt">
+        <span class="node"></span>
+        <div class="txt">
+          <span class="num">01</span>
+          <h3>I own outcomes, not tickets.</h3>
+          <p>I start from the problem and stay until it’s running in production and improving. Fewer handoffs, fewer gaps, less of your senior engineers’ time spent chasing context.</p>
+        </div>
+      </article>
+
+      <article class="pt">
+        <span class="node"></span>
+        <div class="txt">
+          <span class="num">02</span>
+          <h3>I ship, and I can prove it.</h3>
+          <p>Every case study above went live. Tested, maintained, and still working. That’s a track record, not a promise.</p>
+        </div>
+      </article>
+
+      <article class="pt">
+        <span class="node"></span>
+        <div class="txt">
+          <span class="num">03</span>
+          <h3>I use AI as leverage, not as a crutch.</h3>
+          <p>I use AI-assisted engineering to move faster, then verify, test, and take responsibility for every line that ships. In 2027, that judgment is the skill that matters.</p>
+        </div>
+      </article>
+
+      <article class="pt">
+        <span class="node"></span>
+        <div class="txt">
+          <span class="num">04</span>
+          <h3>I learn fast and don’t need babysitting.</h3>
+          <p>Legacy systems, new stacks, unfamiliar domains. I read the codebase, ask the right questions, and contribute early. Ramp-up time is short.</p>
+        </div>
+      </article>
+
+      <article class="pt">
+        <span class="node"></span>
+        <div class="txt">
+          <span class="num">05</span>
+          <h3>I’m built for the long game.</h3>
+          <p>Hiring across borders is a commitment, and I treat it as one. I’m looking for a team to grow with, not a stepping stone. The visa process is a one-time effort on your side. The return is an engineer who stays invested in your product.</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="answer">
+      <span class="lbl">THE STRAIGHT ANSWER</span>
+      <span class="a1">A degree tells you what someone studied.</span>
+      <span class="a2">My work shows you what I can do.</span>
+      <span class="a3">Give me a real problem and a few weeks, and you won’t be asking this question anymore.</span>
+    </div>
+
+    <div class="ctawrap">
+      <a class="cta" href="#contact">LET’S TALK <b>→</b></a>
+      <p class="micro">Open to relocation across Europe. Visa sponsorship welcome, and I’ll make the process easy.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const sec   = document.getElementById('why-me');
+  const svg   = sec.querySelector('.thread');
+  const draw  = svg.querySelector('.t-draw');
+  const ghost = svg.querySelector('.t-ghost');
+  const nodes = [...sec.querySelectorAll('.node')];
+  const cta   = sec.querySelector('.cta');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Where the thread enters at the top and leaves at the bottom (fraction of section width).
+  // Match these to where the thread exits the case studies and enters the next section.
+  const START_X = 0.86, END_X = 0.12;
+
+  let total = 0, samples = [], nodeLen = [];
+
+  function build() {
+    const r = sec.getBoundingClientRect(), W = r.width, H = r.height;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width', W); svg.setAttribute('height', H);
+
+    const pts = nodes.map(n => {
+      const b = n.getBoundingClientRect();
+      return [b.left - r.left + b.width / 2, b.top - r.top + b.height / 2];
+    });
+    const c = cta.getBoundingClientRect();
+    const cx = c.left - r.left + c.width / 2;
+    const y1 = c.top - r.top - 48, y2 = c.bottom - r.top + 48;
+    const rx = c.width / 2 + 70, ry = (y2 - y1) / 2;
+
+    let prev = [W * START_X, 0];
+    let d = `M${prev[0]},0`;
+    pts.forEach(p => {
+      const my = (prev[1] + p[1]) / 2;
+      d += ` C${prev[0]},${my} ${p[0]},${my} ${p[0]},${p[1]}`;
+      prev = p;
+    });
+    const my = (prev[1] + y1) / 2;
+    d += ` C${prev[0]},${my} ${cx},${my} ${cx},${y1}`;
+    d += ` A${rx},${ry} 0 0 1 ${cx},${y2} A${rx},${ry} 0 0 1 ${cx},${y1} A${rx + 16},${ry + 8} 0 0 1 ${cx},${y2}`;
+    d += ` C${cx},${y2 + (H - y2) * .5} ${W * END_X},${y2 + (H - y2) * .35} ${W * END_X},${H}`;
+
+    draw.setAttribute('d', d);
+    ghost.setAttribute('d', d);
+    total = draw.getTotalLength();
+    draw.style.strokeDasharray = total;
+
+    // sample the path so we can map "how far down the screen" to "how much thread"
+    samples = [];
+    let maxY = 0;
+    for (let i = 0; i <= 600; i++) {
+      const L = total * i / 600, p = draw.getPointAtLength(L);
+      maxY = Math.max(maxY, p.y);
+      samples.push([L, maxY, p.x, p.y]);
+    }
+    nodeLen = pts.map(p => {
+      let best = 0, bd = Infinity;
+      samples.forEach((s, i) => {
+        const dd = (s[2] - p[0]) ** 2 + (s[3] - p[1]) ** 2;
+        if (dd < bd) { bd = dd; best = i; }
+      });
+      return samples[best][0];
+    });
+    update();
+  }
+
+  function update() {
+    if (!total) return;
+    let len = total;
+    if (!still) {
+      const top = sec.getBoundingClientRect().top;
+      const revealY = innerHeight * 0.62 - top;
+      len = 0;
+      for (const s of samples) { if (s[1] <= revealY) len = s[0]; else break; }
+    }
+    draw.style.strokeDashoffset = total - len;
+    nodes.forEach((n, i) => n.classList.toggle('on', len >= nodeLen[i] - 4));
+  }
+
+  let tick = false;
+  addEventListener('scroll', () => {
+    if (tick) return; tick = true;
+    requestAnimationFrame(() => { update(); tick = false; });
+  }, { passive: true });
+
+  new ResizeObserver(build).observe(sec);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+  build();
+})();
+</script>
+</body>
+</html>

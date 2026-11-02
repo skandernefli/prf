@@ -458,6 +458,103 @@ export default function Home() {
           </article>
         </div>
 
+        <section className="why-me" id="why-me" aria-labelledby="why-me-title">
+          <div className="why-me-inner">
+            <p className="why-me-eyebrow">
+              <span className="why-me-eyebrow-dot" aria-hidden="true" />
+              WHY ME
+            </p>
+
+            <h2 className="why-me-title" id="why-me-title">
+              <span>The risk</span>
+              <span>you’re weighing</span>
+              <span>is smaller</span>
+              <span>than it looks.</span>
+            </h2>
+            <p className="why-me-intro">
+              You’ve seen the work. Here’s what it means for your team.
+            </p>
+
+            <div className="why-me-points">
+              <article className="why-me-point">
+                <span className="why-me-node" aria-hidden="true" />
+                <div className="why-me-point-copy">
+                  <span className="why-me-number">01</span>
+                  <h3 className="why-me-point-title">
+                    I own outcomes, not tickets.
+                  </h3>
+                  <p className="why-me-point-description">
+                    I start from the problem and stay until it’s running in
+                    production and improving. Fewer handoffs, fewer gaps, less
+                    of your senior engineers’ time spent chasing context.
+                  </p>
+                </div>
+              </article>
+
+              <article className="why-me-point">
+                <span className="why-me-node" aria-hidden="true" />
+                <div className="why-me-point-copy">
+                  <span className="why-me-number">02</span>
+                  <h3 className="why-me-point-title">
+                    I ship, and I can prove it.
+                  </h3>
+                  <p className="why-me-point-description">
+                    Every case study above went live. Tested, maintained, and
+                    still working. That’s a track record, not a promise.
+                  </p>
+                </div>
+              </article>
+
+              <article className="why-me-point">
+                <span className="why-me-node" aria-hidden="true" />
+                <div className="why-me-point-copy">
+                  <span className="why-me-number">03</span>
+                  <h3 className="why-me-point-title">
+                    I use AI as leverage, not as a crutch.
+                  </h3>
+                  <p className="why-me-point-description">
+                    I use AI-assisted engineering to move faster, then verify,
+                    test, and take responsibility for every line that ships. In
+                    2027, that judgment is the skill that matters.
+                  </p>
+                </div>
+              </article>
+
+              <article className="why-me-point">
+                <span className="why-me-node" aria-hidden="true" />
+                <div className="why-me-point-copy">
+                  <span className="why-me-number">04</span>
+                  <h3 className="why-me-point-title">
+                    I learn fast and don’t need babysitting.
+                  </h3>
+                  <p className="why-me-point-description">
+                    Legacy systems, new stacks, unfamiliar domains. I read the
+                    codebase, ask the right questions, and contribute early.
+                    Ramp-up time is short.
+                  </p>
+                </div>
+              </article>
+
+              <article className="why-me-point">
+                <span className="why-me-node" aria-hidden="true" />
+                <div className="why-me-point-copy">
+                  <span className="why-me-number">05</span>
+                  <h3 className="why-me-point-title">
+                    I’m built for the long game.
+                  </h3>
+                  <p className="why-me-point-description">
+                    Hiring across borders is a commitment, and I treat it as
+                    one. I’m looking for a team to grow with, not a stepping
+                    stone. The visa process is a one-time effort on your side.
+                    The return is an engineer who stays invested in your
+                    product.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
         <section
           className="about-story"
           id="about"
@@ -467,13 +564,13 @@ export default function Home() {
             <div className="about-profile">
               <div className="about-intro">
                 <h2 className="about-heading" id="about-title">
-                  <span>EVERY PRODUCT</span>
-                  <span>CARRIES A</span>
-                  <span>HUMAN IMPRINT.</span>
+                  <span>ONE THREAD,</span>
+                  <span>FROM PROBLEMA</span>
+                  <span>TO PRODUCTION.</span>
                 </h2>
                 <p className="about-personal">
-                  Mine comes from understanding people, shaping how things feel,
-                  and building the systems that make them work.
+                  I stay with an idea through every stage: understanding it,
+                  designing it, building it, and keeping it alive after launch.
                 </p>
               </div>
               <div className="about-byline">
