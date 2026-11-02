@@ -314,22 +314,22 @@ export default function Home() {
               </figure>
               <ProjectTitle id="norma-title">NORMA</ProjectTitle>
               <figure className="scan-paper scan-paper-acme">
-                <InlineReferenceSvg label="ACME SUPPLY invoice" />
+                <InlineReferenceSvg name="acme-invoice" />
               </figure>
               <figure className="scan-paper scan-paper-river">
-                <InlineReferenceSvg label="RIVER &amp; CO. invoice" />
+                <InlineReferenceSvg name="river-invoice" />
               </figure>
               <figure className="scan-paper scan-paper-river scan-paper-river-cover">
-                <InlineReferenceSvg label="RIVER &amp; CO. invoice" />
+                <InlineReferenceSvg name="river-invoice" />
               </figure>
               <figure className="scan-paper scan-paper-front">
-                <InlineReferenceSvg label="Northridge invoice INV-1042, total 1,280.00, verified" />
+                <InlineReferenceSvg name="northridge-invoice-verified" />
               </figure>
               <figure className="scan-paper scan-paper-main">
-                <InlineReferenceSvg label="Northridge invoice INV-1042, total 1,280.00, verified" />
+                <InlineReferenceSvg name="northridge-invoice-verified" />
               </figure>
               <figure className="scan-paper scan-paper-rejected">
-                <InlineReferenceSvg label="HARBOR LTD. invoice, rejected" />
+                <InlineReferenceSvg name="harbor-invoice-rejected" />
               </figure>
               <InlineReferenceElement
                 label="Extracted invoice values"
@@ -357,11 +357,11 @@ export default function Home() {
                 <InlineSvg asset="a-fork-in-flat-linework-mvv7kqxu.svg" />
               </figure>
               <figure className="world-object mesa-message">
-                <InlineReferenceSvg label="Employee in Teams or Slack: Order a rice bowl from Bowlstory." />
+                <InlineReferenceSvg name="bowlstory-order-message" />
               </figure>
               <ProjectTitle id="mesa-title">SHOPOPS</ProjectTitle>
               <figure className="world-object mesa-ticket">
-                <InlineReferenceSvg label="Bowlstory order confirmed: one rice bowl, total 240 rupees" />
+                <InlineReferenceSvg name="bowlstory-order-confirmation" />
               </figure>
               <figure className="world-object mesa-reply">
                 <InlineSvg asset="mealops-replies-order-placed-your-rice-bowl-is-on-its-way-mvv7kwbt.svg" />
