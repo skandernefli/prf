@@ -454,7 +454,8 @@ body {
   width: max-content;
   max-width: calc(50% - var(--page-pad));
   font-size: min(var(--support-size), calc((50vw - var(--page-pad)) / 32));
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .world-kicker,

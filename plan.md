@@ -105,10 +105,10 @@ Out of scope:
       - `wall-repair-completed-4800-becomes-an-expense-in-the-property-ledger-mvv7k3he.svg`
       - `property-03-ledger-rent-32000-repair-4800-other-expenses-1250-net-25950-the-same-repair-record-carries-into-itr--schedule-hp-mvv7k7e4.svg`
    2. **Orbit** — near-black. Kicker `02 / AGENTIC AI`. Description: `Ask for what you need and Orbit works across the right tools to get it done.` Large warm-ivory `ORBIT` title, central agent conversation/product panel, and surrounding compact system/status panels. Match the screenshots and source inline SVG composition; use the supplied `svg-19`, `svg-20`, `svg-22`, both `svg-24` variants, `svg-26`, `svg-37`, and `svg-38` only where their actual vector contents match the reference. Do not use these by filename alone or invent a panel.
-   3. **MealOPS** — warm ivory. Kicker `03 / WORKPLACE MEALS`. Description: `A workplace meal platform for ordering food, managing benefits and running meal programs.` Large dark `MEALOPS` title. Show the architectural plate/fork line art, food selection/order UI, order confirmation, delivery bag, and summary dashboard. Use:
+   3. **e-ops** — warm ivory. Kicker `03 / WORKPLACE MEALS`. Description: `A workplace meal platform for ordering food, managing benefits and running meal programs.` Large dark `e-ops` title. Show the architectural plate/fork line art, food selection/order UI, order confirmation, delivery bag, and summary dashboard. Use:
       - `a-fork-in-flat-linework-mvv7kqxu.svg`
       - `a-plate-drawn-in-fine-architectural-lines-mvv7kq9l.svg`
-      - `mealops-replies-order-placed-your-rice-bowl-is-on-its-way-mvv7kwbt.svg`
+      - `e-ops-replies-order-placed-your-rice-bowl-is-on-its-way-mvv7kwbt.svg`
       - `meal-delivery-bag-on-the-way-arrives-at-1245-mvv7kzo8.svg`
    4. **norma** — near-black. Kicker `04 / DOCUMENT AUTOMATION`. Description: `Upload accounting documents and turn them into reviewed, structured data ready to use.` Large warm-ivory `norma` title. Show the tilted invoice/document stack and extracted-values panel as in the HTML/screenshots; use the matching inline SVG composition from the saved HTML and supplied vectors, not a generic replacement.
    5. **Scribe** — warm ivory. Kicker `05 / MEETING INTELLIGENCE`. Description: `Turn meetings into structured documents such as BRDs, SOPs and project charters.` Large dark `SCRIBE` title. Show recording playback, AI analysis/summary, generated project charter, and reply/status UI. Use:
@@ -116,7 +116,7 @@ Out of scope:
       - `ai-analyzes-the-meeting-to-identify-goals-owners-and-decisions-mvv7l7uu.svg`
       - `generated-project-charter-goal-owners-and-key-decisions-a-revision-adds-the-approval-requirement-mvv7lan7.svg` (use the `...mvv7laz9.svg` duplicate only if it is the matching reference variant)
       - `scribe-replies-updated-in-version-2-mvv7lbwl.svg`
-   6. **Crediflow** — near-black. Kicker `06 / DIGITAL LENDING`. Description: `Apply for a business loan, submit financial documents and move from eligibility to disbursement.` Large warm-ivory `CREDIFLOW` title. Show the PAN card, GST return, business bank statements, income-tax returns, financial assessment, eligibility/outcome, and loan amount as in the screenshot/HTML. Use:
+   6. **LEGALEXY** — near-black. Kicker `06 / DIGITAL LENDING`. Description: `Apply for a business loan, submit financial documents and move from eligibility to disbursement.` Large warm-ivory `LEGALEXY` title. Show the PAN card, GST return, business bank statements, income-tax returns, financial assessment, eligibility/outcome, and loan amount as in the screenshot/HTML. Use:
       - `pan-identity-card-with-masked-personal-details-mvv7le41.svg`
       - `gst-return-with-filing-period-masked-gstin-and-tax-summary-mvv7lf08.svg`
       - `six-months-of-business-bank-statements-mvv7lkll.svg`
@@ -177,7 +177,7 @@ Read `AGENTS.md`, the relevant Next.js 16 guide under `node_modules/next/dist/do
 - `references/screenshots/website_screenshot_mobile_sm.png` (320 CSS px)
 - `public/assets/` for the supplied SVG source artwork.
 
-Build the complete home page, not just the first viewport: fixed header; hero; practice intro; capabilities; all six project sections (Eigna, Orbit, MealOPS, norma, Scribe, Crediflow); about; contact ending. Use all exact headings, body copy, project kickers, project ordering, and named assets from the “Exact page content and order” section of this plan. The screenshots are the visual authority for composition and responsive placements; the saved HTML is the authority for exact text and SVG contents.
+Build the complete home page, not just the first viewport: fixed header; hero; practice intro; capabilities; all six project sections (Eigna, Orbit, e-ops, norma, Scribe, LEGALEXY); about; contact ending. Use all exact headings, body copy, project kickers, project ordering, and named assets from the “Exact page content and order” section of this plan. The screenshots are the visual authority for composition and responsive placements; the saved HTML is the authority for exact text and SVG contents.
 
 ### Visual requirements
 

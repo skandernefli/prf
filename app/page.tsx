@@ -272,8 +272,8 @@ export default function Home() {
           >
             <ProjectHeader
               number="01"
-              category="PROPERTY MANAGEMENT"
-              description="Manage properties, tenants, rent, maintenance and finances from one place."
+              category="BUSINESS PROCESS AUTOMATION"
+              description="Automated product configuration, quotation generation, and order management for a manufacturing business."
             />
             <div className="world-composition">
               <figure className="world-object kabri-flat">
@@ -302,8 +302,8 @@ export default function Home() {
           >
             <ProjectHeader
               number="02"
-              category="DOCUMENT AUTOMATION"
-              description="Upload accounting documents and turn them into reviewed, structured data ready to use."
+              category="REAL ESTATE DATA INTELLIGENCE & ANALYTICS"
+              description="A real estate intelligence platform unifying property data, analytics, and business insights."
             />
             <div className="world-composition">
               <figure className="scan-ledger scan-ledger-top">
@@ -359,7 +359,7 @@ export default function Home() {
               <figure className="world-object mesa-message">
                 <InlineReferenceSvg label="Employee in Teams or Slack: Order a rice bowl from Bowlstory." />
               </figure>
-              <ProjectTitle id="mesa-title">MEALOPS</ProjectTitle>
+              <ProjectTitle id="mesa-title">SHOPOPS</ProjectTitle>
               <figure className="world-object mesa-ticket">
                 <InlineReferenceSvg label="Bowlstory order confirmed: one rice bowl, total 240 rupees" />
               </figure>
@@ -404,7 +404,7 @@ export default function Home() {
                 id="creditflow-title"
                 className="world-title credit-title"
               >
-                CREDIFLOW
+                LEGALEXY
               </ProjectTitle>
               <figure className="world-object credit-document credit-bank">
                 <InlineSvg asset="six-months-of-business-bank-statements-mvv7lkll.svg" />
@@ -477,8 +477,10 @@ export default function Home() {
                 </p>
               </div>
               <div className="about-byline">
-                <p className="about-name">DAKSH GAJJAR.</p>
-                <p className="about-role">Product designer. Curious builder.</p>
+                <p className="about-name">SKANDER NEFLI</p>
+                <p className="about-role">
+                  FULLSTACK DEVELOPER. Curious builder.
+                </p>
               </div>
             </div>
           </div>

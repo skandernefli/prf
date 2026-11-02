@@ -1,1 +1,14 @@
-<svg viewBox="0 0 90 490" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A fork in flat linework"><path d="M18 8h6l2 76h9L37 8h6l2 76h9L56 8h6l2 76h9L75 8h6l1 89c0 18-12 26-22 30l2 332c0 22-28 22-28 0l4-332C23 122 13 113 14 95Z" fill="var(--world-bg)" stroke="currentColor" stroke-width="1.2"/><path d="M24 98c0 12 12 19 25 19s24-8 24-19M49 135l-1 319" stroke="currentColor" stroke-width=".7" opacity=".5"/></svg>
+<svg viewBox="0 0 90 490" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="A medical cane in flat linework">
+    <g transform="scale(1.05)">
+        <path
+            d="M53 22c7 2 11 7 11 13 0 4-1 8-3 12L52 71c-2 5-3 10-3 16v336l5 16c1 4-1 7-5 7H40c-4 0-6-3-5-7l6-16V87c0-7 1-13 4-19l11-22c2-4 4-7 4-10 0-3-2-6-7-8Z"
+            fill="var(--world-bg)" stroke="currentColor" stroke-width="1.2" />
+        <path d="M22 22c-2 4 1 7-1 12-2 6 1 11-1 17-2 6 1 11 0 17 0 7 2 13 5 13s4-4 3-9c-1-6 1-11-1-17-2-6 1-11-1-17-2-5 1-8-1-12"
+            stroke="currentColor" stroke-width="1.2" opacity=".7" />
+        <path d="M25 8h26c4 0 7 3 7 7v1c0 4-3 7-7 7H25c-4 0-6-3-6-7v-1c0-4 2-7 6-7Z"
+            fill="var(--world-bg)" stroke="currentColor" stroke-width="1.2" />
+        <path d="M23 12c1-2 2-3 4-3h22c2 0 4 1 5 3M45 87v336M43 426l-5 14M47 426l5 14M39 440h13"
+            stroke="currentColor" stroke-width=".7" opacity=".5" />
+    </g>
+</svg>

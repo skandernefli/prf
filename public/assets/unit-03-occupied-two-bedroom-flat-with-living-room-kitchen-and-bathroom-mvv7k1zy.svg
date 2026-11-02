@@ -1,5 +1,5 @@
 <svg viewBox="0 0 620 345" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
-    aria-label="Unit 03: occupied two-bedroom flat with living room, kitchen and bathroom">
+    aria-label="Cab 03: blueprint waiting for approval">
     <defs>
         <mask id="kabri-flat-wall-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="620" height="345">
             <rect width="620" height="345" fill="white" />
@@ -62,6 +62,6 @@
         <path
             d="M433 190h59v15h-59zM439 193h22v8h-22zM466 193h21v8h-21zM526 190h61v45h-61zM531 195h51v35h-51zM530 230l53-35M448 267h20v13h-20zM449 282c-5 22 25 22 18 0zM508 264h79v43h-79zM514 269h67v32h-67q-9-16 0-32" />
     </g>
-    <g fill="currentColor" font-size="10"><text x="5" y="340">UNIT 03</text><text class="kabri-occupied" x="84"
-            y="340">OCCUPIED</text><text x="610" y="340" text-anchor="end">2 BED / 1 BATH</text></g>
+    <g fill="currentColor" font-size="10"><text x="5" y="340">CAB 1103</text><text class="kabri-occupied" x="84"
+            y="340">APPROVED</text><text x="610" y="340" text-anchor="end">10' x 12' or 12' x 20'</text></g>
 </svg>
