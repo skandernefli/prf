@@ -17,11 +17,13 @@ import {
   middle,
   mobileCapabilitiesTemplates,
   moveCommand,
+  parsePath,
   pathEnd,
   projectTemplates,
   retargetEnd,
   retargetStart,
   segmentPath,
+  serializePath,
   tailCommand,
   transformPath,
   workTemplate,
@@ -77,6 +79,26 @@ const rectFromElement = (element: Element, rootRect: DOMRect): Rect => {
   };
 };
 
+const projectCopyBottom = (
+  root: HTMLElement,
+  rootRect: DOMRect,
+  id: string,
+): number => {
+  const project = root.querySelector<HTMLElement>(`#${id}`);
+  if (!project) {
+    throw new Error(`Thread layer requires the "${id}" project section.`);
+  }
+
+  const copy = project.querySelectorAll<HTMLElement>(
+    ".world-kicker, .world-description",
+  );
+  return Math.max(
+    ...Array.from(copy, (element) =>
+      rectFromElement(element, rootRect).bottom,
+    ),
+  );
+};
+
 const selectedRect = (
   root: HTMLElement,
   rootRect: DOMRect,
@@ -99,15 +121,15 @@ function appendNodePass(
   laneX: number,
   halfSpan = 52,
 ) {
-  const handle = halfSpan / 2;
+  const handle = halfSpan * 0.45;
   builder.cubic(
-    { x: laneX, y: node.y - handle },
+    { x: laneX, y: node.y - halfSpan + handle },
     { x: node.x, y: node.y - handle },
     { x: node.x, y: node.y },
   );
   builder.cubic(
     { x: node.x, y: node.y + handle },
-    { x: laneX, y: node.y + handle },
+    { x: laneX, y: node.y + halfSpan - handle },
     { x: laneX, y: node.y + halfSpan },
   );
 }
@@ -288,7 +310,7 @@ function buildDesktopCapabilities(
   const splitY = orbit.top - 18;
   const mergeY = orbit.top + orbit.height - 18;
   const railRight = width - 12;
-  const railLeft = 12;
+  const railLeft = Math.max(48, width * 0.0578);
   const heading = orbit.top;
   const lowerRailY = Math.min(
     splitY - 44,
@@ -391,13 +413,16 @@ function buildMobileCapabilities(
 
   const itemRight = Math.max(...items.slice(0, 5).map((item) => item.right));
   const itemLeft = Math.min(...items.slice(5).map((item) => item.left));
-  const armHalf = Math.max(
-    28,
-    Math.min(43.47, itemRight - 10 - centerX, itemLeft - 10 - centerX),
+  const naturalRail = 50.96875 * scaleX;
+  const railRoom = Math.min(
+    centerX - itemRight - 16,
+    itemLeft - 16 - centerX,
   );
-  const armScale = armHalf / 43.47;
+  const armScale = clamp(railRoom / naturalRail, 0.36, 0.644);
   const transformX = (x: number) =>
     centerX + (x * scaleX - 187.5 * scaleX) * armScale;
+  const leftArmX = transformX(136.53125);
+  const rightArmX = transformX(238.46875);
 
   const transformCapability = (d: string, retarget?: Point) => {
     let next = transformPath(d, (value) => ({
@@ -425,7 +450,7 @@ function buildMobileCapabilities(
   });
   const exitD = retargetEnd(
     transformCapability(mobileCapabilitiesTemplates.exit.d),
-    { x: (262.5 * width) / 375, y: projectsTop },
+    { x: width - 12, y: projectsTop },
   );
 
   const routes: ThreadRoute[] = [
@@ -451,18 +476,15 @@ function buildMobileCapabilities(
       id: "capabilities-exit",
       d: exitD,
       start: { x: centerX, y: mergeY },
-      end: { x: (262.5 * width) / 375, y: projectsTop },
+      end: { x: width - 12, y: projectsTop },
     },
   ];
 
-  const leftArmX = centerX - armHalf;
-  const rightArmX = centerX + armHalf;
   const markers: ThreadMarker[] = items.map((item, index) => ({
     kind: "row",
     x: index < 5 ? leftArmX : rightArmX,
     y: item.top + Math.min(10, item.height * 0.09),
     radius: 6.5,
-    core: 2.2,
   }));
   markers.push(
     { kind: "junction", x: centerX, y: splitY, radius: 4 },
@@ -472,11 +494,142 @@ function buildMobileCapabilities(
   return { routes, markers };
 }
 
+type CreditFigures = {
+  pan: Rect;
+  gst: Rect;
+  bank: Rect;
+  itr: Rect;
+  outcome: Rect;
+};
+
+function lerp(from: number, to: number, ratio: number) {
+  return from + (to - from) * ratio;
+}
+
+function buildDesktopCreditflow(
+  credit: Rect,
+  figures: CreditFigures,
+  intro: Rect,
+  start: Point,
+  end: Point,
+): ThreadRoute {
+  const { pan, gst, bank, itr, outcome } = figures;
+  const topLane = intro.top - 18;
+  const gapX = (pan.right + gst.left) / 2;
+  const panTop = pan.top - 32;
+  const leftLane = pan.left - 62;
+  const panBottom = pan.bottom + 34;
+  const belowGst = gst.bottom + 60;
+  const rightLane = Math.min(credit.right - 24, outcome.right + 20);
+  const belowOutcome = outcome.bottom + 20;
+  const bankRight = bank.right + 40;
+  const belowBank = bank.bottom + 28;
+  const leftBottom = Math.max(34, bank.left - 70);
+  const bottomLane = Math.min(credit.bottom - 12, bank.bottom + 62);
+
+  const builder = new PathBuilder(start);
+
+  // Clear the project description, then drop into the gap between PAN and GST.
+  builder.cubic(
+    { x: lerp(start.x, gapX, 0.38), y: start.y + 14 },
+    { x: lerp(start.x, gapX, 0.78), y: topLane - 12 },
+    { x: gapX, y: topLane },
+  );
+  builder.cubic(
+    { x: gapX - 4, y: topLane + 50 },
+    { x: gapX, y: panTop - 30 },
+    { x: gapX, y: panTop },
+  );
+
+  // A left-hand sweep around PAN: above, outside, then below the document.
+  builder.cubic(
+    { x: gapX - 130, y: panTop },
+    { x: leftLane + 105, y: panTop },
+    { x: leftLane + 62, y: panTop + 10 },
+  );
+  builder.cubic(
+    { x: leftLane + 16, y: panTop + 22 },
+    { x: leftLane, y: panTop + 48 },
+    { x: leftLane, y: panTop + 92 },
+  );
+  builder.line({ x: leftLane, y: pan.bottom - 18 });
+  builder.cubic(
+    { x: leftLane, y: pan.bottom + 8 },
+    { x: leftLane + 38, y: panBottom },
+    { x: leftLane + 108, y: panBottom },
+  );
+  builder.cubic(
+    { x: leftLane + 230, y: panBottom },
+    { x: gapX - 84, y: panBottom + 2 },
+    { x: gapX, y: pan.bottom + 34 },
+  );
+
+  // Pass under GST and across the open band beneath the assessment panel.
+  builder.cubic(
+    { x: gapX, y: belowGst - 34 },
+    { x: gapX + 22, y: belowGst - 4 },
+    { x: gapX + 96, y: belowGst },
+  );
+  builder.cubic(
+    { x: lerp(gapX, rightLane, 0.4), y: belowGst + 8 },
+    { x: lerp(gapX, rightLane, 0.66), y: belowGst + 14 },
+    { x: lerp(gapX, rightLane, 0.86), y: belowGst + 20 },
+  );
+  builder.cubic(
+    { x: lerp(gapX, rightLane, 0.94), y: belowGst + 24 },
+    { x: rightLane - 78, y: belowGst + 32 },
+    { x: rightLane, y: belowGst + 44 },
+  );
+
+  // Run the right gutter past the outcome, then curl below it and the bank.
+  builder.cubic(
+    { x: rightLane + 2, y: belowGst + 120 },
+    { x: rightLane, y: belowOutcome - 120 },
+    { x: rightLane, y: belowOutcome },
+  );
+  builder.cubic(
+    { x: rightLane - 90, y: belowOutcome + 2 },
+    { x: outcome.left - 12, y: belowOutcome + 4 },
+    { x: itr.right + 36, y: belowOutcome + 16 },
+  );
+  builder.cubic(
+    { x: itr.right - 40, y: belowOutcome + 58 },
+    { x: bankRight + 90, y: belowBank - 58 },
+    { x: bankRight, y: belowBank },
+  );
+  builder.cubic(
+    { x: lerp(bankRight, leftBottom, 0.36), y: belowBank + 5 },
+    { x: lerp(bankRight, leftBottom, 0.7), y: belowBank + 8 },
+    { x: leftBottom, y: belowBank + 12 },
+  );
+
+  // Turn along the bottom and eke out a vertical arrival at the why-me seam.
+  builder.cubic(
+    { x: leftBottom - 16, y: belowBank + 18 },
+    { x: leftBottom - 14, y: bottomLane },
+    { x: leftBottom + 34, y: bottomLane + 6 },
+  );
+  builder.cubic(
+    { x: lerp(leftBottom, end.x, 0.32), y: bottomLane + 12 },
+    { x: end.x, y: credit.bottom - 8 },
+    { x: end.x, y: credit.bottom },
+  );
+
+  return {
+    id: "project-creditflow",
+    d: builder.d,
+    start,
+    end,
+  };
+}
+
 function buildDesktopProjects(
   kabri: Rect,
   norma: Rect,
   mesa: Rect,
   credit: Rect,
+  creditFigures: CreditFigures,
+  creditIntro: Rect,
   width: number,
   firstStart: Point,
 ): { routes: ThreadRoute[]; handoff: Point } {
@@ -516,19 +669,48 @@ function buildDesktopProjects(
         end: jCredit,
       },
     ),
-    buildProjectRoute(
-      "project-creditflow",
-      projectTemplates.creditflow.desktop,
-      { width, top: credit.top, height: credit.height },
-      {
-        referenceWidth: 1440,
-        start: jCredit,
-        end: jWhy,
-      },
+    buildDesktopCreditflow(
+      credit,
+      creditFigures,
+      creditIntro,
+      jCredit,
+      jWhy,
     ),
   ];
 
   return { routes, handoff: jWhy };
+}
+
+function bypassMobileCopy(
+  route: ThreadRoute,
+  copyBottom: number,
+  gutter: number,
+): ThreadRoute {
+  const commands = parsePath(route.d);
+  const joinIndex = commands.findIndex((command, index) => {
+    if (index === 0 || command.values.length < 2) return false;
+    return command.values[command.values.length - 1] > copyBottom + 32;
+  });
+
+  if (joinIndex < 1) return route;
+
+  const joinValues = commands[joinIndex].values;
+  const join = {
+    x: joinValues[joinValues.length - 2],
+    y: joinValues[joinValues.length - 1],
+  };
+  const builder = new PathBuilder(route.start);
+  const bypassY = copyBottom + 32;
+
+  builder.line({ x: gutter, y: bypassY });
+  builder.cubic(
+    { x: gutter, y: bypassY },
+    { x: join.x + 42, y: bypassY },
+    join,
+  );
+  appendPath(builder, serializePath(commands.slice(joinIndex + 1)));
+
+  return { ...route, d: builder.d };
 }
 
 function buildMobileProjects(
@@ -536,56 +718,72 @@ function buildMobileProjects(
   norma: Rect,
   mesa: Rect,
   credit: Rect,
+  copyBottoms: [number, number, number, number],
   width: number,
   firstStart: Point,
   gutter: number,
 ): { routes: ThreadRoute[]; handoff: Point } {
-  const scaleX = width / 375;
-  const jNorma = { x: 270 * scaleX, y: kabri.bottom };
-  const jMesa = { x: 221.25 * scaleX, y: norma.bottom };
-  const jCredit = { x: 277.5 * scaleX, y: mesa.bottom };
+  const jNorma = { x: gutter, y: kabri.bottom };
+  const jMesa = { x: gutter, y: norma.bottom };
+  const jCredit = { x: gutter, y: mesa.bottom };
   const jWhy = { x: gutter, y: credit.bottom };
 
   const routes: ThreadRoute[] = [
-    buildProjectRoute(
-      "project-kabri",
-      projectTemplates.eigna.mobile,
-      { width, top: kabri.top, height: kabri.height },
-      {
-        referenceWidth: 375,
-        start: firstStart,
-        end: jNorma,
-      },
+    bypassMobileCopy(
+      buildProjectRoute(
+        "project-kabri",
+        projectTemplates.eigna.mobile,
+        { width, top: kabri.top, height: kabri.height },
+        {
+          referenceWidth: 375,
+          start: firstStart,
+          end: jNorma,
+        },
+      ),
+      copyBottoms[0],
+      gutter,
     ),
-    buildProjectRoute(
-      "project-norma",
-      projectTemplates.papertrail.mobile,
-      { width, top: norma.top, height: norma.height },
-      {
-        referenceWidth: 375,
-        start: jNorma,
-        end: jMesa,
-      },
+    bypassMobileCopy(
+      buildProjectRoute(
+        "project-norma",
+        projectTemplates.papertrail.mobile,
+        { width, top: norma.top, height: norma.height },
+        {
+          referenceWidth: 375,
+          start: jNorma,
+          end: jMesa,
+        },
+      ),
+      copyBottoms[1],
+      gutter,
     ),
-    buildProjectRoute(
-      "project-mesa",
-      projectTemplates.mesa.mobile,
-      { width, top: mesa.top, height: mesa.height },
-      {
-        referenceWidth: 375,
-        start: jMesa,
-        end: jCredit,
-      },
+    bypassMobileCopy(
+      buildProjectRoute(
+        "project-mesa",
+        projectTemplates.mesa.mobile,
+        { width, top: mesa.top, height: mesa.height },
+        {
+          referenceWidth: 375,
+          start: jMesa,
+          end: jCredit,
+        },
+      ),
+      copyBottoms[2],
+      gutter,
     ),
-    buildProjectRoute(
-      "project-creditflow",
-      projectTemplates.creditflow.mobile,
-      { width, top: credit.top, height: credit.height },
-      {
-        referenceWidth: 375,
-        start: jCredit,
-        end: jWhy,
-      },
+    bypassMobileCopy(
+      buildProjectRoute(
+        "project-creditflow",
+        projectTemplates.creditflow.mobile,
+        { width, top: credit.top, height: credit.height },
+        {
+          referenceWidth: 375,
+          start: jCredit,
+          end: jWhy,
+        },
+      ),
+      copyBottoms[3],
+      gutter,
     ),
   ];
 
@@ -838,10 +1036,13 @@ function buildDesktopContact(
   backToTop: Rect,
   width: number,
 ): { route: ThreadRoute; terminal: Point } {
-  const left = Math.max(statement.right + 24, links.right + 30, width * 0.64);
   const right = width - 24;
+  const left = Math.min(
+    right - 160,
+    Math.max(statement.right + 24, width * 0.62),
+  );
   const top = contact.top + 48;
-  const bottom = backToTop.top - 120;
+  const bottom = Math.min(backToTop.top - 120, links.top - 40);
   const rect: Rect = {
     left,
     top,
@@ -881,25 +1082,22 @@ function buildDesktopContact(
   appendPath(builder, tangle.d);
 
   const terminal = at(backToTop, 0.9, 0.5);
-  const tailStart = tangle.end;
-  const tailPoints: Point[] = [
+  const exitY = links.top - 24;
+  const tailY = links.bottom + 28;
+
+  builder.cubic(
     {
-      x: Math.max(links.right + 80, (left + right) / 2),
-      y: Math.max(links.bottom + 30, backToTop.top - 92),
+      x: tangle.end.x + tangle.endTangent.x * 42,
+      y: tangle.end.y + tangle.endTangent.y * 42,
     },
-    { x: width * 0.34, y: backToTop.top - 54 },
-    { x: backToTop.left + backToTop.width * 0.54, y: backToTop.top - 9 },
+    { x: right, y: exitY - 36 },
+    { x: right, y: exitY },
+  );
+  builder.line({ x: right, y: tailY });
+  builder.cubic(
+    { x: right - 90, y: tailY },
+    { x: terminal.x + 140, y: terminal.y + 18 },
     terminal,
-  ];
-  appendPath(
-    builder,
-    `${moveCommand(tailStart)} ${tailCommand(
-      tailStart,
-      tangle.endTangent,
-      tailPoints,
-      170,
-      38,
-    )}`,
   );
 
   return {
@@ -1021,6 +1219,25 @@ function buildGeometry(root: HTMLElement): ThreadGeometry {
   const norma = rect("project-norma");
   const mesa = rect("project-mesa");
   const credit = rect("project-creditflow");
+  const creditFigures: CreditFigures = {
+    pan: rect("credit-pan"),
+    gst: rect("credit-gst"),
+    bank: rect("credit-bank"),
+    itr: rect("credit-itr"),
+    outcome: rect("credit-outcome"),
+  };
+  const creditIntro = selectedRect(
+    root,
+    rootRect,
+    ".creditflow-world .world-description",
+    "creditflow description",
+  );
+  const projectCopyBottoms: [number, number, number, number] = [
+    projectCopyBottom(root, rootRect, "kabri"),
+    projectCopyBottom(root, rootRect, "norma"),
+    projectCopyBottom(root, rootRect, "mesa"),
+    projectCopyBottom(root, rootRect, "creditflow"),
+  ];
   const whyMe = rect("why-me");
   const whyIntro = rect("why-me-intro");
   const about = rect("about-stage");
@@ -1037,6 +1254,15 @@ function buildGeometry(root: HTMLElement): ThreadGeometry {
     ".contact-statement",
     "contact statement",
   );
+  const contactStatementElement = root.querySelector<HTMLElement>(
+    ".contact-statement",
+  );
+  if (contactStatementElement) {
+    contactStatement.right = Math.max(
+      contactStatement.right,
+      contactStatement.left + contactStatementElement.scrollWidth,
+    );
+  }
   const contactLinks = selectedRect(
     root,
     rootRect,
@@ -1113,8 +1339,25 @@ function buildGeometry(root: HTMLElement): ThreadGeometry {
   }
 
   const projects = mobile
-    ? buildMobileProjects(kabri, norma, mesa, credit, width, routes[routes.length - 1].end, gutter)
-    : buildDesktopProjects(kabri, norma, mesa, credit, width, routes[routes.length - 1].end);
+    ? buildMobileProjects(
+        kabri,
+        norma,
+        mesa,
+        credit,
+        width,
+        routes[routes.length - 1].end,
+        gutter,
+      )
+    : buildDesktopProjects(
+        kabri,
+        norma,
+        mesa,
+        credit,
+        creditFigures,
+        creditIntro,
+        width,
+        routes[routes.length - 1].end,
+      );
   projects.routes.forEach(add);
 
   const whyNodes = Array.from({ length: 5 }, (_, index) =>
@@ -1196,6 +1439,9 @@ export function ThreadLayer() {
     const updateGeometry = () => {
       if (!active) return;
 
+      const rootRect = root.getBoundingClientRect();
+      if (rootRect.width <= 0 || rootRect.height <= 0) return;
+
       const nextGeometry = buildGeometry(root);
       setGeometry((current) =>
         current &&
@@ -1267,6 +1513,7 @@ export function ThreadLayer() {
               key={route.id}
               className="thread-path"
               d={route.d}
+              data-route={route.id}
               clipPath={
                 route.clip === "about" ? "url(#thread-about-clip)" : undefined
               }

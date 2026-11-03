@@ -20,6 +20,7 @@ type HeroRing = {
 type HeroGeometry = {
   width: number;
   height: number;
+  origin: Point;
   back: string[];
   front: string[];
   rings: HeroRing[];
@@ -146,6 +147,7 @@ function desktopGeometry(
   return {
     width,
     height,
+    origin,
     back,
     front,
     rings: [{ ...squiggle, radius: 9, core: 3 }],
@@ -260,6 +262,7 @@ function mobileGeometry(
   return {
     width,
     height,
+    origin,
     back,
     front,
     rings: [{ ...m10End, radius: 9, core: 3 }],
@@ -342,6 +345,14 @@ export function HeroThread({ children }: { children: ReactNode }) {
         width={geometry?.width ?? 1}
         height={geometry?.height ?? 1}
       >
+        {geometry ? (
+          <circle
+            className="thread-origin-dot"
+            cx={geometry.origin.x}
+            cy={geometry.origin.y}
+            r={4}
+          />
+        ) : null}
         {geometry?.back.map((d, index) => (
           <path className="thread-path" d={d} key={`back-${index}`} />
         ))}

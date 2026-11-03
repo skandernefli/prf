@@ -477,7 +477,6 @@ export function capabilityRowMarkers(
         x: side === "left" ? mobileLeftX : mobileRightX,
         y,
         radius: 6.5,
-        core: 2.2,
       };
     }
 
@@ -489,7 +488,6 @@ export function capabilityRowMarkers(
       x: side === "left" ? centerX - offset : centerX + offset,
       y,
       radius: 6.5,
-      core: 2.2,
     };
   });
 }

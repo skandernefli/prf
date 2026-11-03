@@ -90,12 +90,16 @@ body {
 }
 
 .thread-marker {
-  fill: var(--ivory);
+  fill: none;
   stroke: var(--signal);
   stroke-width: 1.8px;
 }
 
 .thread-marker-core {
+  fill: var(--signal);
+}
+
+.thread-origin-dot {
   fill: var(--signal);
 }
 
