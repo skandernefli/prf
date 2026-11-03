@@ -1114,66 +1114,87 @@ function buildDesktopContact(
 function buildMobileContact(
   jContact: Point,
   contact: Rect,
+  statement: Rect,
   links: Rect,
   backToTop: Rect,
   width: number,
 ): { route: ThreadRoute; terminal: Point } {
   const gutter = width - 12;
-  const left = width * 0.34;
-  const right = width - 20;
-  const top = links.bottom + 8;
-  const bottom = backToTop.top - 8;
+  const leftGutter = 8;
+  const terminal = at(backToTop, 0.9, 0.5);
+  const copyOverflows = links.right > gutter - 4;
+  const tailGutter = copyOverflows ? leftGutter : gutter;
+
+  // The statement and link cards fill, and at the narrowest widths overflow,
+  // the lower part of this section. The tangle therefore uses the clear band
+  // above the statement, and the long run follows the margin that the copy
+  // leaves clear.
+  const top = contact.top + 14;
+  const bottom = Math.min(top + 70, statement.top - 12);
+  const left = width * 0.22;
+  const right = width - 16;
   const rect: Rect = {
     left,
     top,
     right,
     bottom,
     width: right - left,
-    height: Math.max(28, bottom - top),
+    height: Math.max(48, bottom - top),
   };
-  const entryPoint = { x: right - 6, y: top + 4 };
+  const entryPoint = {
+    x: left + rect.width * 0.55,
+    y: contact.top + 6,
+  };
   const builder = new PathBuilder(jContact);
 
   builder.cubic(
-    { x: jContact.x + 40, y: jContact.y + 20 },
-    { x: gutter, y: contact.top + 44 },
-    { x: gutter, y: contact.top + 84 },
-  );
-  builder.line({ x: gutter, y: top - 22 });
-  builder.cubic(
-    { x: gutter, y: top - 4 },
-    { x: right, y: top - 8 },
-    { x: entryPoint.x, y: entryPoint.y },
+    { x: jContact.x + 8, y: jContact.y + 10 },
+    { x: entryPoint.x + 12, y: entryPoint.y - 8 },
+    entryPoint,
   );
 
   const tangle = buildTangle({
     rect,
     entry: entryPoint,
-    entryTangent: { x: -0.8, y: 0.35 },
+    entryTangent: { x: 0.2, y: 1 },
     loops: [
-      { cx: 0.55, cy: 0.34, rx: 0.42, ry: 0.34, rotation: 0.3 },
-      { cx: 0.38, cy: 0.62, rx: 0.38, ry: 0.32, rotation: -0.24 },
-      { cx: 0.6, cy: 0.8, rx: 0.34, ry: 0.26, rotation: 0.18 },
+      { cx: 0.52, cy: 0.3, rx: 0.42, ry: 0.28, rotation: 0.26 },
+      { cx: 0.38, cy: 0.55, rx: 0.36, ry: 0.26, rotation: -0.2 },
+      { cx: 0.62, cy: 0.78, rx: 0.32, ry: 0.22, rotation: 0.16 },
     ],
   });
 
   appendPath(builder, tangle.d);
 
-  const terminal = at(backToTop, 0.9, 0.5);
+  // Join the margin above the statement, then clear the copy and cards before
+  // approaching the existing back-to-top link from below.
   const tailStart = tangle.end;
+  const tailY = Math.min(backToTop.bottom + 6, contact.bottom - 8);
   appendPath(
     builder,
     `${moveCommand(tailStart)} ${tailCommand(
       tailStart,
       tangle.endTangent,
       [
-        { x: width * 0.44, y: backToTop.top - 12 },
-        { x: backToTop.right + 20, y: backToTop.top - 1 },
-        terminal,
+        { x: tailGutter, y: statement.top - 20 },
+        { x: tailGutter, y: statement.top - 10 },
       ],
-      90,
-      26,
+      60,
+      24,
     )}`,
+  );
+  builder.line({ x: tailGutter, y: tailY });
+  const approachX = terminal.x + 18;
+  builder.cubic(
+    { x: approachX, y: tailY },
+    { x: approachX, y: terminal.y + 10 },
+    { x: approachX, y: terminal.y },
+  );
+  builder.line({ x: terminal.x + 10, y: terminal.y });
+  builder.cubic(
+    { x: terminal.x + 2, y: terminal.y },
+    { x: terminal.x, y: terminal.y - 2 },
+    terminal,
   );
 
   return {
@@ -1344,6 +1365,7 @@ function buildGeometry(root: HTMLElement): ThreadGeometry {
         norma,
         mesa,
         credit,
+        projectCopyBottoms,
         width,
         routes[routes.length - 1].end,
         gutter,
@@ -1393,7 +1415,14 @@ function buildGeometry(root: HTMLElement): ThreadGeometry {
   });
 
   const contactGeometry = mobile
-    ? buildMobileContact(jContact, contact, contactLinks, backToTop, width)
+    ? buildMobileContact(
+        jContact,
+        contact,
+        contactStatement,
+        contactLinks,
+        backToTop,
+        width,
+      )
     : buildDesktopContact(
         jContact,
         contact,

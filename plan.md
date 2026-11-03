@@ -1,6 +1,6 @@
 # SVG Thread Refactor Plan
 
-Status: proposal only. No implementation files have been modified.
+Status: approved and implemented. Static geometry, responsive audits, lint, and production build verified. The final report records checks and remaining differences.
 
 Scope: the orange thread system only. All page copy, section order, typography, project mockups, contact controls, and behavior remain unchanged.
 
@@ -962,11 +962,9 @@ Not allowed:
 
 ---
 
-## 12. Approval checkpoint
+## 12. Approval and delivery
 
-This plan is ready for review. Implementation must not begin until explicitly approved.
-
-On approval, implementation will follow §7 in order and will finish with:
+Approved and implemented on 2026-11-03. Implementation followed §7 and delivered:
 
 1. `plan.md` in the project root.
 2. The refactored thread implementation.
