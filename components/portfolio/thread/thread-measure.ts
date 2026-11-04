@@ -19,10 +19,7 @@ export type MeasuredLayout = {
 
 const round = (value: number) => Math.round(value * 4) / 4;
 
-export function rectFromElement(
-  element: Element,
-  rootRect: DOMRect,
-): Rect {
+export function rectFromElement(element: Element, rootRect: DOMRect): Rect {
   const rect = element.getBoundingClientRect();
   return {
     left: rect.left - rootRect.left,
@@ -96,12 +93,9 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
 
     const label = element.getAttribute("data-thread-label") ?? "";
     const rawMode = element.getAttribute("data-thread-anchor-mode");
-    const mode =
-      rawMode === "range" || rawMode === "center" ? rawMode : "rect";
+    const mode = rawMode === "range" || rawMode === "center" ? rawMode : "rect";
     const rect =
-      mode === "range"
-        ? rangeRect(element)
-        : element.getBoundingClientRect();
+      mode === "range" ? rangeRect(element) : element.getBoundingClientRect();
 
     anchors.set(id, {
       id,
@@ -121,9 +115,9 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
   if (process.env.NODE_ENV !== "production") {
     if (duplicates.size > 0) {
       throw new Error(
-        `Thread layer found duplicate anchor ids: ${Array.from(
-          duplicates,
-        ).join(", ")}`,
+        `Thread layer found duplicate anchor ids: ${Array.from(duplicates).join(
+          ", ",
+        )}`,
       );
     }
 
@@ -166,12 +160,10 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
   };
 }
 
-export function getAnchor(
-  layout: MeasuredLayout,
-  id: string,
-): MeasuredAnchor {
+export function getAnchor(layout: MeasuredLayout, id: string): MeasuredAnchor {
   const anchor = layout.anchors.get(id);
   if (!anchor) {
+    console.log("id", id);
     throw new Error(`Thread layer requires anchor "${id}".`);
   }
   return anchor;

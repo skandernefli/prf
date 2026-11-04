@@ -109,14 +109,14 @@ export function ThreadLayer() {
           range: DEFAULT_DRAW_RANGES.fingerprint,
         },
         {
-          id: "contact",
+          id: "footer",
           element: contactPathRef.current,
-          range: DEFAULT_DRAW_RANGES.contact,
+          range: DEFAULT_DRAW_RANGES.footer,
         },
       ],
       terminal: {
         element: terminalGroupRef.current,
-        at: DEFAULT_DRAW_RANGES.contact[1],
+        at: DEFAULT_DRAW_RANGES.footer[1],
       },
     });
 
@@ -166,15 +166,18 @@ export function ThreadLayer() {
 
       pagePathRef.current?.setAttribute("d", next.pagePath);
       aiPathRef.current?.setAttribute("d", next.capsAi.d);
-      fingerprintPathRef.current?.setAttribute("d", next.about.d);
-      contactPathRef.current?.setAttribute("d", next.contact.d);
+      fingerprintPathRef.current?.setAttribute("d", next.conclusion.d);
+      contactPathRef.current?.setAttribute("d", next.footer.d);
 
-      clipRectRef.current?.setAttribute("x", String(next.about.rect.left));
-      clipRectRef.current?.setAttribute("y", String(next.about.rect.top));
-      clipRectRef.current?.setAttribute("width", String(next.about.rect.width));
+      clipRectRef.current?.setAttribute("x", String(next.conclusion.rect.left));
+      clipRectRef.current?.setAttribute("y", String(next.conclusion.rect.top));
+      clipRectRef.current?.setAttribute(
+        "width",
+        String(next.conclusion.rect.width),
+      );
       clipRectRef.current?.setAttribute(
         "height",
-        String(next.about.rect.height),
+        String(next.conclusion.rect.height),
       );
 
       const markerGroups: SVGElement[] = [];
@@ -247,8 +250,8 @@ export function ThreadLayer() {
               heroFront: model?.hero.front ?? [],
               page: model?.pagePath ?? "",
               branch: model?.capsAi.d ?? "",
-              fingerprint: model?.about.d ?? "",
-              contact: model?.contact.d ?? "",
+              fingerprint: model?.conclusion.d ?? "",
+              footer: model?.footer.d ?? "",
             };
           },
           get rebuilds() {
@@ -383,7 +386,7 @@ export function ThreadLayer() {
         aria-hidden="true"
       >
         <defs>
-          <clipPath id="thread-about-clip">
+          <clipPath id="thread-conclusion-clip">
             <rect ref={clipRectRef} x="0" y="0" width="0" height="0" />
           </clipPath>
         </defs>
@@ -393,13 +396,9 @@ export function ThreadLayer() {
           ref={fingerprintPathRef}
           className="thread-fingerprint"
           d=""
-          clipPath="url(#thread-about-clip)"
+          clipPath="url(#thread-conclusion-clip)"
         />
-        <path
-          ref={contactPathRef}
-          className="thread-path thread-contact"
-          d=""
-        />
+        <path ref={contactPathRef} className="thread-path thread-footer" d="" />
         <g ref={markersRef} />
         <g ref={terminalGroupRef} className="thread-terminal-group">
           <circle

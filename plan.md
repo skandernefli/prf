@@ -27,7 +27,7 @@ Reproduce the complete static homepage layout of `https://dakshgajjar.com/` in t
 
 In scope:
 
-- The entire homepage, from the fixed header and hero through all six project scenes, the about section, and the contact ending.
+- The entire homepage, from the fixed header and hero through all six project scenes, the conclusion section, and the footer ending.
 - Accurate typography, colors, line breaks, content, spacing, section backgrounds/heights, artwork placement, and responsive reflow at every supplied screenshot width.
 - Semantic page structure and the in-page navigation anchors listed below.
 - Static SVG artwork that is independent of the continuous thread.
@@ -38,7 +38,7 @@ Out of scope:
 - Do not draw, approximate, reserve space for, or leave any part of the continuous orange thread. It is the site-wide `.thread-layer` / `.thread-path` and hero-thread system. Remove that entire connected visual route, including its hero crossings, bulb outline, capability orbit/frame/circle, project-to-project connectors, endpoints/dots/rings, and footer scribble/grip. The static text labels `INTENT`, `INTERACTION`, and `SYSTEM` are separate from that path and must remain in their screenshot positions.
 - Do preserve independent static artwork and red details inside project illustrations. Do not remove the red `BEHIND IT.` heading treatment. The exclusion is the connected thread only, not every use of vermilion.
 - Preserve the already completed preloader exactly. Do not edit its animation, timing, SVG, provider, accessibility, or ready behavior. “No animations” means no new homepage animation after the existing preloader.
-- Do not implement the mobile menu drawer, contact dialog/form, project detail routes, or interaction states. Show the same closed/default controls as the screenshots. Only the in-page navigation, scroll cue, and back-to-top anchors need work.
+- Do not implement the mobile menu drawer, footer dialog/form, project detail routes, or interaction states. Show the same closed/default controls as the screenshots. Only the in-page navigation, scroll cue, and back-to-top anchors need work.
 - Do not add/remove packages, rewrite project configuration, or alter unrelated files.
 
 ### Visual system
@@ -49,13 +49,13 @@ Out of scope:
   - Warm ivory background/primary light text: `#F1EEE6`.
   - Near-black text on the work-intro panel: `#11100F`.
   - Vermilion accent: `#FF3B12`.
-  - Muted about copy: approximately `#66625B`.
+  - Muted conclusion copy: approximately `#66625B`.
   - Avoid substituting pure white or pure white backgrounds.
 - Fonts:
   - `Archivo` variable for display headings and general sans text.
   - `IBM Plex Mono` for navigation, project numbers/kickers, compact descriptions/labels, and small interface copy.
   - Do not leave the current Geist font as the homepage font. Keep the existing preloader visually/behaviorally intact.
-- Typography is predominantly uppercase and tightly tracked. Display headings use very heavy weights (roughly 790–850), compressed line-height and negative tracking; body and project copy stays small and restrained. The reference uses a desktop edge gutter around 2.7vw (about 31px at 1140px) and a mobile gutter around 18px; use the screenshots to tune the fluid rule.
+- Typography is predominantly uppercase and tightly tracked. Display headings use very heavy weights (roughly 790–850), compressed line-height and negative tracking; body and project copy stays small and restrained. The reference uses a desktop edge gutter around 2.7vw (conclusion 31px at 1140px) and a mobile gutter around 18px; use the screenshots to tune the fluid rule.
 - The site header is fixed at the top. Desktop: `DG` at the left edge gutter and four small, letter-spaced mono links aligned right. Narrow layouts: `DG` left and `MENU` right; the menu remains closed and nonfunctional in this phase.
 - At desktop, the hero fills one viewport height. At mobile, it also fills the first viewport. Place the very large three-line hero title close to the left gutter; place supporting copy at lower left and the small scroll cue at the lower edge (right on desktop, left under the copy on mobile).
 - Match the source's full-width compositions and text/image layering. Do not use rasterized screenshots as backgrounds. Avoid horizontal overflow at any target width.
@@ -66,7 +66,7 @@ Out of scope:
    - Wordmark: `DG`.
    - Desktop nav, in order: `CAPABILITIES`, `PROJECTS`, `ABOUT`, `CONTACT`.
    - Mobile header shows `DG` and `MENU`.
-   - Anchor targets: `#capabilities`, `#projects`, `#about`, and `#contact`; the wordmark returns to the page top.
+   - Anchor targets: `#capabilities`, `#projects`, `#conclusion`, and `#footer`; the wordmark returns to the page top.
 
 2. **Hero — near-black**
    - H1, three lines: `I DESIGN` / `PRODUCTS` / `THAT THINK.`
@@ -98,7 +98,7 @@ Out of scope:
    - Match desktop side-by-side placement and the narrow-screen vertically arranged layout. No thread circle/orbit or junction decoration.
 
 5. **Project collection** — six consecutive full-width scenes, in this exact order. Keep each kicker, description, visual composition, large project wordmark, and `EXPLORE PROJECT` label from the HTML/reference. The project label is visual-only in this phase; do not link to nonexistent local project routes.
-   1. **Eigna** — warm ivory. Kicker `01 / PROPERTY MANAGEMENT`. Description: `Manage properties, tenants, rent, maintenance and finances from one place.` Large dark `EIGNA` title. Show the occupied two-bedroom flat, signed lease, inspection, completed wall repair, and property ledger/tax record as a connected product-story composition. Use the existing vectors:
+   1. **KABRI** — warm ivory. Kicker `01 / PROPERTY MANAGEMENT`. Description: `Manage properties, tenants, rent, maintenance and finances from one place.` Large dark `KABRI` title. Show the occupied two-bedroom flat, signed lease, inspection, completed wall repair, and property ledger/tax record as a connected product-story composition. Use the existing vectors:
       - `unit-03-occupied-two-bedroom-flat-with-living-room-kitchen-and-bathroom-mvv7k1zy.svg`
       - `unit-03-lease-signed-monthly-rent-32000-mvv7k5ze.svg`
       - `ai-inspection-compares-move-in-and-move-out-records-and-detects-wall-damage-with-94-percent-confidence-mvv7k4eb.svg` (use one of the duplicate `...mvv7m350.svg` files only if it is the matching variant in the reference)
@@ -133,17 +133,17 @@ Out of scope:
    - Large stacked heading: `HAVE A` / `PROBLEM` / `WORTH` / `UNTANGLING?` (line wrapping follows the reference at each width).
    - Show `LET'S TALK.` and `BACK TO TOP` with the reference underline/arrow treatments.
    - Contact action is visual-only; no form/dialog. Back-to-top is an in-page anchor.
-   - Omit the contact thread scribble, thread grip, and all other connected route elements. Do not fill the cleared area with new artwork.
+   - Omit the footer thread scribble, thread grip, and all other connected route elements. Do not fill the cleared area with new artwork.
 
 ### SVG implementation constraint
 
-SVGs are required for later path-based phases, so their vector DOM must remain available. Keep each used SVG's original markup directly at its render location in `app/page.tsx`; do not use external files, raster images, or CSS backgrounds for artwork that must expose its paths. Preserve the SVG markup, including its `viewBox`, path geometry/order, `currentColor` behavior, `var(--world-bg)` / `var(--world-fg)` usage, and accessible `role`/`aria-label`. Do not add SVGR or another package in this phase.
+SVGs are required for later path-based phases, so their vector DOM must remain available. Keep each used SVG's original markup directly at its render location in `app/page.tsx`; do not use external files, raster images, or CSS backgrounds for artwork that must expose its paths. Preserve the SVG markup, including its `viewBox`, path geometry/order, `currentColor` behavior, `var(--case-study-bg)` / `var(--case-study-fg)` usage, and accessible `role`/`aria-label`. Do not add SVGR or another package in this phase.
 
 ### Responsive and interaction rules
 
 - Compare at 1440, 1024, 768, 425, 375, and 320 CSS px widths, using the correspondingly named screenshots.
 - Desktop: header links horizontal; hero title very large and three lines; practice and capabilities compositions use the desktop spatial relationship; project scenes are broad layered compositions with kicker/description at top corners and project title integrated with artwork.
-- Tablet/mobile: header reduces to `DG` plus `MENU`; hero retains the three headline lines and puts copy/cue into the mobile positions; practice heading stays four lines; capabilities group becomes the narrow layout shown; each project scene becomes a tall, carefully layered/stacked composition without clipping or horizontal scroll; about/contact headings wrap as shown.
+- Tablet/mobile: header reduces to `DG` plus `MENU`; hero retains the three headline lines and puts copy/cue into the mobile positions; practice heading stays four lines; capabilities group becomes the narrow layout shown; each project scene becomes a tall, carefully layered/stacked composition without clipping or horizontal scroll; conclusion/footer headings wrap as shown.
 - Do not infer the mobile layouts by merely shrinking desktop. Match the different asset sizing/order and intentional whitespace in each supplied screenshot.
 - Internal anchors only: `DG` -> page top, `SCROLL TO FOLLOW THE THREAD` -> `#work`, header links -> their section IDs, `BACK TO TOP` -> page top. No smooth-scroll CSS or JS.
 - `MENU`, project `EXPLORE PROJECT`, and `LET'S TALK.` remain visible, closed/default, and do not open anything or navigate externally in this phase.
@@ -155,7 +155,7 @@ SVGs are required for later path-based phases, so their vector DOM must remain a
 3. Load Archivo and IBM Plex Mono using the repository-compatible font approach. Apply scoped font variables so the homepage gets the reference fonts without disturbing the preloader.
 4. Inline the matching SVG artwork and implement layout/styles in the existing app structure. Remove the continuous thread layer entirely; add no animation/runtime code.
 5. Capture the finished page at all six screenshot widths and compare top-to-bottom against the corresponding references. Iterate sizes, placement, line breaks, wrapping, and spacing until the layout matches. Check no horizontal overflow at every width.
-6. Verify all content/sections and SVGs are present; confirm the fixed desktop header and compact mobile header, that only in-page anchors navigate, and that no project/contact/menu behavior was added.
+6. Verify all content/sections and SVGs are present; confirm the fixed desktop header and compact mobile header, that only in-page anchors navigate, and that no project/footer/menu behavior was added.
 7. Run `pnpm lint` and `pnpm build`. Confirm there are no runtime/console errors and the existing preloader still behaves as before.
 
 ## Standalone build-agent prompt
@@ -177,24 +177,24 @@ Read `AGENTS.md`, the relevant Next.js 16 guide under `node_modules/next/dist/do
 - `references/screenshots/website_screenshot_mobile_sm.png` (320 CSS px)
 - `app/page.tsx` for the inlined project-scene SVG artwork.
 
-Build the complete home page, not just the first viewport: fixed header; hero; practice intro; capabilities; all six project sections (Eigna, Orbit, e-ops, norma, Scribe, LEGALEXY); about; contact ending. Use all exact headings, body copy, project kickers, project ordering, and named assets from the “Exact page content and order” section of this plan. The screenshots are the visual authority for composition and responsive placements; the saved HTML is the authority for exact text and SVG contents.
+Build the complete home page, not just the first viewport: fixed header; hero; practice intro; capabilities; all six project sections (KABRI, Orbit, e-ops, norma, Scribe, LEGALEXY); conclusion; footer ending. Use all exact headings, body copy, project kickers, project ordering, and named assets from the “Exact page content and order” section of this plan. The screenshots are the visual authority for composition and responsive placements; the saved HTML is the authority for exact text and SVG contents.
 
 ### Visual requirements
 
-- Colors: `#050505` near-black, `#F1EEE6` warm ivory, `#11100F` dark text on ivory, `#FF3B12` vermilion, and muted about text near `#66625B`.
+- Colors: `#050505` near-black, `#F1EEE6` warm ivory, `#11100F` dark text on ivory, `#FF3B12` vermilion, and muted conclusion text near `#66625B`.
 - Fonts: `Archivo` variable for sans/display text, `IBM Plex Mono` for nav/kickers/labels/compact descriptions. Do not use Geist for the homepage.
-- Preserve the alternating bands: dark hero; ivory practice intro; dark capabilities; six projects alternating ivory/dark/ivory/dark/ivory/dark; ivory about; dark contact.
+- Preserve the alternating bands: dark hero; ivory practice intro; dark capabilities; six projects alternating ivory/dark/ivory/dark/ivory/dark; ivory conclusion; dark footer.
 - Keep the reference's large heavy uppercase headlines, tight leading/tracking, full-width layouts, desktop edge spacing, deliberate negative space, and exact wraps as seen in each screenshot.
 - Header: fixed at top; `DG` at left. Desktop has `CAPABILITIES`, `PROJECTS`, `ABOUT`, `CONTACT` at the right. Narrow sizes show `MENU` at the right, but it does not open a drawer.
 - Hero: viewport-height dark panel; heading lines `I DESIGN`, `PRODUCTS`, `THAT THINK.`; exact support copy; static `SCROLL TO FOLLOW THE THREAD` and down arrow in reference position.
 - Practice intro: ivory; four-line heading; retain `INTENT`, `INTERACTION`, `SYSTEM` labels in their reference positions.
 - Capabilities: dark; final `BEHIND IT.` phrase is vermilion; two groups with five exact name/description pairs each.
 - Projects: preserve each exact project kicker and description, alternating background, layered vector compositions, large title and `EXPLORE PROJECT` label. Use the matching assets specified in the plan; inspect every opaque `svg-*` asset's contents before choosing it. For norma use the matching SVG composition embedded in the reference HTML and/or matching supplied artwork, not generic cards.
-- About and contact: reproduce exact text and sparse composition, including the stacked contact heading, `LET'S TALK.`, and `BACK TO TOP`.
+- About and footer: reproduce exact text and sparse composition, including the stacked footer heading, `LET'S TALK.`, and `BACK TO TOP`.
 
 ### Thread/animation exclusion
 
-Do not include the connected orange thread route anywhere: no `.thread-layer`, `.thread-path`, `.hero-thread-*`, continuous connector paths, bulb outline, capability orbit/frame/circle, route dots/rings/endpoints, footer scribble, or contact thread-grip. Do not leave reserved space for it. Keep the separate practice labels, static vermilion heading text, and unrelated red details that are part of project artwork. Do not add replacement illustrations.
+Do not include the connected orange thread route anywhere: no `.thread-layer`, `.thread-path`, `.hero-thread-*`, continuous connector paths, bulb outline, capability orbit/frame/circle, route dots/rings/endpoints, footer scribble, or footer thread-grip. Do not leave reserved space for it. Keep the separate practice labels, static vermilion heading text, and unrelated red details that are part of project artwork. Do not add replacement illustrations.
 
 Do not add GSAP or Lenis behavior, CSS keyframes/transitions, scroll reveals, parallax, smooth scrolling, cursor effects, or hover animation. The existing preloader is the sole animation and must remain unchanged.
 
@@ -204,7 +204,7 @@ The supplied vectors must remain path-accessible for later path animation. Inlin
 
 ### Interactions and accessibility
 
-Only in-page anchors work: wordmark to top, scroll cue to `#work`, header nav to `#capabilities`, `#projects`, `#about`, `#contact`, and `BACK TO TOP` to top. `MENU`, project labels, and `LET'S TALK.` are static closed/default visuals; do not create project pages, drawers, modals, or contact forms. Keep semantic heading hierarchy, meaningful SVG labels, and the reference skip-link behavior.
+Only in-page anchors work: wordmark to top, scroll cue to `#work`, header nav to `#capabilities`, `#projects`, `#conclusion`, `#footer`, and `BACK TO TOP` to top. `MENU`, project labels, and `LET'S TALK.` are static closed/default visuals; do not create project pages, drawers, modals, or footer forms. Keep semantic heading hierarchy, meaningful SVG labels, and the reference skip-link behavior.
 
 ### Responsive verification and completion
 

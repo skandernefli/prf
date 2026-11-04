@@ -244,7 +244,7 @@ declare global {
         page: string;
         branch: string;
         fingerprint: string;
-        contact: string;
+        footer: string;
       };
       readonly rebuilds: number;
       readonly tickMs: number;

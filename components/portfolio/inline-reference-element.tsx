@@ -79,7 +79,7 @@ export function InlineReferenceElement({
         </>
       ) : label === "Company wallet" ? (
         <>
-          <span className="mesa-wallet-brand">
+          <span className="shop-ops-wallet-brand">
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
@@ -91,23 +91,23 @@ export function InlineReferenceElement({
               <path d="M3.5 19.5h17M5.5 17V8.5L12 4l6.5 4.5V17" />
               <path d="M9 10.5h6M9 13.5h6" />
             </svg>
-            <span className="mesa-wallet-label">COMPANY WALLET</span>
+            <span className="shop-ops-wallet-label">COMPANY WALLET</span>
           </span>
-          <span className="mesa-wallet-amount">
+          <span className="shop-ops-wallet-amount">
             <span>C$49,760</span>
-            <small className="mesa-wallet-debit">−C$240</small>
+            <small className="shop-ops-wallet-debit">−C$240</small>
           </span>
-          <span className="mesa-wallet-status">
-            <span className="mesa-wallet-before">BALANCE</span>
+          <span className="shop-ops-wallet-status">
+            <span className="shop-ops-wallet-before">BALANCE</span>
             <span
-              className="mesa-wallet-after"
+              className="shop-ops-wallet-after"
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <span className="mesa-paid-check">
+              <span className="shop-ops-paid-check">
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 24"
@@ -126,7 +126,7 @@ export function InlineReferenceElement({
       ) : (
         <>
           <p>COMPANY OVERVIEW / TODAY</p>
-          <div className="mesa-dashboard-summary">
+          <div className="shop-ops-dashboard-summary">
             <div>
               <strong>52</strong>
               <span>Products today</span>
@@ -136,7 +136,7 @@ export function InlineReferenceElement({
               <span>Total sales</span>
             </div>
             <svg
-              className="mesa-chart"
+              className="shop-ops-chart"
               aria-hidden="true"
               viewBox="0 0 64 32"
               width="64"

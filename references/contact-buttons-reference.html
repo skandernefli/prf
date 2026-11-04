@@ -25,7 +25,7 @@
   }
 
   /* ---------- Contact list ---------- */
-  .contact-list {
+  .footer-list {
     list-style: none;
     margin: 40px 0 0;
     padding: 0;
@@ -35,14 +35,14 @@
     max-width: 960px;
   }
 
-  .contact-item {
+  .footer-item {
     display: flex;
     align-items: stretch;
     min-width: 0;
   }
 
   /* Main button = the link. Text inside stays selectable. */
-  .contact-link {
+  .footer-link {
     flex: 1 1 auto;
     min-width: 0;
     display: grid;
@@ -58,7 +58,7 @@
     transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease, color .12s ease;
   }
 
-  .contact-label {
+  .footer-label {
     grid-column: 1;
     font-family: var(--font-mono);
     font-size: 12px;
@@ -67,7 +67,7 @@
     color: var(--muted);
   }
 
-  .contact-value {
+  .footer-value {
     grid-column: 1;
     font-weight: 800;
     font-size: clamp(16px, 1.6vw, 20px);
@@ -79,7 +79,7 @@
     -webkit-user-select: text;
   }
 
-  .contact-icon {
+  .footer-icon {
     grid-column: 2;
     grid-row: 1 / span 2;
     display: flex;
@@ -92,13 +92,13 @@
     border: 2px solid currentColor;
     transition: background-color .12s ease, color .12s ease, border-color .12s ease;
   }
-  .contact-link:hover .contact-icon,
-  .contact-link:focus-visible .contact-icon {
+  .footer-link:hover .footer-icon,
+  .footer-link:focus-visible .footer-icon {
     background: var(--accent);
     color: var(--bg);
     border-color: var(--bg);
   }
-  .contact-icon svg,
+  .footer-icon svg,
   .icon-link svg {
     width: 100%;
     height: 100%;
@@ -110,7 +110,7 @@
   }
 
   /* Phone + WhatsApp share one rectangle */
-  .contact-actions {
+  .footer-actions {
     grid-column: 2;
     grid-row: 1 / span 2;
     display: flex;
@@ -138,15 +138,15 @@
     outline-offset: 3px;
   }
 
-  .contact-link:hover,
-  .contact-link:focus-visible {
+  .footer-link:hover,
+  .footer-link:focus-visible {
     background: var(--fg);
     color: var(--bg);
     transform: translate(-4px, -4px);
     box-shadow: 4px 4px 0 var(--accent);
   }
-  .contact-link:hover .contact-label,
-  .contact-link:focus-visible .contact-label { color: rgba(13, 13, 13, 0.75); }
+  .footer-link:hover .footer-label,
+  .footer-link:focus-visible .footer-label { color: rgba(13, 13, 13, 0.75); }
 
   /* Copy button (keyboard / touch friendly alternative) */
   .copy-btn {
@@ -169,14 +169,14 @@
   .copy-btn[data-copied="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
   /* Visible focus for everything */
-  .contact-link:focus-visible,
+  .footer-link:focus-visible,
   .copy-btn:focus-visible {
     outline: 3px solid var(--accent);
     outline-offset: 4px;
   }
 
   /* Status toast (also read by screen readers) */
-  .contact-status {
+  .footer-status {
     margin-top: 24px;
     min-height: 20px;
     font-family: var(--font-mono);
@@ -190,46 +190,46 @@
 
   @media (max-width: 720px) {
     body { padding: 32px 20px; }
-    .contact-list { grid-template-columns: 1fr; }
+    .footer-list { grid-template-columns: 1fr; }
     .copy-btn { width: 72px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
-    .contact-link:hover, .contact-link:focus-visible { transform: none; }
+    .footer-link:hover, .footer-link:focus-visible { transform: none; }
   }
 </style>
 </head>
 <body>
 
 <!-- Place this block directly under your "LET'S TALK." link -->
-<section class="contact" aria-labelledby="contact-title">
-  <h2 id="contact-title" style="position:absolute;left:-9999px;">Contact information</h2>
+<section class="footer" aria-labelledby="footer-title">
+  <h2 id="footer-title" style="position:absolute;left:-9999px;">Contact information</h2>
 
-  <ul class="contact-list">
-    <li class="contact-item">
-      <a class="contact-link" href="mailto:skander.nefli@gmail.com" draggable="false" aria-label="Send an email to skander.nefli@gmail.com">
-        <span class="contact-label">01 / Email</span>
-        <span class="contact-value" data-copy="skander.nefli@gmail.com">skander.nefli@gmail.com</span>
-        <span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14"/><path d="M3 6l9 7 9-7"/></svg></span>
+  <ul class="footer-list">
+    <li class="footer-item">
+      <a class="footer-link" href="mailto:skander.nefli@gmail.com" draggable="false" aria-label="Send an email to skander.nefli@gmail.com">
+        <span class="footer-label">01 / Email</span>
+        <span class="footer-value" data-copy="skander.nefli@gmail.com">skander.nefli@gmail.com</span>
+        <span class="footer-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14"/><path d="M3 6l9 7 9-7"/></svg></span>
       </a>
       <button class="copy-btn" type="button" data-copy="skander.nefli@gmail.com" aria-label="Copy email address">Copy</button>
     </li>
 
-    <li class="contact-item">
-      <a class="contact-link" href="https://www.linkedin.com/in/skander-nefli/" target="_blank" rel="noopener noreferrer" draggable="false" aria-label="Open LinkedIn profile">
-        <span class="contact-label">02 / LinkedIn</span>
-        <span class="contact-value" data-copy="https://www.linkedin.com/in/skander-nefli/">linkedin.com/in/skander-nefli</span>
-        <span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(12 12) scale(1.3) translate(-12.75 -12)"><path vector-effect="non-scaling-stroke" d="M8 10v7M8 7h.01M12 17v-7M12 13c0-1.7 1.1-3 2.8-3s2.7 1.3 2.7 3v4"/></g></svg></span>
+    <li class="footer-item">
+      <a class="footer-link" href="https://www.linkedin.com/in/skander-nefli/" target="_blank" rel="noopener noreferrer" draggable="false" aria-label="Open LinkedIn profile">
+        <span class="footer-label">02 / LinkedIn</span>
+        <span class="footer-value" data-copy="https://www.linkedin.com/in/skander-nefli/">linkedin.com/in/skander-nefli</span>
+        <span class="footer-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(12 12) scale(1.3) translate(-12.75 -12)"><path vector-effect="non-scaling-stroke" d="M8 10v7M8 7h.01M12 17v-7M12 13c0-1.7 1.1-3 2.8-3s2.7 1.3 2.7 3v4"/></g></svg></span>
       </a>
       <button class="copy-btn" type="button" data-copy="https://www.linkedin.com/in/skander-nefli/" aria-label="Copy LinkedIn URL">Copy</button>
     </li>
 
-    <li class="contact-item">
-      <div class="contact-link">
-        <span class="contact-label">03 / Phone &amp; WhatsApp</span>
-        <span class="contact-value" data-copy="+216 2106799">+216 2106799</span>
-        <span class="contact-actions">
+    <li class="footer-item">
+      <div class="footer-link">
+        <span class="footer-label">03 / Phone &amp; WhatsApp</span>
+        <span class="footer-value" data-copy="+216 2106799">+216 2106799</span>
+        <span class="footer-actions">
           <a class="icon-link" href="tel:+2162106799" draggable="false" aria-label="Call +216 2106799"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
           <a class="icon-link" href="https://wa.me/2162106799" target="_blank" rel="noopener noreferrer" draggable="false" aria-label="Message +216 2106799 on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg></a>
         </span>
@@ -238,12 +238,12 @@
     </li>
   </ul>
 
-  <p class="contact-status" role="status" aria-live="polite"></p>
+  <p class="footer-status" role="status" aria-live="polite"></p>
 </section>
 
 <script>
 (function () {
-  var status = document.querySelector('.contact-status');
+  var status = document.querySelector('.footer-status');
   var timer;
 
   function announce(msg) {
@@ -283,7 +283,7 @@
   });
 
   // 2) Selecting the text auto-copies it
-  document.querySelectorAll('.contact-value').forEach(function (el) {
+  document.querySelectorAll('.footer-value').forEach(function (el) {
     el.addEventListener('mouseup', function () { handleSelection(el); });
     el.addEventListener('touchend', function () { setTimeout(function () { handleSelection(el); }, 50); });
   });
@@ -297,7 +297,7 @@
   }
 
   // 3) A click that ends a text selection must NOT open the link
-  document.querySelectorAll('a.contact-link').forEach(function (link) {
+  document.querySelectorAll('a.footer-link').forEach(function (link) {
     link.addEventListener('click', function (e) {
       var sel = window.getSelection();
       if (sel && sel.toString().trim() !== '') {

@@ -404,9 +404,9 @@ export function BowlstoryOrderMessageSvg(props: SVGProps<SVGSVGElement>) {
       </text>
       <path
         d="M14 22h242q12 0 12 12v52q0 12-12 12h-20l-16 9 3-9H14Q2 98 2 86V34Q2 22 14 22Z"
-        fill="var(--world-fg)"
+        fill="var(--case-study-fg)"
       />
-      <g fill="var(--world-bg)" fontSize="16">
+      <g fill="var(--case-study-bg)" fontSize="16">
         <text x="21" y="52">
           Renting a wheelchair
         </text>
@@ -430,11 +430,11 @@ export function BowlstoryOrderConfirmationSvg(props: SVGProps<SVGSVGElement>) {
     >
       <path
         d="M0 8L5 2L10 8L15 2L20 8L25 2L30 8L35 2L40 8L45 2L50 8L55 2L60 8L65 2L70 8L75 2L80 8L85 2L90 8L95 2L100 8L105 2L110 8L115 2L120 8L125 2L130 8L135 2L140 8L145 2L150 8L155 2L160 8L165 2L170 8L175 2L180 8L185 2L190 8L195 2L200 8L205 2L210 8L215 2L220 8L225 2L230 8L235 2L240 8V302L235 308L230 302L225 308L220 302L215 308L210 302L205 308L200 302L195 308L190 302L185 308L180 302L175 308L170 302L165 308L160 302L155 308L150 302L145 308L140 302L135 308L130 302L125 308L120 302L115 308L110 302L105 308L100 302L95 308L90 302L85 308L80 302L75 308L70 302L65 308L60 302L55 308L50 302L45 308L40 302L35 308L30 302L25 308L20 302L15 308L10 302L5 308L0 302Z"
-        fill="var(--world-bg)"
-        stroke="color-mix(in srgb, var(--world-fg) 12%, var(--world-bg))"
+        fill="var(--case-study-bg)"
+        stroke="color-mix(in srgb, var(--case-study-fg) 12%, var(--case-study-bg))"
         strokeWidth=".6"
       />
-      <g fill="var(--world-fg)" fontSize="12">
+      <g fill="var(--case-study-fg)" fontSize="12">
         <text x="23" y="47" fontWeight="500">
           ORDER CONFIRMED
         </text>
@@ -462,7 +462,7 @@ export function BowlstoryOrderConfirmationSvg(props: SVGProps<SVGSVGElement>) {
       </g>
       <path
         d="M23 67h23M23 188h194"
-        stroke="var(--world-fg)"
+        stroke="var(--case-study-fg)"
         strokeWidth=".7"
       />
     </svg>

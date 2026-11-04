@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 /**
  * Thread drawing engine.
  *
- * This module knows NOTHING about scroll. It exposes one primitive,
+ * This module knows NOTHING conclusion scroll. It exposes one primitive,
  * `draw(progress)`, where progress is a global 0..1 value. Anything can drive
  * it: the scroll loop, a click, a hover, a timeline, a route change.
  *
@@ -61,7 +61,7 @@ export const DEFAULT_DRAW_RANGES = {
   page: [0, 1],
   branch: [0.3, 0.5],
   fingerprint: [0.45, 0.65],
-  contact: [0.85, 1],
+  footer: [0.85, 1],
 } as const satisfies Record<string, DrawRange>;
 
 const EPSILON = 1e-4;

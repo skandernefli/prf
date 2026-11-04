@@ -1,23 +1,20 @@
 import {
-  ABOUT_FINGERPRINT,
-  CAPABILITIES_AI,
   CAPABILITIES_ENTRY,
   CAPABILITIES_EXIT,
-  CAPABILITIES_PRODUCT,
+  CAPABILITIES_GREEN_DEV,
+  CAPABILITIES_MIG_DEV,
+  CASE_STUDY_KABRI,
+  CASE_STUDY_LEGA_LEXY,
+  CASE_STUDY_NORMA,
+  CASE_STUDY_SHOP_OPS,
+  CONCLUSION_FINGERPRINT,
   CONTACT_ROUTE,
   HERO_BACK,
   HERO_FRONT,
-  WORLD_CREDITFLOW,
-  WORLD_EIGNA,
-  WORLD_MESA,
-  WORLD_PAPERTRAIL,
   WORK_INDEX,
 } from "./route-data";
 import { ANCHOR_LABELS } from "./thread-anchors";
-import {
-  getRect,
-  type MeasuredLayout,
-} from "./thread-measure";
+import { getRect, type MeasuredLayout } from "./thread-measure";
 import {
   PathBuilder,
   affineFrom3,
@@ -96,35 +93,43 @@ type Template = {
 };
 
 const PROJECT_TEMPLATES: Record<
-  "eigna" | "papertrail" | "mesa" | "creditflow",
+  "kabri" | "norma" | "shop-ops" | "lega-lexy",
   Template
 > = {
-  eigna: { top: 3243.96875, height: REFERENCE_PROJECT_HEIGHT, d: WORLD_EIGNA },
-  papertrail: {
+  kabri: {
+    top: 3243.96875,
+    height: REFERENCE_PROJECT_HEIGHT,
+    d: CASE_STUDY_KABRI,
+  },
+  norma: {
     top: 6318.078125,
     height: REFERENCE_PROJECT_HEIGHT,
-    d: WORLD_PAPERTRAIL,
+    d: CASE_STUDY_NORMA,
   },
-  mesa: { top: 5293.375, height: REFERENCE_PROJECT_HEIGHT, d: WORLD_MESA },
-  creditflow: {
+  "shop-ops": {
+    top: 5293.375,
+    height: REFERENCE_PROJECT_HEIGHT,
+    d: CASE_STUDY_SHOP_OPS,
+  },
+  "lega-lexy": {
     top: 8367.484375,
     height: REFERENCE_PROJECT_HEIGHT,
-    d: WORLD_CREDITFLOW,
+    d: CASE_STUDY_LEGA_LEXY,
   },
 };
 
-const EIGNA_COMMANDS = parsePath(WORLD_EIGNA);
-const EIGNA_EAST = { x: 669.5201612903226, y: 3520.1225126008067 };
-const EIGNA_EAST_INDEX = EIGNA_COMMANDS.findIndex(({ command, values }) => {
+const KABRI_COMMANDS = parsePath(CASE_STUDY_KABRI);
+const KABRI_EAST = { x: 669.5201612903226, y: 3520.1225126008067 };
+const KABRI_EAST_INDEX = KABRI_COMMANDS.findIndex(({ command, values }) => {
   if (command !== "C") return false;
   return (
-    Math.abs(values[4] - EIGNA_EAST.x) < 0.05 &&
-    Math.abs(values[5] - EIGNA_EAST.y) < 0.05
+    Math.abs(values[4] - KABRI_EAST.x) < 0.05 &&
+    Math.abs(values[5] - KABRI_EAST.y) < 0.05
   );
 });
 
-if (process.env.NODE_ENV !== "production" && EIGNA_EAST_INDEX < 0) {
-  throw new Error("Thread: could not find the Eigna east-door cubic.");
+if (process.env.NODE_ENV !== "production" && KABRI_EAST_INDEX < 0) {
+  throw new Error("Thread: could not find the KABRI east-door cubic.");
 }
 
 export type RouteModel = {
@@ -175,8 +180,8 @@ export type ThreadModel = {
     legalexy: RouteModel;
   };
   why: RouteModel;
-  about: AboutModel;
-  contact: RouteModel;
+  conclusion: AboutModel;
+  footer: RouteModel;
   pagePath: string;
   markers: MarkerModel[];
   terminal: Point;
@@ -194,11 +199,7 @@ const rectKey = (rect: Rect) =>
 
 const centerOf = (rect: Rect): Point => middle(rect);
 
-const routeFromPath = (
-  key: string,
-  d: string,
-  stepPx: number,
-): RouteModel => ({
+const routeFromPath = (key: string, d: string, stepPx: number): RouteModel => ({
   key,
   d,
   start: pathStart(d),
@@ -249,7 +250,10 @@ function connectorCenter(
     x: reference.end.x - reference.start.x,
     y: reference.end.y - reference.start.y,
   };
-  const referenceLength = Math.max(1, Math.hypot(referenceVector.x, referenceVector.y));
+  const referenceLength = Math.max(
+    1,
+    Math.hypot(referenceVector.x, referenceVector.y),
+  );
   const referenceUnit = {
     x: referenceVector.x / referenceLength,
     y: referenceVector.y / referenceLength,
@@ -259,7 +263,10 @@ function connectorCenter(
     y: liveEnd.y - liveStart.y,
   };
   const liveLength = Math.max(1, Math.hypot(liveVector.x, liveVector.y));
-  const liveUnit = { x: liveVector.x / liveLength, y: liveVector.y / liveLength };
+  const liveUnit = {
+    x: liveVector.x / liveLength,
+    y: liveVector.y / liveLength,
+  };
   const liveNormal = { x: -liveUnit.y, y: liveUnit.x };
   const referenceNormal = {
     x: -referenceUnit.y,
@@ -499,10 +506,7 @@ function buildHero(
     const generated = channels.map(({ index, start, end, center }) => {
       const reference = HERO_REFERENCE[index];
       const matrix = loopChannels.has(index)
-        ? similarityFrom2(
-            [reference.start, reference.end],
-            [start, end],
-          )
+        ? similarityFrom2([reference.start, reference.end], [start, end])
         : affineFrom3(
             [reference.start, reference.end, centerOf(reference.bounds)],
             [start, end, normalizePoint(center, layout.width, layout.height)],
@@ -635,7 +639,7 @@ function buildWork(
   capsTop: number,
   previous: RouteModel | undefined,
 ): RouteModel {
-  const drawing = getRect(layout, "work.drawing");
+  const drawing = getRect(layout, "work.flow.drawing");
   const workExitX =
     drawing.left +
     ((REF_WORK.end.x - REF_WORK.drawing.left) / REF_WORK.drawing.width) *
@@ -661,8 +665,7 @@ function buildWork(
 
     if (refY < REF_WORK.drawing.top) {
       const t = clamp(
-        (refY - REF_WORK.start.y) /
-          (REF_WORK.drawing.top - REF_WORK.start.y),
+        (refY - REF_WORK.start.y) / (REF_WORK.drawing.top - REF_WORK.start.y),
         0,
         1,
       );
@@ -683,7 +686,8 @@ function buildWork(
     }
 
     const t = clamp(
-      (refY - REF_WORK.drawingBottom) / (REF_WORK.end.y - REF_WORK.drawingBottom),
+      (refY - REF_WORK.drawingBottom) /
+        (REF_WORK.end.y - REF_WORK.drawingBottom),
       0,
       1,
     );
@@ -869,9 +873,10 @@ function buildCapabilities(
 
   const productD = `${moveCommand({ x: splitX, y: ringTop })} A ${ringRx} ${ringRy} 0 0 0 ${splitX} ${ringBottom}`;
   const aiD = `${moveCommand({ x: splitX, y: ringTop })} A ${ringRx} ${ringRy} 0 0 1 ${splitX} ${ringBottom}`;
-  const exitD = `${moveCommand({ x: splitX, y: ringBottom })} ${lineCommand(
-    { x: splitX, y: layout.capabilities.bottom },
-  )}`;
+  const exitD = `${moveCommand({ x: splitX, y: ringBottom })} ${lineCommand({
+    x: splitX,
+    y: layout.capabilities.bottom,
+  })}`;
 
   return {
     entry: routeFromPath(entryKey, entryBuilder.d, 8),
@@ -886,10 +891,7 @@ function buildCapabilities(
   };
 }
 
-function reframeTemplate(
-  template: Template,
-  frame: Rect,
-): string {
+function reframeTemplate(template: Template, frame: Rect): string {
   const xScale = frame.width / REFERENCE_WIDTH;
   const yScale = frame.height / template.height;
 
@@ -905,11 +907,7 @@ function distanceToRect(value: Point, rect: Rect) {
   return Math.hypot(dx, dy);
 }
 
-function assertNodesOnPath(
-  d: string,
-  targets: Point[],
-  tolerance = 0.75,
-) {
+function assertNodesOnPath(d: string, targets: Point[], tolerance = 0.75) {
   if (process.env.NODE_ENV === "production") return;
 
   const points = flattenPath(d, 2);
@@ -994,8 +992,14 @@ function insertMessagePass(d: string, message: Rect): string {
         splitPoint.y,
       ],
     },
-    { command: "C" as const, values: parseCommandValues(link(splitPoint, messageCenter)) },
-    { command: "C" as const, values: parseCommandValues(link(messageCenter, cubic[3])) },
+    {
+      command: "C" as const,
+      values: parseCommandValues(link(splitPoint, messageCenter)),
+    },
+    {
+      command: "C" as const,
+      values: parseCommandValues(link(messageCenter, cubic[3])),
+    },
     ...commands.slice(2),
   ];
 
@@ -1014,12 +1018,8 @@ function buildProjectTemplate(
   previous: RouteModel | undefined,
   previousEnd: Point,
 ): RouteModel {
-  const frame = getRect(layout, `project.${id}`);
-  const key = [
-    pointKey(previousEnd),
-    rectKey(frame),
-    layout.width,
-  ].join("|");
+  const frame = getRect(layout, `case.study.${id}`);
+  const key = [pointKey(previousEnd), rectKey(frame), layout.width].join("|");
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
 
@@ -1027,7 +1027,7 @@ function buildProjectTemplate(
   d = retargetStart(d, previousEnd);
 
   if (id === "shopops") {
-    const message = getRect(layout, "project.shopops.message");
+    const message = getRect(layout, "case.study.shopops.message");
     const points = flattenPath(d, 8);
     if (routeMissesRect(points, message, 8)) {
       d = insertMessagePass(d, message);
@@ -1042,9 +1042,9 @@ function buildKabri(
   previous: RouteModel | undefined,
   start: Point,
 ): RouteModel {
-  const frame = getRect(layout, "project.kabri");
-  const north = centerOf(getRect(layout, "project.kabri.door.north"));
-  const east = centerOf(getRect(layout, "project.kabri.door.east"));
+  const frame = getRect(layout, "case.study.kabri");
+  const north = centerOf(getRect(layout, "case.study.kabri.door.north"));
+  const east = centerOf(getRect(layout, "case.study.kabri.door.east"));
   const key = [
     pointKey(start),
     rectKey(frame),
@@ -1080,19 +1080,19 @@ function buildKabri(
       east,
     );
 
-  const suffixCommands = EIGNA_COMMANDS.slice(EIGNA_EAST_INDEX + 1);
+  const suffixCommands = KABRI_COMMANDS.slice(KABRI_EAST_INDEX + 1);
   const suffix = serializePath([
-    { command: "M", values: [EIGNA_EAST.x, EIGNA_EAST.y] },
+    { command: "M", values: [KABRI_EAST.x, KABRI_EAST.y] },
     ...suffixCommands,
   ]);
 
   const xScale = frame.width / REFERENCE_WIDTH;
-  const yScale = frame.height / PROJECT_TEMPLATES.eigna.height;
+  const yScale = frame.height / PROJECT_TEMPLATES.kabri.height;
   const framePoint = (value: Point): Point => ({
     x: frame.left + value.x * xScale,
-    y: frame.top + (value.y - PROJECT_TEMPLATES.eigna.top) * yScale,
+    y: frame.top + (value.y - PROJECT_TEMPLATES.kabri.top) * yScale,
   });
-  const mappedEast = framePoint(EIGNA_EAST);
+  const mappedEast = framePoint(KABRI_EAST);
   const offset = {
     x: east.x - mappedEast.x,
     y: east.y - mappedEast.y,
@@ -1170,11 +1170,7 @@ function buildWhy(
     8,
     layout.width - 8,
   );
-  const rCenter = clamp(
-    Math.min(20, 0.4 * (nodes[0].y - returnY)),
-    8,
-    20,
-  );
+  const rCenter = clamp(Math.min(20, 0.4 * (nodes[0].y - returnY)), 8, 20);
 
   const builder = new PathBuilder(start);
   builder
@@ -1275,8 +1271,7 @@ function buildWhy(
           { x: next.x, y: underY },
           next,
         ],
-        (vertexIndex) =>
-          vertexIndex === 1 || vertexIndex === 2 ? corner : 0,
+        (vertexIndex) => (vertexIndex === 1 || vertexIndex === 2 ? corner : 0),
       );
     });
   } else {
@@ -1306,8 +1301,7 @@ function buildWhy(
           { x: aboutStart.x, y: underY },
           aboutStart,
         ],
-        (vertexIndex) =>
-          vertexIndex === 1 || vertexIndex === 2 ? corner : 0,
+        (vertexIndex) => (vertexIndex === 1 || vertexIndex === 2 ? corner : 0),
       );
     } else if (dy > 0.01 && Math.abs(dx) > 0.5) {
       builder.cubic(
@@ -1327,13 +1321,9 @@ function buildAbout(
   layout: MeasuredLayout,
   previous: AboutModel | undefined,
 ): AboutModel {
-  const section = getRect(layout, "about.section");
-  const profile = getRect(layout, "about.profile");
-  const key = [
-    rectKey(section),
-    rectKey(profile),
-    layout.width,
-  ].join("|");
+  const section = getRect(layout, "conclusion.section");
+  const profile = getRect(layout, "conclusion.profile");
+  const key = [rectKey(section), rectKey(profile), layout.width].join("|");
   if (previous && previous.key === key) return previous;
 
   const reference = {
@@ -1370,7 +1360,7 @@ function buildAbout(
     y: y0 + (value.y - reference.top) * scale,
   });
 
-  const d = transformPath(ABOUT_FINGERPRINT, map);
+  const d = transformPath(CONCLUSION_FINGERPRINT, map);
   return {
     ...routeFromPath(key, d, 6),
     rect: section,
@@ -1382,7 +1372,7 @@ function buildContact(
   previous: RouteModel | undefined,
   start: Point,
 ): { route: RouteModel; terminal: Point } {
-  const section = getRect(layout, "contact.section");
+  const section = getRect(layout, "footer.section");
   const terminal = {
     x: section.right - layout.pagePad - 12,
     y: section.bottom - 30,
@@ -1482,12 +1472,7 @@ export function buildThreadModel(
   previous?: ThreadModel,
 ): ThreadModel {
   const hero = buildHero(layout, previous?.hero);
-  const work = buildWork(
-    layout,
-    hero,
-    layout.capabilities.top,
-    previous?.work,
-  );
+  const work = buildWork(layout, hero, layout.capabilities.top, previous?.work);
   const capabilities = buildCapabilities(layout, work, {
     entry: previous?.capsEntry,
     product: previous?.capsProduct,
@@ -1503,44 +1488,41 @@ export function buildThreadModel(
   const norma = buildProjectTemplate(
     layout,
     "norma",
-    PROJECT_TEMPLATES.papertrail,
+    PROJECT_TEMPLATES.norma,
     previous?.projects.norma,
     kabri.end,
   );
   const shopops = buildProjectTemplate(
     layout,
     "shopops",
-    PROJECT_TEMPLATES.mesa,
+    PROJECT_TEMPLATES["shop-ops"],
     previous?.projects.shopops,
     norma.end,
   );
   const legalexy = buildProjectTemplate(
     layout,
     "legalexy",
-    PROJECT_TEMPLATES.creditflow,
+    PROJECT_TEMPLATES["lega-lexy"],
     previous?.projects.legalexy,
     shopops.end,
   );
 
-  const about = buildAbout(layout, previous?.about);
-  const why = buildWhy(
-    layout,
-    previous?.why,
-    legalexy.end,
-    about.start,
-  );
+  const conclusion = buildAbout(layout, previous?.conclusion);
+  const why = buildWhy(layout, previous?.why, legalexy.end, conclusion.start);
 
-  const aboutStart = about.start;
-  const contact = buildContact(layout, previous?.contact, about.end);
+  const aboutStart = conclusion.start;
+  const footer = buildContact(layout, previous?.footer, conclusion.end);
 
   const workAnchors = workDerivedAnchors(
     work.points,
-    getRect(layout, "work.drawing"),
+    getRect(layout, "work.flow.drawing"),
   );
 
   const capabilityMarkers: MarkerModel[] = [];
-  const capabilityRadius = layout.width <= 700 ? 2.2 : layout.width <= 820 ? 2.6 : 3.2;
-  const capabilityCore = layout.width <= 700 ? 0.9 : layout.width <= 820 ? 1.1 : 1.35;
+  const capabilityRadius =
+    layout.width <= 700 ? 2.2 : layout.width <= 820 ? 2.6 : 3.2;
+  const capabilityCore =
+    layout.width <= 700 ? 0.9 : layout.width <= 820 ? 1.1 : 1.35;
 
   for (let index = 1; index <= 5; index += 1) {
     capabilityMarkers.push({
@@ -1561,16 +1543,16 @@ export function buildThreadModel(
 
   const doorMarkers: MarkerModel[] = [
     {
-      id: "project.kabri.door.north",
+      id: "case.study.kabri.door.north",
       kind: "door",
-      point: centerOf(getRect(layout, "project.kabri.door.north")),
+      point: centerOf(getRect(layout, "case.study.kabri.door.north")),
       radius: 4,
       core: 1.5,
     },
     {
-      id: "project.kabri.door.east",
+      id: "case.study.kabri.door.east",
       kind: "door",
-      point: centerOf(getRect(layout, "project.kabri.door.east")),
+      point: centerOf(getRect(layout, "case.study.kabri.door.east")),
       radius: 4,
       core: 1.5,
     },
@@ -1584,7 +1566,10 @@ export function buildThreadModel(
     ["work.wave.2", workAnchors.waves[1]],
     ["work.wave.3", workAnchors.waves[2]],
     ["work.exit", work.end],
-    ["capabilities.split.top", { x: capabilities.splitX, y: capabilities.ringTop }],
+    [
+      "capabilities.split.top",
+      { x: capabilities.splitX, y: capabilities.ringTop },
+    ],
     [
       "capabilities.split.bottom",
       { x: capabilities.splitX, y: capabilities.ringBottom },
@@ -1604,16 +1589,16 @@ export function buildThreadModel(
       },
     ],
     ["capabilities.exit", capabilities.exit.end],
-    ["project.kabri.exit", kabri.end],
-    ["project.norma.exit", norma.end],
-    ["project.shopops.exit", shopops.end],
-    ["project.legalexy.exit", legalexy.end],
+    ["case.study.kabri.exit", kabri.end],
+    ["case.study.norma.exit", norma.end],
+    ["case.study.shopops.exit", shopops.end],
+    ["case.study.legalexy.exit", legalexy.end],
     ["why.exit", aboutStart],
-    ["about.fingerprint", about.start],
-    ["about.fingerprint.start", about.start],
-    ["about.fingerprint.end", about.end],
-    ["contact.terminal", contact.terminal],
-    ["thread.terminal", contact.terminal],
+    ["conclusion.fingerprint", conclusion.start],
+    ["conclusion.fingerprint.start", conclusion.start],
+    ["conclusion.fingerprint.end", conclusion.end],
+    ["footer.terminal", footer.terminal],
+    ["thread.terminal", footer.terminal],
   ]);
 
   const pagePath = [
@@ -1637,8 +1622,8 @@ export function buildThreadModel(
     shopops: shopops.key,
     legalexy: legalexy.key,
     why: why.key,
-    about: about.key,
-    contact: contact.route.key,
+    conclusion: conclusion.key,
+    footer: footer.route.key,
   };
 
   if (process.env.NODE_ENV !== "production") {
@@ -1675,11 +1660,11 @@ export function buildThreadModel(
       2,
     );
     assertTangentContinuous(legalexy.d, why.d, "LEGALEXY → why-me", 2);
-    assertTangentContinuous(why.d, about.d, "why-me → about", 2);
+    assertTangentContinuous(why.d, conclusion.d, "why-me → conclusion", 2);
     assertTangentContinuous(
-      about.d,
-      contact.route.d,
-      "about → contact",
+      conclusion.d,
+      footer.route.d,
+      "conclusion → footer",
       2,
     );
     assertPathSmooth(why.d, "why-me route", 1.5);
@@ -1704,17 +1689,13 @@ export function buildThreadModel(
 
     assertDistance(hero.handoff, work.start, "hero → work");
     assertDistance(work.end, capabilities.entry.start, "work → capabilities");
-    assertDistance(
-      capabilities.exit.end,
-      kabri.start,
-      "capabilities → KABRI",
-    );
+    assertDistance(capabilities.exit.end, kabri.start, "capabilities → KABRI");
     assertDistance(kabri.end, norma.start, "KABRI → NORMA");
     assertDistance(norma.end, shopops.start, "NORMA → SHOPOPS");
     assertDistance(shopops.end, legalexy.start, "SHOPOPS → LEGALEXY");
     assertDistance(legalexy.end, why.start, "LEGALEXY → why-me");
-    assertDistance(why.end, about.start, "why-me → about");
-    assertDistance(about.end, contact.route.start, "about → contact");
+    assertDistance(why.end, conclusion.start, "why-me → conclusion");
+    assertDistance(conclusion.end, footer.route.start, "conclusion → footer");
   }
 
   return {
@@ -1730,11 +1711,11 @@ export function buildThreadModel(
     capsExit: capabilities.exit,
     projects: { kabri, norma, shopops, legalexy },
     why,
-    about,
-    contact: contact.route,
+    conclusion,
+    footer: footer.route,
     pagePath,
     markers: [...capabilityMarkers, ...doorMarkers],
-    terminal: contact.terminal,
+    terminal: footer.terminal,
     derived,
     keys,
   };
@@ -1779,8 +1760,8 @@ export function masterTrack(model: ThreadModel): Point[] {
   append(model.projects.shopops.points);
   append(model.projects.legalexy.points);
   append(model.why.points);
-  append(model.about.points);
-  append(model.contact.points);
+  append(model.conclusion.points);
+  append(model.footer.points);
 
   return points;
 }
@@ -1790,10 +1771,10 @@ export function labelForAnchor(id: string) {
 }
 
 export {
-  CAPABILITIES_AI,
   CAPABILITIES_ENTRY,
   CAPABILITIES_EXIT,
-  CAPABILITIES_PRODUCT,
+  CAPABILITIES_GREEN_DEV,
+  CAPABILITIES_MIG_DEV,
   CONTACT_ROUTE,
   REFERENCE_WIDTH,
   cumulativeLengths,

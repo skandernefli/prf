@@ -65,12 +65,18 @@ export function ContactButtons() {
       const selection = window.getSelection();
       const selectedText = selection?.toString().trim() ?? "";
 
-      if (!selectedText || !selection?.anchorNode || !element.contains(selection.anchorNode)) {
+      if (
+        !selectedText ||
+        !selection?.anchorNode ||
+        !element.contains(selection.anchorNode)
+      ) {
         return;
       }
 
       const text =
-        selectedText === element.textContent?.trim() ? canonicalValue : selectedText;
+        selectedText === element.textContent?.trim()
+          ? canonicalValue
+          : selectedText;
 
       try {
         await copyText(text);
@@ -107,25 +113,26 @@ export function ContactButtons() {
 
   return (
     <section
-      className="contact-links"
+      className="footer-links"
       aria-label="Contact links"
-      data-thread-anchor="contact.links"
+      data-thread-anchor="footer.links"
       data-thread-label="Contact · links"
     >
-      <ul className="contact-list">
-        <li className="contact-item">
+      <ul className="footer-list">
+        <li className="footer-item">
           <a
-            className="contact-link"
+            className="footer-link"
             href={`mailto:${emailValue}`}
             draggable={false}
             aria-label={`Send an email to ${emailValue}`}
             onClick={(event) => {
-              if (window.getSelection()?.toString().trim()) event.preventDefault();
+              if (window.getSelection()?.toString().trim())
+                event.preventDefault();
             }}
           >
-            <span className="contact-label">01 / Email</span>
+            <span className="footer-label">01 / Email</span>
             <span
-              className="contact-value"
+              className="footer-value"
               onMouseUp={(event) =>
                 void handleSelection({
                   element: event.currentTarget,
@@ -141,7 +148,7 @@ export function ContactButtons() {
             >
               {emailValue}
             </span>
-            <span className="contact-icon">
+            <span className="footer-icon">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <rect x="3" y="5" width="18" height="14" />
                 <path d="M3 6l9 7 9-7" />
@@ -149,7 +156,7 @@ export function ContactButtons() {
             </span>
           </a>
           <button
-            className="contact-copy-button"
+            className="footer-copy-button"
             type="button"
             data-copied={copiedId === "email"}
             aria-label="Copy email address"
@@ -159,21 +166,22 @@ export function ContactButtons() {
           </button>
         </li>
 
-        <li className="contact-item">
+        <li className="footer-item">
           <a
-            className="contact-link"
+            className="footer-link"
             href={linkedInValue}
             target="_blank"
             rel="noopener noreferrer"
             draggable={false}
             aria-label="Open LinkedIn profile"
             onClick={(event) => {
-              if (window.getSelection()?.toString().trim()) event.preventDefault();
+              if (window.getSelection()?.toString().trim())
+                event.preventDefault();
             }}
           >
-            <span className="contact-label">02 / LinkedIn</span>
+            <span className="footer-label">02 / LinkedIn</span>
             <span
-              className="contact-value"
+              className="footer-value"
               onMouseUp={(event) =>
                 void handleSelection({
                   element: event.currentTarget,
@@ -189,7 +197,7 @@ export function ContactButtons() {
             >
               linkedin.com/in/skander-nefli
             </span>
-            <span className="contact-icon">
+            <span className="footer-icon">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <g transform="translate(12 12) scale(1.3) translate(-12.75 -12)">
                   <path
@@ -201,7 +209,7 @@ export function ContactButtons() {
             </span>
           </a>
           <button
-            className="contact-copy-button"
+            className="footer-copy-button"
             type="button"
             data-copied={copiedId === "linkedin"}
             aria-label="Copy LinkedIn URL"
@@ -211,11 +219,11 @@ export function ContactButtons() {
           </button>
         </li>
 
-        <li className="contact-item">
-          <div className="contact-link">
-            <span className="contact-label">03 / Phone &amp; WhatsApp</span>
+        <li className="footer-item">
+          <div className="footer-link">
+            <span className="footer-label">03 / Phone &amp; WhatsApp</span>
             <span
-              className="contact-value"
+              className="footer-value"
               onMouseUp={(event) =>
                 void handleSelection({
                   element: event.currentTarget,
@@ -231,9 +239,9 @@ export function ContactButtons() {
             >
               {phoneValue}
             </span>
-            <span className="contact-actions">
+            <span className="footer-actions">
               <a
-                className="contact-action"
+                className="footer-action"
                 href="tel:+2162106799"
                 draggable={false}
                 aria-label="Call +216 2106799"
@@ -243,7 +251,7 @@ export function ContactButtons() {
                 </svg>
               </a>
               <a
-                className="contact-action"
+                className="footer-action"
                 href="https://wa.me/2162106799"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -258,7 +266,7 @@ export function ContactButtons() {
             </span>
           </div>
           <button
-            className="contact-copy-button"
+            className="footer-copy-button"
             type="button"
             data-copied={copiedId === "phone"}
             aria-label="Copy phone number"
@@ -268,7 +276,7 @@ export function ContactButtons() {
           </button>
         </li>
       </ul>
-      <p className="contact-status" role="status" aria-live="polite">
+      <p className="footer-status" role="status" aria-live="polite">
         {status}
       </p>
     </section>
