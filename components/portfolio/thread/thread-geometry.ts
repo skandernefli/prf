@@ -695,44 +695,56 @@ function buildWork(
 
   const builder = new PathBuilder(warp(REF_WORK.start));
   const boundaries = [REF_WORK.drawing.top, REF_WORK.drawingBottom];
+  let rawCurrent: Point = { ...REF_WORK.start };
 
   for (const command of parsePath(WORK_INDEX)) {
-    if (command.command === "M") continue;
+    if (command.command === "M") {
+      rawCurrent = { x: command.values[0], y: command.values[1] };
+      continue;
+    }
 
     if (command.command === "L") {
-      builder.line(warp({ x: command.values[0], y: command.values[1] }));
+      const next = { x: command.values[0], y: command.values[1] };
+      builder.line(warp(next));
+      rawCurrent = next;
       continue;
     }
 
     if (command.command === "C") {
+      const end = { x: command.values[4], y: command.values[5] };
       const full: Cubic = [
-        builder.current,
+        rawCurrent,
         { x: command.values[0], y: command.values[1] },
         { x: command.values[2], y: command.values[3] },
-        { x: command.values[4], y: command.values[5] },
+        end,
       ];
       for (const part of splitCubicAtZones(full, boundaries)) {
         builder.cubic(warp(part[1]), warp(part[2]), warp(part[3]));
       }
+      rawCurrent = end;
       continue;
     }
 
     if (command.command === "Q") {
+      const end = { x: command.values[2], y: command.values[3] };
       builder.quad(
         warp({ x: command.values[0], y: command.values[1] }),
-        warp({ x: command.values[2], y: command.values[3] }),
+        warp(end),
       );
+      rawCurrent = end;
       continue;
     }
 
+    const end = { x: command.values[5], y: command.values[6] };
     builder.arc(
       command.values[0],
       command.values[1],
       command.values[2],
       command.values[3] ? 1 : 0,
       command.values[4] ? 1 : 0,
-      warp({ x: command.values[5], y: command.values[6] }),
+      warp(end),
     );
+    rawCurrent = end;
   }
 
   let d = retargetStart(builder.d, start);
