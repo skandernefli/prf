@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
+import { useRef, useState } from "react";
 
-import { Signature, SIGNATURE_VIEWBOX } from "./signature";
 import styles from "./preloader.module.css";
+import { Signature, SIGNATURE_VIEWBOX } from "./signature";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(useGSAP, DrawSVGPlugin);
@@ -135,27 +135,6 @@ export function PreloaderOverlay({
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      if (!assetsReady) {
-        if (reducedMotion) {
-          return;
-        }
-
-        const pulse = gsap.to(dot, {
-          scale: 1.45,
-          opacity: 0.45,
-          duration: 0.65,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-          transformOrigin: "50% 50%",
-        });
-
-        return () => {
-          pulse.kill();
-          gsap.set(dot, { scale: 1, opacity: 1 });
-        };
-      }
-
       onExitStart();
 
       const finish = () => {
@@ -178,7 +157,6 @@ export function PreloaderOverlay({
         return;
       }
 
-      gsap.to(dot, { autoAlpha: 0, duration: 0.25, ease: "power1.out" });
       gsap.to(container, {
         yPercent: -100,
         duration: 0.9,
@@ -210,7 +188,7 @@ export function PreloaderOverlay({
         focusable="false"
       >
         <Signature />
-        <circle className={styles.penDot} data-signature-dot r="8" />
+        <circle className={styles.penDot} data-signature-dot r="5" />
       </svg>
       <span className={styles.srOnly}>Loading portfolio</span>
     </div>
