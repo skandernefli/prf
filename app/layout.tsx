@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Geist, Geist_Mono, IBM_Plex_Mono } from "next/font/google";
 
 import { PreloaderProvider } from "@/components/preloader/preloader-provider";
+import { SmoothScroll } from "@/components/smooth-scroll/smooth-scroll";
 
 import "./globals.css";
 
@@ -46,7 +47,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             }
           `}</style>
         </noscript>
-        <PreloaderProvider>{children}</PreloaderProvider>
+        <PreloaderProvider>
+          <SmoothScroll>{children}</SmoothScroll>
+        </PreloaderProvider>
       </body>
     </html>
   );
