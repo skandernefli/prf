@@ -106,7 +106,12 @@ export function ContactButtons() {
   const phoneValue = "+216 2106799";
 
   return (
-    <section className="contact-links" aria-label="Contact links">
+    <section
+      className="contact-links"
+      aria-label="Contact links"
+      data-thread-anchor="contact.links"
+      data-thread-label="Contact · links"
+    >
       <ul className="contact-list">
         <li className="contact-item">
           <a

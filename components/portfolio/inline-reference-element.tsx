@@ -7,15 +7,25 @@ type InlineReferenceElementProps = {
   label: InlineReferenceElementLabel;
   className: string;
   role?: string;
+  threadAnchor?: string;
+  threadLabel?: string;
 };
 
 export function InlineReferenceElement({
   label,
   className,
   role,
+  threadAnchor,
+  threadLabel,
 }: InlineReferenceElementProps) {
   return (
-    <div className={className} role={role} aria-label={label}>
+    <div
+      className={className}
+      role={role}
+      aria-label={label}
+      data-thread-anchor={threadAnchor}
+      data-thread-label={threadLabel}
+    >
       {label === "Extracted invoice values" ? (
         <>
           <p>EXTRACTED VALUES</p>

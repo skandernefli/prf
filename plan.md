@@ -18,7 +18,7 @@ Reproduce the complete static homepage layout of `https://dakshgajjar.com/` in t
   - `references/screenshots/website_screenshot_mobile_m.png` — 750 px image width / 375 CSS px at 2x.
   - `references/screenshots/website_screenshot_mobile_sm.png` — 640 px image width / 320 CSS px at 2x.
 - `references/reference_html.html` contains the reference page's content, section order, semantic labels, and inline SVG composition. Use it as reference material; do not copy its animation/runtime logic.
-- `public/assets/` contains the vector source artwork for the project scenes.
+- The project-scene SVG artwork is embedded directly in `app/page.tsx`.
 - Current UI is a placeholder in `app/page.tsx`; the existing palette and preloader integration are in `app/globals.css` and `app/layout.tsx`.
 - Installed stack: Next.js 16, React, TypeScript, Tailwind CSS 4, GSAP and Lenis. No new dependency is required for this phase.
 - Before writing code, read the relevant Next.js 16 guide under `node_modules/next/dist/docs/` as required by the repository `AGENTS.md`.
@@ -137,7 +137,7 @@ Out of scope:
 
 ### SVG implementation constraint
 
-SVGs are required for later path-based phases, so their vector DOM must remain available. Inline each used SVG into the React-rendered DOM (or use an existing inline-SVG project convention if one exists); do not use raster images, CSS backgrounds, or plain external `<img src="/assets/...">` for artwork that must expose its paths. Preserve each SVG's original `viewBox`, path geometry/order, `currentColor` behavior, `var(--world-bg)` / `var(--world-fg)` usage, and accessible `role`/`aria-label`. Do not add SVGR or another package in this phase. Keep the source files in `public/assets/` unchanged. The opaque `svg-*` assets must be inspected and matched by their actual contents before use.
+SVGs are required for later path-based phases, so their vector DOM must remain available. Keep each used SVG's original markup directly at its render location in `app/page.tsx`; do not use external files, raster images, or CSS backgrounds for artwork that must expose its paths. Preserve the SVG markup, including its `viewBox`, path geometry/order, `currentColor` behavior, `var(--world-bg)` / `var(--world-fg)` usage, and accessible `role`/`aria-label`. Do not add SVGR or another package in this phase.
 
 ### Responsive and interaction rules
 
@@ -175,7 +175,7 @@ Read `AGENTS.md`, the relevant Next.js 16 guide under `node_modules/next/dist/do
 - `references/screenshots/website_screenshot_mobile_l.png` (425 CSS px)
 - `references/screenshots/website_screenshot_mobile_m.png` (375 CSS px)
 - `references/screenshots/website_screenshot_mobile_sm.png` (320 CSS px)
-- `public/assets/` for the supplied SVG source artwork.
+- `app/page.tsx` for the inlined project-scene SVG artwork.
 
 Build the complete home page, not just the first viewport: fixed header; hero; practice intro; capabilities; all six project sections (Eigna, Orbit, e-ops, norma, Scribe, LEGALEXY); about; contact ending. Use all exact headings, body copy, project kickers, project ordering, and named assets from the “Exact page content and order” section of this plan. The screenshots are the visual authority for composition and responsive placements; the saved HTML is the authority for exact text and SVG contents.
 

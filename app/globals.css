@@ -69,6 +69,86 @@ body {
   font-family: var(--font-display);
 }
 
+.thread-layer {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 18;
+  display: block;
+  max-width: none;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.thread-path,
+.thread-branch,
+.thread-fingerprint,
+.thread-terminal {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 2.2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.thread-fingerprint {
+  stroke-width: 1.05px;
+}
+
+.thread-marker {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1.8px;
+  vector-effect: non-scaling-stroke;
+}
+
+.thread-marker-core,
+.thread-terminal-core,
+.thread-origin-dot {
+  fill: var(--signal);
+}
+
+.thread-head {
+  position: fixed;
+  z-index: 19;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--signal) 14%, transparent);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.hero-thread-slot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-thread-back {
+  z-index: 3;
+}
+
+.hero-thread-front {
+  z-index: 5;
+}
+
+.hero-thread-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hero-title .thread-glyph {
+  display: contents;
+}
+
 .skip-link {
   position: fixed;
   top: 1rem;
@@ -557,9 +637,12 @@ body {
 
 .world-object {
   position: absolute;
-  z-index: 8;
   margin: 0;
   transform-origin: 50%;
+}
+
+:where(.world-object) {
+  z-index: 8;
 }
 
 .world-object > span {
@@ -1362,6 +1445,7 @@ body {
 
 .why-me-node {
   position: absolute;
+  z-index: 19;
   top: calc(var(--why-me-point-padding) + 2px);
   width: 24px;
   height: 24px;
@@ -1782,6 +1866,10 @@ body {
   .contact-link:hover,
   .contact-link:focus-visible {
     transform: none;
+  }
+
+  .thread-head {
+    display: none;
   }
 }
 
@@ -2535,6 +2623,10 @@ body {
     gap: 2rem;
     padding-top: 4rem;
     padding-bottom: 5rem;
+  }
+
+  .about-profile {
+    z-index: 19;
   }
 
   .about-heading {
