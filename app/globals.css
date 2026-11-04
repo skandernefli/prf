@@ -91,10 +91,6 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
-.thread-fingerprint {
-  stroke-width: 1.05px;
-}
-
 .thread-marker {
   fill: none;
   stroke: var(--signal);

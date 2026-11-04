@@ -995,3 +995,414 @@ export function assertDistance(
     );
   }
 }
+
+const CIRCLE_K = 0.5522847498;
+
+function normalizeVector(value: Point): Point | null {
+  const length = Math.hypot(value.x, value.y);
+  if (length < EPSILON) return null;
+  return { x: value.x / length, y: value.y / length };
+}
+
+function commandEndPoint(command: ParsedCommand, start: Point): Point {
+  if (command.command === "L") {
+    return { x: command.values[0], y: command.values[1] };
+  }
+
+  if (command.command === "C") {
+    return { x: command.values[4], y: command.values[5] };
+  }
+
+  if (command.command === "Q") {
+    return { x: command.values[2], y: command.values[3] };
+  }
+
+  if (command.command === "A") {
+    return { x: command.values[5], y: command.values[6] };
+  }
+
+  return start;
+}
+
+function commandTangent(
+  command: ParsedCommand,
+  start: Point,
+  end: "start" | "end",
+): Point | null {
+  if (command.command === "L") {
+    return normalizeVector({
+      x: command.values[0] - start.x,
+      y: command.values[1] - start.y,
+    });
+  }
+
+  if (command.command === "C") {
+    if (end === "start") {
+      return normalizeVector({
+        x: command.values[0] - start.x,
+        y: command.values[1] - start.y,
+      });
+    }
+
+    const point = { x: command.values[4], y: command.values[5] };
+    return normalizeVector({
+      x: point.x - command.values[2],
+      y: point.y - command.values[3],
+    });
+  }
+
+  if (command.command === "Q") {
+    if (end === "start") {
+      return normalizeVector({
+        x: command.values[0] - start.x,
+        y: command.values[1] - start.y,
+      });
+    }
+
+    const point = { x: command.values[2], y: command.values[3] };
+    return normalizeVector({
+      x: point.x - command.values[0],
+      y: point.y - command.values[1],
+    });
+  }
+
+  if (command.command === "A") {
+    const arc = arcFromCommand(start, command);
+    if (!arc) {
+      return normalizeVector({
+        x: command.values[5] - start.x,
+        y: command.values[6] - start.y,
+      });
+    }
+
+    const theta =
+      end === "start" ? arc.thetaStart : arc.thetaStart + arc.thetaDelta;
+    const rotation = (command.values[2] * Math.PI) / 180;
+    const cos = Math.cos(rotation);
+    const sin = Math.sin(rotation);
+    const derivative = {
+      x: -cos * arc.rx * Math.sin(theta) - sin * arc.ry * Math.cos(theta),
+      y: -sin * arc.rx * Math.sin(theta) + cos * arc.ry * Math.cos(theta),
+    };
+    const direction = arc.thetaDelta >= 0 ? 1 : -1;
+
+    return normalizeVector({
+      x: derivative.x * direction,
+      y: derivative.y * direction,
+    });
+  }
+
+  return null;
+}
+
+/**
+ * Returns the unit tangent at the start or end of a path. Arcs use the true
+ * ellipse tangent; S is already expanded to C by parsePath.
+ */
+export function endpointTangent(
+  d: string,
+  end: "start" | "end",
+): Point | null {
+  const commands = parsePath(d);
+  if (commands.length < 2 || commands[0].command !== "M") return null;
+
+  if (end === "start") {
+    return commandTangent(
+      commands[1],
+      { x: commands[0].values[0], y: commands[0].values[1] },
+      "start",
+    );
+  }
+
+  let current = { x: commands[0].values[0], y: commands[0].values[1] };
+  for (let index = 1; index < commands.length - 1; index += 1) {
+    current = commandEndPoint(commands[index], current);
+  }
+
+  const last = commands[commands.length - 1];
+  if (last.command === "M") return null;
+  return commandTangent(last, current, "end");
+}
+
+/**
+ * Rotates the first control handle so the path starts in the requested
+ * direction. Only cubics and quadratics are adjusted; lines and arcs are
+ * returned unchanged.
+ */
+export function alignStartTangent(d: string, tangent: Point): string {
+  const commands = parsePath(d);
+  if (commands.length < 2 || commands[0].command !== "M") return d;
+
+  const direction = normalizeVector(tangent);
+  if (!direction) return d;
+
+  const start = { x: commands[0].values[0], y: commands[0].values[1] };
+  const command = commands[1];
+
+  if (command.command === "C") {
+    const control = { x: command.values[0], y: command.values[1] };
+    const length = distance(start, control);
+    if (length < EPSILON) return d;
+    command.values[0] = start.x + direction.x * length;
+    command.values[1] = start.y + direction.y * length;
+    return serializePath(commands, 6);
+  }
+
+  if (command.command === "Q") {
+    const control = { x: command.values[0], y: command.values[1] };
+    const length = distance(start, control);
+    if (length < EPSILON) return d;
+    command.values[0] = start.x + direction.x * length;
+    command.values[1] = start.y + direction.y * length;
+    return serializePath(commands, 6);
+  }
+
+  return d;
+}
+
+/**
+ * Rotates the last control handle so the path ends in the requested direction.
+ * Only cubics and quadratics are adjusted; lines and arcs are returned
+ * unchanged.
+ */
+export function alignEndTangent(d: string, tangent: Point): string {
+  const commands = parsePath(d);
+  if (commands.length < 2 || commands[0].command !== "M") return d;
+
+  const direction = normalizeVector(tangent);
+  if (!direction) return d;
+
+  let current = { x: commands[0].values[0], y: commands[0].values[1] };
+  for (let index = 1; index < commands.length - 1; index += 1) {
+    current = commandEndPoint(commands[index], current);
+  }
+
+  const last = commands[commands.length - 1];
+
+  if (last.command === "C") {
+    const point = { x: last.values[4], y: last.values[5] };
+    const control = { x: last.values[2], y: last.values[3] };
+    const length = distance(point, control);
+    if (length < EPSILON) return d;
+    last.values[2] = point.x - direction.x * length;
+    last.values[3] = point.y - direction.y * length;
+    return serializePath(commands, 6);
+  }
+
+  if (last.command === "Q") {
+    const point = { x: last.values[2], y: last.values[3] };
+    const control = { x: last.values[0], y: last.values[1] };
+    const length = distance(point, control);
+    if (length < EPSILON) return d;
+    last.values[0] = point.x - direction.x * length;
+    last.values[1] = point.y - direction.y * length;
+    return serializePath(commands, 6);
+  }
+
+  return d;
+}
+
+export function assertTangentContinuous(
+  previousD: string,
+  nextD: string,
+  description: string,
+  maxAngleDeg = 2,
+) {
+  if (process.env.NODE_ENV === "production") return;
+
+  const previous = endpointTangent(previousD, "end");
+  const next = endpointTangent(nextD, "start");
+  if (!previous || !next) return;
+
+  const dot = clamp(previous.x * next.x + previous.y * next.y, -1, 1);
+  const angle = (Math.acos(dot) * 180) / Math.PI;
+
+  if (angle > maxAngleDeg) {
+    throw new Error(
+      `Thread tangent failed (${description}): ${angle.toFixed(2)}°`,
+    );
+  }
+}
+
+export function assertPathSmooth(
+  d: string,
+  description: string,
+  maxAngleDeg = 1.5,
+) {
+  if (process.env.NODE_ENV === "production") return;
+
+  const commands = parsePath(d);
+  if (commands.length < 2 || commands[0].command !== "M") return;
+
+  let current = { x: commands[0].values[0], y: commands[0].values[1] };
+  let previousEnd: Point | null = null;
+
+  for (let index = 1; index < commands.length; index += 1) {
+    const command = commands[index];
+    const startTangent = commandTangent(command, current, "start");
+
+    if (previousEnd && startTangent) {
+      const dot = clamp(
+        previousEnd.x * startTangent.x + previousEnd.y * startTangent.y,
+        -1,
+        1,
+      );
+      const angle = (Math.acos(dot) * 180) / Math.PI;
+
+      if (angle > maxAngleDeg) {
+        throw new Error(
+          `Thread path is not smooth (${description}) at command ${index}: ${angle.toFixed(2)}°`,
+        );
+      }
+    }
+
+    previousEnd = commandTangent(command, current, "end");
+    current = commandEndPoint(command, current);
+  }
+}
+
+export function assertVerticalEnd(d: string, description: string) {
+  if (process.env.NODE_ENV === "production") return;
+
+  const commands = parsePath(d);
+  if (commands.length < 2 || commands[0].command !== "M") return;
+
+  let current = { x: commands[0].values[0], y: commands[0].values[1] };
+  for (let index = 1; index < commands.length - 1; index += 1) {
+    current = commandEndPoint(commands[index], current);
+  }
+
+  const last = commands[commands.length - 1];
+  const end = commandEndPoint(last, current);
+  const dx = Math.abs(end.x - current.x);
+
+  if (dx > 0.01) {
+    throw new Error(
+      `Thread vertical failed (${description}): dx ${dx.toFixed(3)}px`,
+    );
+  }
+}
+
+/**
+ * Rotates the first control handle of every cubic/quadratic command so its
+ * start tangent matches the previous command's end tangent. Endpoints and
+ * handle lengths are preserved. Lines and arcs are left untouched.
+ */
+export function smoothPathJoins(d: string): string {
+  const commands = parsePath(d);
+  if (commands.length < 3 || commands[0].command !== "M") return d;
+
+  let current = { x: commands[0].values[0], y: commands[0].values[1] };
+  let previousTangent: Point | null = null;
+
+  for (let index = 1; index < commands.length; index += 1) {
+    const command = commands[index];
+
+    if (previousTangent) {
+      if (command.command === "C") {
+        const control = { x: command.values[0], y: command.values[1] };
+        const length = distance(current, control);
+        if (length > EPSILON) {
+          command.values[0] = current.x + previousTangent.x * length;
+          command.values[1] = current.y + previousTangent.y * length;
+        }
+      } else if (command.command === "Q") {
+        const control = { x: command.values[0], y: command.values[1] };
+        const length = distance(current, control);
+        if (length > EPSILON) {
+          command.values[0] = current.x + previousTangent.x * length;
+          command.values[1] = current.y + previousTangent.y * length;
+        }
+      }
+    }
+
+    previousTangent = commandTangent(command, current, "end");
+    current = commandEndPoint(command, current);
+  }
+
+  return serializePath(commands, 6);
+}
+
+/**
+ * Appends straight runs and C1 cubic fillets through a vertex list. The
+ * builder is assumed to be at vertices[0] (or a line is added to it).
+ */
+export function appendRoundedCorners(
+  builder: PathBuilder,
+  vertices: Point[],
+  radiusAt: (index: number) => number,
+) {
+  if (vertices.length === 0) return;
+
+  const first = vertices[0];
+  if (distance(builder.current, first) > EPSILON) {
+    builder.line(first);
+  }
+
+  for (let index = 1; index < vertices.length - 1; index += 1) {
+    const previous = vertices[index - 1];
+    const vertex = vertices[index];
+    const next = vertices[index + 1];
+    const inLength = distance(previous, vertex);
+    const outLength = distance(vertex, next);
+
+    if (inLength < EPSILON || outLength < EPSILON) {
+      builder.line(vertex);
+      continue;
+    }
+
+    const dIn = {
+      x: (vertex.x - previous.x) / inLength,
+      y: (vertex.y - previous.y) / inLength,
+    };
+    const dOut = {
+      x: (next.x - vertex.x) / outLength,
+      y: (next.y - vertex.y) / outLength,
+    };
+    const cross = dIn.x * dOut.y - dIn.y * dOut.x;
+    const dot = dIn.x * dOut.x + dIn.y * dOut.y;
+
+    if (Math.abs(cross) < 1e-6 && dot > 0) {
+      builder.line(vertex);
+      continue;
+    }
+
+    const radius = Math.min(
+      Math.max(0, radiusAt(index)),
+      inLength / 2,
+      outLength / 2,
+    );
+
+    if (radius < 0.01) {
+      builder.line(vertex);
+      continue;
+    }
+
+    const k = radius * CIRCLE_K;
+    const filletStart = {
+      x: vertex.x - dIn.x * radius,
+      y: vertex.y - dIn.y * radius,
+    };
+    const filletEnd = {
+      x: vertex.x + dOut.x * radius,
+      y: vertex.y + dOut.y * radius,
+    };
+
+    builder.line(filletStart).cubic(
+      {
+        x: filletStart.x + dIn.x * k,
+        y: filletStart.y + dIn.y * k,
+      },
+      {
+        x: filletEnd.x - dOut.x * k,
+        y: filletEnd.y - dOut.y * k,
+      },
+      filletEnd,
+    );
+  }
+
+  const last = vertices[vertices.length - 1];
+  if (distance(builder.current, last) > EPSILON) {
+    builder.line(last);
+  }
+}

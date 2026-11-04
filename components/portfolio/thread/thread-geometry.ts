@@ -21,12 +21,20 @@ import {
 import {
   PathBuilder,
   affineFrom3,
+  alignEndTangent,
+  alignStartTangent,
+  appendRoundedCorners,
   applyAffine,
   assertDistance,
+  assertPathSmooth,
+  assertTangentContinuous,
+  assertVerticalEnd,
   clamp,
+  closestPointOnPolyline,
   cubicCommand,
   cumulativeLengths,
   distance,
+  endpointTangent,
   flattenPath,
   lineCommand,
   middle,
@@ -40,6 +48,7 @@ import {
   retargetStart,
   serializePath,
   similarityFrom2,
+  smoothPathJoins,
   splitCubic,
   transformPath,
   type Cubic,
@@ -316,197 +325,230 @@ function buildHero(
     nearRect(c, REFERENCE_HERO_RECTS.c) &&
     nearRect(ch, REFERENCE_HERO_RECTS.ch);
 
+  let back: string[];
+  let front: string[];
+  let origin: Point;
+  let handoff: Point;
+
   if (exact) {
-    const back = [...HERO_BACK];
-    const front = [...HERO_FRONT];
-    return {
-      key,
-      back,
-      front,
-      backPoints: back.map((d) => flattenPath(d, 10)),
-      frontPoints: front.map((d) => flattenPath(d, 10)),
-      origin: pathStart(back[0]),
-      handoff: pathEnd(back[back.length - 1]),
+    back = [...HERO_BACK];
+    front = [...HERO_FRONT];
+    origin = pathStart(back[0]);
+    handoff = pathEnd(back[back.length - 1]);
+  } else {
+    origin = {
+      x: from.left + 0.116 * from.width,
+      y: from.top - 0.728 * from.height,
     };
+    const oEntry = {
+      x: o.left + 1.157 * o.width,
+      y: o.top + 0.364 * o.height,
+    };
+    const oExit = {
+      x: o.left + 0.984 * o.width,
+      y: o.top + 0.591 * o.height,
+    };
+    const cEntry = {
+      x: c.left + 1.026 * c.width,
+      y: c.top + 0.285 * c.height,
+    };
+    const cMid = {
+      x: c.left + 0.521 * c.width,
+      y: c.top + 0.377 * c.height,
+    };
+    const cLower = {
+      x: c.left + 0.038 * c.width,
+      y: c.top + 0.674 * c.height,
+    };
+    const railY = launch.top + 0.0358 * launch.height;
+    const railStart = {
+      x: c.left + 0.608 * c.width,
+      y: railY,
+    };
+    const railEnd = {
+      x: ch.left + 0.272 * ch.width,
+      y: railY,
+    };
+    const chLoopIn = {
+      x: ch.left + 1.03 * ch.width,
+      y: ch.top + 0.462 * ch.height,
+    };
+    const chLoopMid = {
+      x: ch.left + 0.51 * ch.width,
+      y: ch.top + 0.474 * ch.height,
+    };
+    const chDown = {
+      x: ch.left + 0.767 * ch.width,
+      y: ch.top + 0.833 * ch.height,
+    };
+    const squiggleTwo = {
+      x: chDown.x - 0.1171 * ch.width,
+      y: chDown.y + 0.3267 * ch.height,
+    };
+    handoff = {
+      x: ch.left + 0.59 * ch.width,
+      y: layout.hero.bottom - 20,
+    };
+
+    const oLoopCenter = {
+      x: o.left + 1.14 * o.width,
+      y: o.top + 0.4775 * o.height,
+    };
+    const cLoopCenter = {
+      x: c.left + 0.532 * c.width,
+      y: c.top + 0.586 * c.height,
+    };
+    const chLoopCenter = {
+      x: ch.left + 0.6715 * ch.width,
+      y: ch.top + 0.475 * ch.height,
+    };
+
+    const oScale = glyphScale(o, REFERENCE_HERO_RECTS.o);
+    const cScale = glyphScale(c, REFERENCE_HERO_RECTS.c);
+    const chScale = glyphScale(ch, REFERENCE_HERO_RECTS.ch);
+    const oCScale = Math.min(oScale, cScale);
+    const connector = (
+      index: number,
+      channelStart: Point,
+      channelEnd: Point,
+      scale: number,
+    ) =>
+      connectorCenter(
+        HERO_REFERENCE[index],
+        channelStart,
+        channelEnd,
+        Math.max(0.2, scale),
+      );
+
+    const channels: Array<{
+      index: number;
+      start: Point;
+      end: Point;
+      center: Point;
+    }> = [
+      {
+        index: 0,
+        start: origin,
+        end: oEntry,
+        center: connector(0, origin, oEntry, oScale),
+      },
+      {
+        index: 1,
+        start: oExit,
+        end: cEntry,
+        center: connector(1, oExit, cEntry, oCScale),
+      },
+      {
+        index: 2,
+        start: cMid,
+        end: cLower,
+        center: cLoopCenter,
+      },
+      {
+        index: 3,
+        start: railEnd,
+        end: chLoopIn,
+        center: connector(3, railEnd, chLoopIn, chScale),
+      },
+      {
+        index: 4,
+        start: chLoopMid,
+        end: chDown,
+        center: connector(4, chLoopMid, chDown, chScale),
+      },
+      {
+        index: 5,
+        start: chDown,
+        end: squiggleTwo,
+        center: connector(5, chDown, squiggleTwo, chScale),
+      },
+      {
+        index: 6,
+        start: squiggleTwo,
+        end: handoff,
+        center: connector(6, squiggleTwo, handoff, chScale),
+      },
+      {
+        index: 7,
+        start: oEntry,
+        end: oExit,
+        center: oLoopCenter,
+      },
+      {
+        index: 8,
+        start: cEntry,
+        end: cMid,
+        center: cLoopCenter,
+      },
+      {
+        index: 9,
+        start: cLower,
+        end: railEnd,
+        center: railStart,
+      },
+      {
+        index: 10,
+        start: chLoopIn,
+        end: chLoopMid,
+        center: chLoopCenter,
+      },
+    ];
+
+    const loopChannels = new Set([2, 7, 8, 10]);
+
+    const generated = channels.map(({ index, start, end, center }) => {
+      const reference = HERO_REFERENCE[index];
+      const matrix = loopChannels.has(index)
+        ? similarityFrom2(
+            [reference.start, reference.end],
+            [start, end],
+          )
+        : affineFrom3(
+            [reference.start, reference.end, centerOf(reference.bounds)],
+            [start, end, normalizePoint(center, layout.width, layout.height)],
+          );
+
+      return applyAffine(reference.d, matrix);
+    });
+
+    back = generated.slice(0, 7);
+    front = generated.slice(7);
   }
 
-  const origin = {
-    x: from.left + 0.116 * from.width,
-    y: from.top - 0.728 * from.height,
-  };
-  const oEntry = {
-    x: o.left + 1.157 * o.width,
-    y: o.top + 0.364 * o.height,
-  };
-  const oExit = {
-    x: o.left + 0.984 * o.width,
-    y: o.top + 0.591 * o.height,
-  };
-  const cEntry = {
-    x: c.left + 1.026 * c.width,
-    y: c.top + 0.285 * c.height,
-  };
-  const cMid = {
-    x: c.left + 0.521 * c.width,
-    y: c.top + 0.377 * c.height,
-  };
-  const cLower = {
-    x: c.left + 0.038 * c.width,
-    y: c.top + 0.674 * c.height,
-  };
-  const railY = launch.top + 0.0358 * launch.height;
-  const railStart = {
-    x: c.left + 0.608 * c.width,
-    y: railY,
-  };
-  const railEnd = {
-    x: ch.left + 0.272 * ch.width,
-    y: railY,
-  };
-  const chLoopIn = {
-    x: ch.left + 1.03 * ch.width,
-    y: ch.top + 0.462 * ch.height,
-  };
-  const chLoopMid = {
-    x: ch.left + 0.51 * ch.width,
-    y: ch.top + 0.474 * ch.height,
-  };
-  const chDown = {
-    x: ch.left + 0.767 * ch.width,
-    y: ch.top + 0.833 * ch.height,
-  };
-  const squiggleTwo = {
-    x: chDown.x - 0.1171 * ch.width,
-    y: chDown.y + 0.3267 * ch.height,
-  };
-  const handoff = {
-    x: ch.left + 0.59 * ch.width,
-    y: layout.hero.bottom - 20,
-  };
-
-  const oLoopCenter = {
-    x: o.left + 1.14 * o.width,
-    y: o.top + 0.4775 * o.height,
-  };
-  const cLoopCenter = {
-    x: c.left + 0.532 * c.width,
-    y: c.top + 0.586 * c.height,
-  };
-  const chLoopCenter = {
-    x: ch.left + 0.6715 * ch.width,
-    y: ch.top + 0.475 * ch.height,
-  };
-
-  const oScale = glyphScale(o, REFERENCE_HERO_RECTS.o);
-  const cScale = glyphScale(c, REFERENCE_HERO_RECTS.c);
-  const chScale = glyphScale(ch, REFERENCE_HERO_RECTS.ch);
-  const oCScale = Math.min(oScale, cScale);
-  const connector = (
-    index: number,
-    start: Point,
-    end: Point,
-    scale: number,
-  ) =>
-    connectorCenter(
-      HERO_REFERENCE[index],
-      start,
-      end,
-      Math.max(0.2, scale),
-    );
-
-  const channels: Array<{
-    index: number;
-    start: Point;
-    end: Point;
-    center: Point;
-  }> = [
-    {
-      index: 0,
-      start: origin,
-      end: oEntry,
-      center: connector(0, origin, oEntry, oScale),
-    },
-    {
-      index: 1,
-      start: oExit,
-      end: cEntry,
-      center: connector(1, oExit, cEntry, oCScale),
-    },
-    {
-      index: 2,
-      start: cMid,
-      end: cLower,
-      center: cLoopCenter,
-    },
-    {
-      index: 3,
-      start: railEnd,
-      end: chLoopIn,
-      center: connector(3, railEnd, chLoopIn, chScale),
-    },
-    {
-      index: 4,
-      start: chLoopMid,
-      end: chDown,
-      center: connector(4, chLoopMid, chDown, chScale),
-    },
-    {
-      index: 5,
-      start: chDown,
-      end: squiggleTwo,
-      center: connector(5, chDown, squiggleTwo, chScale),
-    },
-    {
-      index: 6,
-      start: squiggleTwo,
-      end: handoff,
-      center: connector(6, squiggleTwo, handoff, chScale),
-    },
-    {
-      index: 7,
-      start: oEntry,
-      end: oExit,
-      center: oLoopCenter,
-    },
-    {
-      index: 8,
-      start: cEntry,
-      end: cMid,
-      center: cLoopCenter,
-    },
-    {
-      index: 9,
-      start: cLower,
-      end: railEnd,
-      center: railStart,
-    },
-    {
-      index: 10,
-      start: chLoopIn,
-      end: chLoopMid,
-      center: chLoopCenter,
-    },
+  const order: Array<{ array: "back" | "front"; index: number }> = [
+    { array: "back", index: 0 },
+    { array: "front", index: 0 },
+    { array: "back", index: 1 },
+    { array: "front", index: 1 },
+    { array: "back", index: 2 },
+    { array: "front", index: 2 },
+    { array: "back", index: 3 },
+    { array: "front", index: 3 },
+    { array: "back", index: 4 },
+    { array: "back", index: 5 },
+    { array: "back", index: 6 },
   ];
 
-  const loopChannels = new Set([2, 7, 8, 10]);
+  const read = (slot: (typeof order)[number]) =>
+    slot.array === "back" ? back[slot.index] : front[slot.index];
+  const assign = (slot: (typeof order)[number], value: string) => {
+    if (slot.array === "back") {
+      back[slot.index] = value;
+    } else {
+      front[slot.index] = value;
+    }
+  };
 
-  const generated = channels.map(({ index, start, end, center }) => {
-    const reference = HERO_REFERENCE[index];
-    const matrix = loopChannels.has(index)
-      ? similarityFrom2(
-          [reference.start, reference.end],
-          [start, end],
-        )
-      : affineFrom3(
-          [reference.start, reference.end, centerOf(reference.bounds)],
-          [start, end, normalizePoint(center, layout.width, layout.height)],
-        );
+  for (let index = 1; index < order.length; index += 1) {
+    const tangent = endpointTangent(read(order[index - 1]), "end");
+    if (!tangent) continue;
+    assign(order[index], alignStartTangent(read(order[index]), tangent));
+  }
 
-    return applyAffine(reference.d, matrix);
+  back[back.length - 1] = alignEndTangent(back[back.length - 1], {
+    x: 0,
+    y: 1,
   });
-
-  const back = generated.slice(0, 7);
-  const front = generated.slice(7);
 
   return {
     key,
@@ -594,7 +636,11 @@ function buildWork(
   previous: RouteModel | undefined,
 ): RouteModel {
   const drawing = getRect(layout, "work.drawing");
-  const end = { x: 0.6962 * layout.width, y: capsTop };
+  const workExitX =
+    drawing.left +
+    ((REF_WORK.end.x - REF_WORK.drawing.left) / REF_WORK.drawing.width) *
+      drawing.width;
+  const end = { x: workExitX, y: capsTop };
   const key = [
     pointKey(hero.handoff),
     pointKey(end),
@@ -691,6 +737,8 @@ function buildWork(
 
   let d = retargetStart(builder.d, start);
   d = retargetEnd(d, end);
+  d = alignStartTangent(d, { x: 0, y: 1 });
+  d = smoothPathJoins(d);
 
   return routeFromPath(key, d, 8);
 }
@@ -720,11 +768,32 @@ function buildCapabilities(
   const ringRx = orbit.width / 2;
   const ringRy = (ringBottom - ringTop) / 2;
 
-  const arc18 = clamp(Math.min(18, layout.width * 0.0127), 6, 18);
-  let uturn = clamp(Math.min(32, layout.width * 0.0225), 6, 32);
-  if (rightRailX - leftRailX < 200) {
-    uturn = (rightRailX - leftRailX) / 4;
+  const verticalRoom = lowerRailY - capsStart.y;
+  const horizontalRoom = rightRailX - leftRailX;
+  const ringRoom = ringTop - lowerRailY;
+  let cornerR = clamp(
+    Math.min(
+      0.02 * layout.width,
+      0.09 * verticalRoom,
+      0.12 * horizontalRoom,
+      ringRoom / 3.2,
+    ),
+    6,
+    28,
+  );
+
+  const guardCorner = Math.min(
+    (verticalRoom - 2) / 4,
+    (rightRailX - capsStart.x - 8) / 2,
+    (rightRailX - leftRailX - 8) / 2,
+    (splitX - leftRailX - 8) / 2,
+    (ringRoom - 8) / 3,
+    Math.max(0, (heading.top - capsStart.y - 8) / 2),
+  );
+  if (guardCorner > 0) {
+    cornerR = Math.min(cornerR, guardCorner);
   }
+  cornerR = Math.max(3, cornerR);
 
   const key = [
     pointKey(capsStart),
@@ -759,38 +828,31 @@ function buildCapabilities(
 
   const entryBuilder = new PathBuilder(capsStart);
   entryBuilder
-    .line({ x: capsStart.x, y: capsStart.y + arc18 })
-    .arc(
-      arc18,
-      arc18,
-      0,
-      0,
-      0,
-      { x: capsStart.x + arc18, y: capsStart.y + arc18 * 2 },
-    )
-    .line({
-      x: rightRailX - arc18,
-      y: capsStart.y + arc18 * 2,
+    .line({ x: capsStart.x, y: capsStart.y + cornerR })
+    .arc(cornerR, cornerR, 0, 0, 0, {
+      x: capsStart.x + cornerR,
+      y: capsStart.y + 2 * cornerR,
     })
-    .arc(arc18, arc18, 0, 0, 1, {
+    .line({ x: rightRailX - cornerR, y: capsStart.y + 2 * cornerR })
+    .arc(cornerR, cornerR, 0, 0, 1, {
       x: rightRailX,
-      y: capsStart.y + arc18 * 3,
+      y: capsStart.y + 3 * cornerR,
     })
-    .line({ x: rightRailX, y: lowerRailY - uturn })
-    .quad(
-      { x: rightRailX, y: lowerRailY },
-      { x: rightRailX - uturn, y: lowerRailY },
-    )
-    .line({ x: leftRailX + uturn, y: lowerRailY })
-    .arc(uturn, uturn, 0, 0, 0, {
-      x: leftRailX,
-      y: lowerRailY + uturn * 2,
+    .line({ x: rightRailX, y: lowerRailY - cornerR })
+    .arc(cornerR, cornerR, 0, 0, 1, {
+      x: rightRailX - cornerR,
+      y: lowerRailY,
     })
-    .line({ x: splitX - uturn, y: lowerRailY + uturn * 2 })
-    .quad(
-      { x: splitX, y: lowerRailY + uturn * 2 },
-      { x: splitX, y: lowerRailY + uturn * 3 },
-    )
+    .line({ x: leftRailX + cornerR, y: lowerRailY })
+    .arc(cornerR, cornerR, 0, 0, 0, {
+      x: leftRailX + cornerR,
+      y: lowerRailY + 2 * cornerR,
+    })
+    .line({ x: splitX - cornerR, y: lowerRailY + 2 * cornerR })
+    .arc(cornerR, cornerR, 0, 0, 1, {
+      x: splitX,
+      y: lowerRailY + 3 * cornerR,
+    })
     .line({ x: splitX, y: ringTop });
 
   const productD = `${moveCommand({ x: splitX, y: ringTop })} A ${ringRx} ${ringRy} 0 0 0 ${splitX} ${ringBottom}`;
@@ -829,6 +891,44 @@ function distanceToRect(value: Point, rect: Rect) {
   const dx = Math.max(rect.left - value.x, 0, value.x - rect.right);
   const dy = Math.max(rect.top - value.y, 0, value.y - rect.bottom);
   return Math.hypot(dx, dy);
+}
+
+function assertNodesOnPath(
+  d: string,
+  targets: Point[],
+  tolerance = 0.75,
+) {
+  if (process.env.NODE_ENV === "production") return;
+
+  const points = flattenPath(d, 2);
+  const cumulative = cumulativeLengths(points);
+
+  for (const target of targets) {
+    const closest = closestPointOnPolyline(points, cumulative, target);
+    if (closest.distance > tolerance) {
+      throw new Error(
+        `Thread node is off the path: ${closest.distance.toFixed(2)}px`,
+      );
+    }
+  }
+}
+
+function assertPathMissesRects(d: string, rects: Rect[], tolerance = 0) {
+  if (process.env.NODE_ENV === "production") return;
+
+  const points = flattenPath(d, 2);
+
+  for (const rect of rects) {
+    for (const value of points) {
+      if (distanceToRect(value, rect) <= tolerance) {
+        throw new Error(
+          `Thread route intersects a layout box at ${value.x.toFixed(
+            2,
+          )}, ${value.y.toFixed(2)}`,
+        );
+      }
+    }
+  }
 }
 
 function routeMissesRect(points: Point[], rect: Rect, tolerance: number) {
@@ -1006,6 +1106,7 @@ function buildWhy(
   aboutStart: Point,
 ): RouteModel {
   const title = getRect(layout, "why.title");
+  const intro = getRect(layout, "why.intro");
   const nodes = [1, 2, 3, 4, 5].map((index) =>
     centerOf(getRect(layout, `why.point.${index}`)),
   );
@@ -1016,6 +1117,7 @@ function buildWhy(
     pointKey(start),
     pointKey(aboutStart),
     rectKey(title),
+    rectKey(intro),
     ...nodes.map(pointKey),
     ...copies.map(rectKey),
     layout.width,
@@ -1023,65 +1125,188 @@ function buildWhy(
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
 
-  const wrapX = Math.max(8, title.left - 18);
-  const aboveY = Math.max(start.y + 24, title.top - 120);
-  const leftControlX = Math.max(0, wrapX - 12);
-  const clampX = (value: number) => clamp(value, 10, layout.width - 10);
-  const builder = new PathBuilder(start);
+  const wrapX = clamp(title.left - 4, 8, layout.width - 8);
+  const topY = clamp(title.top - 96, start.y + 48, title.top - 24);
+  let rTop = clamp(
+    Math.min(32, 0.35 * (topY - start.y), 0.25 * (start.x - wrapX)),
+    8,
+    32,
+  );
+  if (start.x - wrapX < 2 * rTop + 24) {
+    rTop = Math.max(8, (start.x - wrapX - 24) / 2);
+  }
 
+  const rBottom = clamp(Math.min(12, 0.3 * (title.left - 8)), 4, 12);
+  const edge = 4;
+  let uR = clamp(wrapX - rBottom - edge, 3, 12);
+  let returnY = title.bottom + 2 * uR;
+  let useHook = false;
+
+  if (returnY > intro.top - 8) {
+    const available = (intro.top - 8 - title.bottom) / 2;
+    if (available >= 3) {
+      uR = Math.min(uR, available);
+      returnY = title.bottom + 2 * uR;
+    } else {
+      useHook = true;
+      returnY = Math.max(title.bottom + 8, intro.top - 8);
+    }
+  }
+
+  const descentX = clamp(
+    Math.max(layout.width / 2, intro.right + 40),
+    8,
+    layout.width - 8,
+  );
+  const rCenter = clamp(
+    Math.min(20, 0.4 * (nodes[0].y - returnY)),
+    8,
+    20,
+  );
+
+  const builder = new PathBuilder(start);
   builder
-    .cubic(
-      { x: start.x, y: start.y + 0.2 * (title.top - start.y) },
-      { x: clampX(start.x - 140), y: aboveY },
-      { x: clampX(wrapX + 180), y: aboveY },
-    )
-    .cubic(
-      { x: clampX(wrapX + 40), y: aboveY },
-      { x: wrapX, y: title.top - 72 },
-      { x: wrapX, y: title.top + 0.05 * title.height },
-    )
-    .cubic(
-      { x: leftControlX, y: title.top + 0.3 * title.height },
-      { x: leftControlX, y: title.bottom - 0.2 * title.height },
-      {
-        x: wrapX,
-        y: title.bottom + 0.18 * (nodes[0].y - title.bottom),
-      },
+    .line({ x: start.x, y: topY - rTop })
+    .arc(rTop, rTop, 0, 0, 1, { x: start.x - rTop, y: topY })
+    .line({ x: wrapX + rTop, y: topY })
+    .arc(rTop, rTop, 0, 0, 0, { x: wrapX, y: topY + rTop })
+    .line({ x: wrapX, y: title.bottom - rBottom });
+
+  if (useHook) {
+    const hookY = Math.max(4, returnY - title.bottom);
+    const hookX = Math.max(
+      4,
+      Math.min(24, wrapX - rBottom - edge, descentX - rCenter - wrapX - 8),
     );
 
-  let lastOuterX = wrapX;
-  let lastNodeY = nodes[nodes.length - 1].y;
+    builder.cubic(
+      { x: wrapX, y: title.bottom + 0.55 * hookY },
+      { x: wrapX + 0.55 * hookX, y: returnY },
+      { x: wrapX + hookX, y: returnY },
+    );
+  } else {
+    builder.arc(rBottom, rBottom, 0, 0, 1, {
+      x: wrapX - rBottom,
+      y: title.bottom,
+    });
 
-  nodes.forEach((node, index) => {
-    const copy = copies[index];
-    const side = copy.left > node.x ? "right" : "left";
-    const sign = side === "right" ? -1 : 1;
-    const outerX =
-      side === "right"
-        ? Math.min(layout.width - 12, copy.right + 28)
-        : Math.max(12, copy.left - 28);
+    const availableRun = wrapX - rBottom - (edge + uR);
+    const run = Math.min(24, Math.max(0, availableRun));
+    const uStartX = Math.min(
+      wrapX - rBottom,
+      Math.max(edge + uR, wrapX - rBottom - run),
+    );
 
-    builder
-      .cubic(
-        { x: node.x + sign * 56, y: node.y - 44 },
-        { x: node.x + sign * 24, y: node.y - 8 },
-        node,
-      )
-      .cubic(
-        { x: node.x - sign * 24, y: node.y + 8 },
-        { x: clampX(outerX + sign * 48), y: node.y + 10 },
-        { x: clampX(outerX), y: node.y },
+    if (uStartX < wrapX - rBottom - 0.01) {
+      builder.line({ x: uStartX, y: title.bottom });
+    }
+
+    builder.arc(uR, uR, 0, 0, 0, {
+      x: uStartX,
+      y: returnY,
+    });
+  }
+
+  builder
+    .line({ x: descentX - rCenter, y: returnY })
+    .arc(rCenter, rCenter, 0, 0, 1, {
+      x: descentX,
+      y: returnY + rCenter,
+    });
+
+  const first = nodes[0];
+  const descentY = Math.max(returnY + rCenter, intro.bottom + 24);
+  const curveDy = first.y - descentY;
+
+  if (descentY > returnY + rCenter + 0.01) {
+    builder.line({ x: descentX, y: descentY });
+  }
+
+  if (curveDy > 0.01) {
+    builder.cubic(
+      { x: descentX, y: descentY + 0.55 * curveDy },
+      { x: first.x, y: first.y - 0.55 * curveDy },
+      first,
+    );
+  } else {
+    builder.line(first);
+  }
+
+  const sides = copies.map((copy, index) =>
+    (copy.left + copy.right) / 2 > nodes[index].x ? 1 : -1,
+  );
+  const alternating = sides.some((side) => side !== sides[0]);
+
+  if (alternating) {
+    nodes.forEach((node, index) => {
+      const copy = copies[index];
+      const next = index < nodes.length - 1 ? nodes[index + 1] : aboutStart;
+      const gap = clamp(0.08 * copy.height, 12, 24);
+      const underY = copy.bottom + gap;
+      const minCorner = Math.min(8, gap);
+      const corner = clamp(
+        Math.min(
+          20,
+          gap,
+          0.35 * Math.abs(next.x - node.x),
+          0.35 * Math.max(0, underY - node.y),
+        ),
+        minCorner,
+        20,
       );
 
-    lastOuterX = outerX;
-    lastNodeY = node.y;
-  });
+      appendRoundedCorners(
+        builder,
+        [
+          builder.current,
+          { x: node.x, y: underY },
+          { x: next.x, y: underY },
+          next,
+        ],
+        (vertexIndex) =>
+          vertexIndex === 1 || vertexIndex === 2 ? corner : 0,
+      );
+    });
+  } else {
+    const spineX = nodes[0].x;
+    const last = nodes[nodes.length - 1];
+    builder.line({ x: spineX, y: last.y });
 
-  builder.cubic(
-    { x: clampX(lastOuterX + 24), y: lastNodeY + 80 },
-    { x: clampX(aboutStart.x - 96), y: aboutStart.y - 120 },
-    aboutStart,
-  );
+    const lastCopy = copies[copies.length - 1];
+    const gap = clamp(0.08 * lastCopy.height, 12, 24);
+    const underY = lastCopy.bottom + gap;
+    const dy = aboutStart.y - last.y;
+    const dx = aboutStart.x - spineX;
+    const room = aboutStart.y - underY;
+
+    if (dy > 0.01 && Math.abs(dx) > 0.5 && room > 16) {
+      const corner = clamp(
+        Math.min(20, 0.35 * Math.abs(dx), 0.35 * room),
+        8,
+        20,
+      );
+
+      appendRoundedCorners(
+        builder,
+        [
+          builder.current,
+          { x: spineX, y: underY },
+          { x: aboutStart.x, y: underY },
+          aboutStart,
+        ],
+        (vertexIndex) =>
+          vertexIndex === 1 || vertexIndex === 2 ? corner : 0,
+      );
+    } else if (dy > 0.01 && Math.abs(dx) > 0.5) {
+      builder.cubic(
+        { x: spineX, y: last.y + 0.55 * dy },
+        { x: aboutStart.x, y: aboutStart.y - 0.55 * dy },
+        aboutStart,
+      );
+    } else {
+      builder.line(aboutStart);
+    }
+  }
 
   return routeFromPath(key, builder.d, 10);
 }
@@ -1154,7 +1379,23 @@ function buildContact(
   const cached = reuseRoute(previous, key);
   if (cached) return { route: cached, terminal };
 
-  const d = `${moveCommand(start)} ${lineCommand(terminal)}`;
+  const dx = terminal.x - start.x;
+  const dy = terminal.y - start.y;
+  const length = Math.hypot(dx, dy);
+  const unit = { x: dx / length, y: dy / length };
+  const leadLength = clamp(0.12 * length, 60, 160);
+  const leadEnd = {
+    x: start.x + unit.x * leadLength,
+    y: start.y + unit.y * leadLength,
+  };
+  const d = `${moveCommand(start)} ${cubicCommand(
+    { x: start.x, y: start.y + 0.55 * leadLength },
+    {
+      x: leadEnd.x - unit.x * 0.35 * leadLength,
+      y: leadEnd.y - unit.y * 0.35 * leadLength,
+    },
+    leadEnd,
+  )} ${lineCommand(terminal)}`;
   return { route: routeFromPath(key, d, 10), terminal };
 }
 
@@ -1389,6 +1630,66 @@ export function buildThreadModel(
   };
 
   if (process.env.NODE_ENV !== "production") {
+    const heroSequence = [
+      hero.back[0],
+      hero.front[0],
+      hero.back[1],
+      hero.front[1],
+      hero.back[2],
+      hero.front[2],
+      hero.back[3],
+      hero.front[3],
+      hero.back[4],
+      hero.back[5],
+      hero.back[6],
+    ];
+
+    for (let index = 1; index < heroSequence.length; index += 1) {
+      assertTangentContinuous(
+        heroSequence[index - 1],
+        heroSequence[index],
+        `hero join ${index - 1} → ${index}`,
+        2,
+      );
+    }
+
+    assertTangentContinuous(hero.back[6], work.d, "hero → work", 2);
+    assertPathSmooth(work.d, "work route", 1.5);
+    assertVerticalEnd(work.d, "work → capabilities connector");
+    assertTangentContinuous(
+      work.d,
+      capabilities.entry.d,
+      "work → capabilities",
+      2,
+    );
+    assertTangentContinuous(legalexy.d, why.d, "LEGALEXY → why-me", 2);
+    assertTangentContinuous(why.d, about.d, "why-me → about", 2);
+    assertTangentContinuous(
+      about.d,
+      contact.route.d,
+      "about → contact",
+      2,
+    );
+    assertPathSmooth(why.d, "why-me route", 1.5);
+
+    const whyNodes = [1, 2, 3, 4, 5].map((index) =>
+      centerOf(getRect(layout, `why.point.${index}`)),
+    );
+    const whyCopies = [1, 2, 3, 4, 5].map((index) =>
+      getRect(layout, `why.copy.${index}`),
+    );
+
+    assertNodesOnPath(why.d, whyNodes, 0.75);
+    assertPathMissesRects(
+      why.d,
+      [
+        getRect(layout, "why.title"),
+        getRect(layout, "why.intro"),
+        ...whyCopies,
+      ],
+      0,
+    );
+
     assertDistance(hero.handoff, work.start, "hero → work");
     assertDistance(work.end, capabilities.entry.start, "work → capabilities");
     assertDistance(
