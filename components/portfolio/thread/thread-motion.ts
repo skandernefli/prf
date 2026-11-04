@@ -214,7 +214,9 @@ export function updateAnchorEvents(
         progress: anchor.progress,
         scrollProgress,
       };
-      window.dispatchEvent(new CustomEvent<AnchorEventDetail>("thread:anchor", { detail }));
+      window.dispatchEvent(
+        new CustomEvent<AnchorEventDetail>("thread:anchor", { detail }),
+      );
     }
 
     state.lastProgress = progress;

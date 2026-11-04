@@ -3,14 +3,18 @@
 import { gsap } from "gsap";
 import type { LenisOptions } from "lenis";
 import { ReactLenis, useLenis } from "lenis/react";
-import { useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 
 import { usePreloader } from "@/components/preloader/preloader-context";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const FOCUSABLE_TARGET =
   'a[href], button, input, select, textarea, [contenteditable=""], [tabindex]';
+
+// easeInOutCubic for in-page anchor jumps
+const anchorEasing = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 function subscribeToReducedMotion(onChange: () => void) {
   const media = window.matchMedia(REDUCED_MOTION_QUERY);
@@ -64,8 +68,12 @@ function LenisRuntime() {
     };
 
     gsap.ticker.add(update, false, true);
+    // Prevent GSAP from compensating for frame hitches, which causes Lenis to jump.
+    gsap.ticker.lagSmoothing(0);
+
     return () => {
       gsap.ticker.remove(update);
+      gsap.ticker.lagSmoothing(500, 33); // restore GSAP defaults
     };
   }, [lenis]);
 
@@ -109,7 +117,11 @@ function LenisRuntime() {
         target.focus({ preventScroll: true });
       }
 
-      lenis.scrollTo(target);
+      lenis.scrollTo(target, {
+        duration: 1.6,
+        easing: anchorEasing,
+        offset: 0,
+      });
     };
 
     const onPopState = () => {
@@ -137,7 +149,8 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
   const options = useMemo<LenisOptions>(
     () => ({
       autoRaf: false,
-      lerp: 0.1,
+      lerp: 0.075,
+      wheelMultiplier: 0.9,
       smoothWheel: !reducedMotion,
       syncTouch: false,
       anchors: false,

@@ -5,12 +5,12 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 import { HERO_BACK, HERO_FRONT } from "./route-data";
+import { createThreadDrawer, DEFAULT_DRAW_RANGES } from "./thread-draw";
 import { buildThreadModel, type ThreadModel } from "./thread-geometry";
 import { measureLayout } from "./thread-measure";
 import {
   buildNavigationTrack,
   createAnchorEventState,
-  headPoint,
   pageScrollProgress,
   reconcileAnchorState,
   updateAnchorEvents,
@@ -18,6 +18,7 @@ import {
 } from "./thread-motion";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const subscribeToClient = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
@@ -58,10 +59,10 @@ export function ThreadLayer() {
   const contactPathRef = useRef<SVGPathElement>(null);
   const clipRectRef = useRef<SVGRectElement>(null);
   const markersRef = useRef<SVGGElement>(null);
+  const terminalGroupRef = useRef<SVGGElement>(null);
   const terminalRingRef = useRef<SVGCircleElement>(null);
   const terminalCoreRef = useRef<SVGCircleElement>(null);
   const originRef = useRef<SVGCircleElement>(null);
-  const headRef = useRef<HTMLDivElement>(null);
   const backSvgRef = useRef<SVGSVGElement>(null);
   const frontSvgRef = useRef<SVGSVGElement>(null);
   const backPathRefs = useRef<Array<SVGPathElement | null>>([]);
@@ -84,6 +85,51 @@ export function ThreadLayer() {
     let scrollProgress = 0;
     let disposed = false;
     const eventState = createAnchorEventState();
+    const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY);
+
+    // ------------------------------------------------------------------
+    // DRAWING: scroll-agnostic. Anything can call drawer.draw(progress)
+    // or drawer.drawTo(progress, { duration }).
+    // ------------------------------------------------------------------
+    const drawer = createThreadDrawer({
+      segments: [
+        {
+          id: "page",
+          element: pagePathRef.current,
+          range: DEFAULT_DRAW_RANGES.page,
+        },
+        {
+          id: "branch",
+          element: aiPathRef.current,
+          range: DEFAULT_DRAW_RANGES.branch,
+        },
+        {
+          id: "fingerprint",
+          element: fingerprintPathRef.current,
+          range: DEFAULT_DRAW_RANGES.fingerprint,
+        },
+        {
+          id: "contact",
+          element: contactPathRef.current,
+          range: DEFAULT_DRAW_RANGES.contact,
+        },
+      ],
+      terminal: {
+        element: terminalGroupRef.current,
+        at: DEFAULT_DRAW_RANGES.contact[1],
+      },
+    });
+
+    // ------------------------------------------------------------------
+    // SCROLL DRIVER: the only place scroll is translated into a draw call.
+    // ------------------------------------------------------------------
+    const driveDrawFromScroll = () => {
+      if (reducedMotion.matches) {
+        drawer.draw(1); // show the finished thread, no scroll-linked motion
+        return;
+      }
+      drawer.draw(started ? scrollProgress : 0);
+    };
 
     const writeModel = (next: ThreadModel) => {
       const pageSvg = pageSvgRef.current;
@@ -95,11 +141,17 @@ export function ThreadLayer() {
 
       const heroBackSvg = backSvgRef.current;
       if (heroBackSvg) {
-        heroBackSvg.setAttribute("viewBox", `0 0 ${next.width} ${next.heroHeight}`);
+        heroBackSvg.setAttribute(
+          "viewBox",
+          `0 0 ${next.width} ${next.heroHeight}`,
+        );
       }
       const heroFrontSvg = frontSvgRef.current;
       if (heroFrontSvg) {
-        heroFrontSvg.setAttribute("viewBox", `0 0 ${next.width} ${next.heroHeight}`);
+        heroFrontSvg.setAttribute(
+          "viewBox",
+          `0 0 ${next.width} ${next.heroHeight}`,
+        );
       }
 
       next.hero.back.forEach((d, index) => {
@@ -120,8 +172,12 @@ export function ThreadLayer() {
       clipRectRef.current?.setAttribute("x", String(next.about.rect.left));
       clipRectRef.current?.setAttribute("y", String(next.about.rect.top));
       clipRectRef.current?.setAttribute("width", String(next.about.rect.width));
-      clipRectRef.current?.setAttribute("height", String(next.about.rect.height));
+      clipRectRef.current?.setAttribute(
+        "height",
+        String(next.about.rect.height),
+      );
 
+      const markerGroups: SVGElement[] = [];
       const markers = markersRef.current;
       if (markers) {
         markers.replaceChildren();
@@ -135,6 +191,7 @@ export function ThreadLayer() {
           core.setAttribute("cy", String(marker.point.y));
           group.append(ring, core);
           markers.append(group);
+          markerGroups.push(group);
         }
       }
 
@@ -143,9 +200,12 @@ export function ThreadLayer() {
       terminalCoreRef.current?.setAttribute("cx", String(next.terminal.x));
       terminalCoreRef.current?.setAttribute("cy", String(next.terminal.y));
 
-      if (headRef.current) {
-        headRef.current.style.opacity = started ? "1" : "0";
-      }
+      // Geometry changed: tell the drawer, which re-applies the current state.
+      drawer.setMarkers(
+        markerGroups,
+        next.markers.map((marker) => marker.point),
+      );
+      drawer.refresh();
     };
 
     const tick = () => {
@@ -165,24 +225,10 @@ export function ThreadLayer() {
         rebuilds += 1;
       }
 
-      if (track) {
-        const head = headRef.current;
-        if (head) {
-          const point = headPoint(track, scrollProgress);
-          head.style.transform = `translate3d(${point.x}px, ${
-            point.y - window.scrollY
-          }px, 0)`;
-          head.style.opacity = started ? "1" : "0";
-        }
+      driveDrawFromScroll();
 
-        if (started) {
-          updateAnchorEvents(
-            eventState,
-            track,
-            scrollProgress,
-            scrollProgress,
-          );
-        }
+      if (track && started) {
+        updateAnchorEvents(eventState, track, scrollProgress, scrollProgress);
       }
 
       tickMs = performance.now() - tickStart;
@@ -264,6 +310,7 @@ export function ThreadLayer() {
       window.removeEventListener("site:ready", onReady);
       window.removeEventListener("resize", onResize);
       observer.disconnect();
+      drawer.destroy();
       if (startedTicker) gsap.ticker.remove(tick);
       if (process.env.NODE_ENV !== "production") {
         delete window.__threadDebug;
@@ -354,7 +401,7 @@ export function ThreadLayer() {
           d=""
         />
         <g ref={markersRef} />
-        <g className="thread-terminal-group">
+        <g ref={terminalGroupRef} className="thread-terminal-group">
           <circle
             ref={terminalRingRef}
             className="thread-terminal"
@@ -371,8 +418,6 @@ export function ThreadLayer() {
           />
         </g>
       </svg>
-
-      <div ref={headRef} className="thread-head" aria-hidden="true" />
     </>
   );
 }
