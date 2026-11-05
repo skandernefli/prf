@@ -1,39 +1,39 @@
 "use client";
 
-import { gsap } from "gsap";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
-import { HERO_BACK, HERO_FRONT } from "./route-data";
-import { createThreadDrawer, DEFAULT_DRAW_RANGES } from "./thread-draw";
-import { buildThreadModel, type ThreadModel } from "./thread-geometry";
+import { THREAD_UPDATED_EVENT } from "./thread-dom";
+import { buildThreadModel } from "./thread-geometry";
 import { measureLayout } from "./thread-measure";
 import {
-  buildNavigationTrack,
-  createAnchorEventState,
-  pageScrollProgress,
-  reconcileAnchorState,
-  updateAnchorEvents,
-  type NavigationTrack,
-} from "./thread-motion";
+  CONCLUSION_CLIP_ID,
+  MARKER_DEFS,
+  buildFrame,
+  segmentsOn,
+  type SegmentDef,
+  type ThreadFrame,
+} from "./thread-segments";
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const subscribeToClient = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
+
+const HERO_BACK_SEGMENTS = segmentsOn("hero-back");
+const HERO_FRONT_SEGMENTS = segmentsOn("hero-front");
+const PAGE_SEGMENTS = segmentsOn("page");
 
 type HeroSlots = {
   back: HTMLElement | null;
   front: HTMLElement | null;
 };
 
-function createCircle(className: string, radius: number) {
-  const circle = document.createElementNS(SVG_NS, "circle");
-  circle.setAttribute("class", className);
-  circle.setAttribute("r", String(radius));
-  return circle;
-}
+const bind =
+  <T extends Element>(store: Map<string, T>, id: string) =>
+  (element: T | null) => {
+    if (element) store.set(id, element);
+    else store.delete(id);
+  };
 
 export function ThreadLayer() {
   const mounted = useSyncExternalStore(
@@ -41,6 +41,7 @@ export function ThreadLayer() {
     getClientSnapshot,
     getServerSnapshot,
   );
+
   const slots: HeroSlots = mounted
     ? {
         back: document.querySelector<HTMLElement>(
@@ -52,21 +53,17 @@ export function ThreadLayer() {
       }
     : { back: null, front: null };
 
+  // The DOM is created once from the static segment table; the effect below
+  // only updates attributes, so GSAP can hold on to these elements.
+  const pathRefs = useRef(new Map<string, SVGPathElement>());
+  const markerRefs = useRef(new Map<string, SVGGElement>());
   const pageSvgRef = useRef<SVGSVGElement>(null);
-  const pagePathRef = useRef<SVGPathElement>(null);
-  const aiPathRef = useRef<SVGPathElement>(null);
-  const fingerprintPathRef = useRef<SVGPathElement>(null);
-  const contactPathRef = useRef<SVGPathElement>(null);
-  const clipRectRef = useRef<SVGRectElement>(null);
-  const markersRef = useRef<SVGGElement>(null);
-  const terminalGroupRef = useRef<SVGGElement>(null);
-  const terminalRingRef = useRef<SVGCircleElement>(null);
-  const terminalCoreRef = useRef<SVGCircleElement>(null);
-  const originRef = useRef<SVGCircleElement>(null);
   const backSvgRef = useRef<SVGSVGElement>(null);
   const frontSvgRef = useRef<SVGSVGElement>(null);
-  const backPathRefs = useRef<Array<SVGPathElement | null>>([]);
-  const frontPathRefs = useRef<Array<SVGPathElement | null>>([]);
+  const clipRectRef = useRef<SVGRectElement>(null);
+  const originRef = useRef<SVGCircleElement>(null);
+  const terminalRingRef = useRef<SVGCircleElement>(null);
+  const terminalCoreRef = useRef<SVGCircleElement>(null);
 
   useEffect(() => {
     if (!mounted) return;
@@ -74,252 +71,120 @@ export function ThreadLayer() {
     const root = document.querySelector<HTMLElement>(".portfolio");
     if (!root) return;
 
-    let model: ThreadModel | null = null;
-    let track: NavigationTrack | null = null;
+    let model: ReturnType<typeof buildThreadModel> | null = null;
     let lastSignature = "";
-    let forceBuild = true;
-    let started = false;
-    let startedTicker = false;
-    let rebuilds = 0;
-    let tickMs = 0;
-    let scrollProgress = 0;
     let disposed = false;
-    const eventState = createAnchorEventState();
-    const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY);
 
-    // ------------------------------------------------------------------
-    // DRAWING: scroll-agnostic. Anything can call drawer.draw(progress)
-    // or drawer.drawTo(progress, { duration }).
-    // ------------------------------------------------------------------
-    const drawer = createThreadDrawer({
-      segments: [
-        {
-          id: "page",
-          element: pagePathRef.current,
-          range: DEFAULT_DRAW_RANGES.page,
-        },
-        {
-          id: "branch",
-          element: aiPathRef.current,
-          range: DEFAULT_DRAW_RANGES.branch,
-        },
-        {
-          id: "fingerprint",
-          element: fingerprintPathRef.current,
-          range: DEFAULT_DRAW_RANGES.fingerprint,
-        },
-        {
-          id: "footer",
-          element: contactPathRef.current,
-          range: DEFAULT_DRAW_RANGES.footer,
-        },
-      ],
-      terminal: {
-        element: terminalGroupRef.current,
-        at: DEFAULT_DRAW_RANGES.footer[1],
-      },
-    });
+    const apply = (frame: ThreadFrame) => {
+      let changed = false;
 
-    // ------------------------------------------------------------------
-    // SCROLL DRIVER: the only place scroll is translated into a draw call.
-    // ------------------------------------------------------------------
-    const driveDrawFromScroll = () => {
-      if (reducedMotion.matches) {
-        drawer.draw(1); // show the finished thread, no scroll-linked motion
-        return;
-      }
-      drawer.draw(started ? scrollProgress : 0);
-    };
+      const set = (
+        element: Element | null | undefined,
+        name: string,
+        value: string,
+      ) => {
+        if (!element || element.getAttribute(name) === value) return;
+        element.setAttribute(name, value);
+        changed = true;
+      };
 
-    const writeModel = (next: ThreadModel) => {
       const pageSvg = pageSvgRef.current;
       if (pageSvg) {
-        pageSvg.setAttribute("viewBox", `0 0 ${next.width} ${next.height}`);
-        pageSvg.style.width = `${next.width}px`;
-        pageSvg.style.height = `${next.height}px`;
+        set(pageSvg, "viewBox", `0 0 ${frame.width} ${frame.height}`);
+        pageSvg.style.width = `${frame.width}px`;
+        pageSvg.style.height = `${frame.height}px`;
       }
 
-      const heroBackSvg = backSvgRef.current;
-      if (heroBackSvg) {
-        heroBackSvg.setAttribute(
-          "viewBox",
-          `0 0 ${next.width} ${next.heroHeight}`,
-        );
-      }
-      const heroFrontSvg = frontSvgRef.current;
-      if (heroFrontSvg) {
-        heroFrontSvg.setAttribute(
-          "viewBox",
-          `0 0 ${next.width} ${next.heroHeight}`,
-        );
+      const heroViewBox = `0 0 ${frame.width} ${frame.heroHeight}`;
+      set(backSvgRef.current, "viewBox", heroViewBox);
+      set(frontSvgRef.current, "viewBox", heroViewBox);
+
+      for (const [id, d] of Object.entries(frame.paths)) {
+        set(pathRefs.current.get(id), "d", d);
       }
 
-      next.hero.back.forEach((d, index) => {
-        backPathRefs.current[index]?.setAttribute("d", d);
-      });
-      next.hero.front.forEach((d, index) => {
-        frontPathRefs.current[index]?.setAttribute("d", d);
-      });
+      set(originRef.current, "cx", String(frame.origin.x));
+      set(originRef.current, "cy", String(frame.origin.y));
 
-      originRef.current?.setAttribute("cx", String(next.hero.origin.x));
-      originRef.current?.setAttribute("cy", String(next.hero.origin.y));
+      const clip = frame.conclusionClip;
+      set(clipRectRef.current, "x", String(clip.left));
+      set(clipRectRef.current, "y", String(clip.top));
+      set(clipRectRef.current, "width", String(clip.width));
+      set(clipRectRef.current, "height", String(clip.height));
 
-      pagePathRef.current?.setAttribute("d", next.pagePath);
-      aiPathRef.current?.setAttribute("d", next.capsAi.d);
-      fingerprintPathRef.current?.setAttribute("d", next.conclusion.d);
-      contactPathRef.current?.setAttribute("d", next.footer.d);
+      for (const marker of frame.markers) {
+        const group = markerRefs.current.get(marker.id);
+        if (!group) continue;
+        const [ring, core] = Array.from(group.children);
 
-      clipRectRef.current?.setAttribute("x", String(next.conclusion.rect.left));
-      clipRectRef.current?.setAttribute("y", String(next.conclusion.rect.top));
-      clipRectRef.current?.setAttribute(
-        "width",
-        String(next.conclusion.rect.width),
-      );
-      clipRectRef.current?.setAttribute(
-        "height",
-        String(next.conclusion.rect.height),
-      );
-
-      const markerGroups: SVGElement[] = [];
-      const markers = markersRef.current;
-      if (markers) {
-        markers.replaceChildren();
-        for (const marker of next.markers) {
-          const group = document.createElementNS(SVG_NS, "g");
-          const ring = createCircle("thread-marker", marker.radius);
-          const core = createCircle("thread-marker-core", marker.core);
-          ring.setAttribute("cx", String(marker.point.x));
-          ring.setAttribute("cy", String(marker.point.y));
-          core.setAttribute("cx", String(marker.point.x));
-          core.setAttribute("cy", String(marker.point.y));
-          group.append(ring, core);
-          markers.append(group);
-          markerGroups.push(group);
-        }
+        set(group, "data-thread-progress", String(marker.progress));
+        set(ring, "cx", String(marker.cx));
+        set(ring, "cy", String(marker.cy));
+        set(ring, "r", String(marker.radius));
+        set(core, "cx", String(marker.cx));
+        set(core, "cy", String(marker.cy));
+        set(core, "r", String(marker.core));
       }
 
-      terminalRingRef.current?.setAttribute("cx", String(next.terminal.x));
-      terminalRingRef.current?.setAttribute("cy", String(next.terminal.y));
-      terminalCoreRef.current?.setAttribute("cx", String(next.terminal.x));
-      terminalCoreRef.current?.setAttribute("cy", String(next.terminal.y));
+      for (const element of [
+        terminalRingRef.current,
+        terminalCoreRef.current,
+      ]) {
+        set(element, "cx", String(frame.terminal.x));
+        set(element, "cy", String(frame.terminal.y));
+      }
 
-      // Geometry changed: tell the drawer, which re-applies the current state.
-      drawer.setMarkers(
-        markerGroups,
-        next.markers.map((marker) => marker.point),
-      );
-      drawer.refresh();
+      return changed;
     };
 
-    const tick = () => {
+    const renderThread = () => {
       if (disposed) return;
-      const tickStart = performance.now();
+
       const layout = measureLayout(root);
-      scrollProgress = pageScrollProgress();
-      const signatureChanged = layout.signature !== lastSignature;
 
-      if (forceBuild || signatureChanged || !model || !track) {
-        model = buildThreadModel(layout, model ?? undefined);
-        track = buildNavigationTrack(model, layout);
-        writeModel(model);
-        reconcileAnchorState(eventState, track, scrollProgress);
-        lastSignature = layout.signature;
-        forceBuild = false;
-        rebuilds += 1;
-      }
+      if (model && layout.signature === lastSignature) return;
 
-      driveDrawFromScroll();
+      model = buildThreadModel(layout, model ?? undefined);
+      lastSignature = layout.signature;
 
-      if (track && started) {
-        updateAnchorEvents(eventState, track, scrollProgress, scrollProgress);
-      }
-
-      tickMs = performance.now() - tickStart;
-
-      if (process.env.NODE_ENV !== "production") {
-        window.__threadDebug = {
-          get anchorCount() {
-            return track?.anchors.length ?? 0;
-          },
-          get progress() {
-            return scrollProgress;
-          },
-          get paths() {
-            return {
-              heroBack: model?.hero.back ?? [],
-              heroFront: model?.hero.front ?? [],
-              page: model?.pagePath ?? "",
-              branch: model?.capsAi.d ?? "",
-              fingerprint: model?.conclusion.d ?? "",
-              footer: model?.footer.d ?? "",
-            };
-          },
-          get rebuilds() {
-            return rebuilds;
-          },
-          get tickMs() {
-            return tickMs;
-          },
-          get trackLength() {
-            return track?.total ?? 0;
-          },
-          get anchors() {
-            return (track?.anchors ?? []).map(
-              ({ id, label, distance, progress }) => ({
-                id,
-                label,
-                distance,
-                progress,
-              }),
-            );
-          },
-          get keys() {
-            return model?.keys ?? {};
-          },
-        };
+      if (apply(buildFrame(model))) {
+        root.dispatchEvent(
+          new CustomEvent(THREAD_UPDATED_EVENT, { bubbles: true }),
+        );
       }
     };
 
-    const markDirty = () => {
-      forceBuild = true;
-    };
+    renderThread();
 
-    const start = () => {
-      if (started || disposed) return;
-      started = true;
-      forceBuild = true;
-      if (!startedTicker) {
-        startedTicker = true;
-        gsap.ticker.add(tick);
-      }
-    };
-
-    const onReady = () => start();
-    window.addEventListener("site:ready", onReady, { once: true });
-    if (!document.querySelector("[data-site-preloader]")) {
-      start();
-    }
-
-    const onResize = () => markDirty();
-    window.addEventListener("resize", onResize);
-
-    const observer = new ResizeObserver(markDirty);
+    const observer = new ResizeObserver(renderThread);
     observer.observe(root);
 
-    void document.fonts.ready.then(() => markDirty());
+    window.addEventListener("resize", renderThread);
+
+    void document.fonts.ready.then(() => {
+      if (!disposed) renderThread();
+    });
 
     return () => {
       disposed = true;
-      window.removeEventListener("site:ready", onReady);
-      window.removeEventListener("resize", onResize);
       observer.disconnect();
-      drawer.destroy();
-      if (startedTicker) gsap.ticker.remove(tick);
-      if (process.env.NODE_ENV !== "production") {
-        delete window.__threadDebug;
-      }
+      window.removeEventListener("resize", renderThread);
     };
   }, [mounted]);
+
+  const renderPath = (segment: SegmentDef) => (
+    <path
+      key={segment.id}
+      ref={bind(pathRefs.current, segment.id)}
+      className={segment.className}
+      d={segment.initialD ?? ""}
+      clipPath={segment.clipId ? `url(#${segment.clipId})` : undefined}
+      data-thread-segment={segment.id}
+      data-thread-section={segment.section}
+      data-thread-role={segment.role}
+      data-thread-order={segment.order}
+    />
+  );
 
   return (
     <>
@@ -329,20 +194,14 @@ export function ThreadLayer() {
           <svg
             ref={backSvgRef}
             className="hero-thread-svg"
+            data-thread-scene="hero"
+            data-thread-layer="back"
             viewBox="0 0 1425 900"
             preserveAspectRatio="none"
             aria-hidden="true"
           >
-            {HERO_BACK.map((d, index) => (
-              <path
-                key={index}
-                ref={(element) => {
-                  backPathRefs.current[index] = element;
-                }}
-                className="thread-path"
-                d={d}
-              />
-            ))}
+            {HERO_BACK_SEGMENTS.map(renderPath)}
+
             <circle
               ref={originRef}
               className="thread-origin-dot"
@@ -360,20 +219,13 @@ export function ThreadLayer() {
           <svg
             ref={frontSvgRef}
             className="hero-thread-svg"
+            data-thread-scene="hero"
+            data-thread-layer="front"
             viewBox="0 0 1425 900"
             preserveAspectRatio="none"
             aria-hidden="true"
           >
-            {HERO_FRONT.map((d, index) => (
-              <path
-                key={index}
-                ref={(element) => {
-                  frontPathRefs.current[index] = element;
-                }}
-                className="thread-path"
-                d={d}
-              />
-            ))}
+            {HERO_FRONT_SEGMENTS.map(renderPath)}
           </svg>,
           slots.front,
         )}
@@ -386,21 +238,30 @@ export function ThreadLayer() {
         aria-hidden="true"
       >
         <defs>
-          <clipPath id="thread-conclusion-clip">
+          <clipPath id={CONCLUSION_CLIP_ID}>
             <rect ref={clipRectRef} x="0" y="0" width="0" height="0" />
           </clipPath>
         </defs>
-        <path ref={pagePathRef} className="thread-path" d="" />
-        <path ref={aiPathRef} className="thread-branch" d="" />
-        <path
-          ref={fingerprintPathRef}
-          className="thread-fingerprint"
-          d=""
-          clipPath="url(#thread-conclusion-clip)"
-        />
-        <path ref={contactPathRef} className="thread-path thread-footer" d="" />
-        <g ref={markersRef} />
-        <g ref={terminalGroupRef} className="thread-terminal-group">
+
+        {PAGE_SEGMENTS.map(renderPath)}
+
+        <g>
+          {MARKER_DEFS.map((marker) => (
+            <g
+              key={marker.id}
+              ref={bind(markerRefs.current, marker.id)}
+              data-thread-marker={marker.id}
+              data-thread-section={marker.section}
+              data-thread-on={marker.segment}
+              data-thread-progress="0"
+            >
+              <circle className="thread-marker" cx="0" cy="0" r="0" />
+              <circle className="thread-marker-core" cx="0" cy="0" r="0" />
+            </g>
+          ))}
+        </g>
+
+        <g className="thread-terminal-group">
           <circle
             ref={terminalRingRef}
             className="thread-terminal"

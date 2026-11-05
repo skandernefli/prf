@@ -4,6 +4,7 @@ import { Archivo, Geist, Geist_Mono, IBM_Plex_Mono } from "next/font/google";
 import { PreloaderProvider } from "@/components/preloader/preloader-provider";
 import { SmoothScroll } from "@/components/smooth-scroll/smooth-scroll";
 
+import CustomCursor from "@/components/custom-cursor";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           `}</style>
         </noscript>
         <PreloaderProvider>
+          <CustomCursor />
           <SmoothScroll>{children}</SmoothScroll>
         </PreloaderProvider>
       </body>

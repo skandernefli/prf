@@ -2727,3 +2727,33 @@ body {
     height: 52rem;
   }
 }
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1200;
+
+  display: grid;
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+
+  margin: 0;
+  padding: 0;
+
+  border: 1px solid var(--signal);
+  border-radius: 50%;
+
+  pointer-events: none;
+  will-change: transform;
+
+  opacity: 0;
+  visibility: hidden;
+
+  background: transparent;
+
+  transition:
+    width var(--fast) ease,
+    height var(--fast) ease;
+}

@@ -1,5 +1,4 @@
-import { gsap } from "gsap";
-import type { ScrollTrigger } from "gsap/ScrollTrigger";
+import { recordStop } from "./thread-draw";
 
 const LINE_CLIP_PATH = "inset(-0.35em -0.15em -0.35em -0.15em)";
 const TITLE_CLIP_PATH = LINE_CLIP_PATH;
@@ -232,6 +231,8 @@ export function scrollTriggerDefaults(
   end: string,
   scrub: number,
 ) {
+  recordStop(trigger, start);
+
   return {
     trigger,
     start,

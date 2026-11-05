@@ -163,7 +163,6 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
 export function getAnchor(layout: MeasuredLayout, id: string): MeasuredAnchor {
   const anchor = layout.anchors.get(id);
   if (!anchor) {
-    console.log("id", id);
     throw new Error(`Thread layer requires anchor "${id}".`);
   }
   return anchor;

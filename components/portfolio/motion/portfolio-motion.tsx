@@ -1,22 +1,28 @@
 "use client";
 
+import { gsap } from "gsap";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { gsap } from "gsap";
 import { useLenis } from "lenis/react";
 import { useEffect } from "react";
 
 import { restoreMotionWrappers } from "./motion-utils";
-import { buildHeroScene } from "./scenes/hero";
-import { buildWorkFlowScene } from "./scenes/work-flow";
 import { buildCapabilitiesScene } from "./scenes/capabilities";
 import { buildKabriScene } from "./scenes/case-kabri";
+import { buildLegalexyScene } from "./scenes/case-legalexy";
 import { buildNormaScene } from "./scenes/case-norma";
 import { buildShopOpsScene } from "./scenes/case-shopops";
-import { buildLegalexyScene } from "./scenes/case-legalexy";
-import { buildWhyMeScene } from "./scenes/why-me";
 import { buildConclusionScene } from "./scenes/conclusion";
 import { buildFooterScene } from "./scenes/footer";
+import { buildHeroScene } from "./scenes/hero";
+import { buildWhyMeScene } from "./scenes/why-me";
+import { buildWorkFlowScene } from "./scenes/work-flow";
+import {
+  collectStops,
+  drawThreadSegment,
+  getThreadCursor,
+  seedThreadCursor,
+} from "./thread-draw";
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
 
@@ -62,16 +68,50 @@ export function PortfolioMotion() {
         (context) => {
           if (!context.conditions?.motion) return;
 
+          const mobile = Boolean(context.conditions?.mobile);
+
+          // One pen: each segment is drawn from the stop where the previous
+          // one ended to the last reveal stop of its own scene.
+          const scene = (id: string, build: () => void) =>
+            drawThreadSegment(root, id, collectStops(build));
+
           buildHeroScene(root);
-          buildWorkFlowScene(root);
-          buildCapabilitiesScene(root);
-          buildKabriScene(root, Boolean(context.conditions?.mobile));
-          buildNormaScene(root, Boolean(context.conditions?.mobile));
-          buildShopOpsScene(root, Boolean(context.conditions?.mobile));
-          buildLegalexyScene(root, Boolean(context.conditions?.mobile));
-          buildWhyMeScene(root);
-          buildConclusionScene(root);
-          buildFooterScene(root);
+          const hero = root.querySelector<HTMLElement>(".hero");
+          if (hero) seedThreadCursor(hero);
+
+          scene("work", () => buildWorkFlowScene(root));
+
+          const caps = collectStops(() => buildCapabilitiesScene(root));
+          const within = (selector: string) =>
+            caps.filter(({ el }) => el.closest(selector));
+
+          drawThreadSegment(
+            root,
+            "capabilities.entry",
+            within(".capability-heading"),
+          );
+          const split = getThreadCursor();
+          drawThreadSegment(
+            root,
+            "capabilities.product",
+            within(".capability-product"),
+            { from: split },
+          );
+          drawThreadSegment(root, "capabilities.ai", within(".capability-ai"), {
+            from: split,
+          });
+
+          // The exit line reaches the first reveal of KABRI, then KABRI continues.
+          const kabri = collectStops(() => buildKabriScene(root, mobile));
+          drawThreadSegment(root, "capabilities.exit", kabri, { take: 1 });
+          drawThreadSegment(root, "kabri", kabri);
+
+          scene("norma", () => buildNormaScene(root, mobile));
+          scene("shopops", () => buildShopOpsScene(root, mobile));
+          scene("legalexy", () => buildLegalexyScene(root, mobile));
+          scene("why", () => buildWhyMeScene(root));
+          scene("conclusion", () => buildConclusionScene(root));
+          scene("footer", () => buildFooterScene(root));
           refreshFrame = window.requestAnimationFrame(() =>
             ScrollTrigger.refresh(),
           );

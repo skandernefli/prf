@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   useCallback,
   useEffect,
@@ -8,7 +9,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { ReactNode } from "react";
 
 import {
   PreloaderContext,
@@ -27,7 +27,7 @@ const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
 export function PreloaderProvider({ children }: PreloaderProviderProps) {
-  const [phase, setPhase] = useState<PreloaderPhase>("loading");
+  const [phase, setPhase] = useState<PreloaderPhase>("ready");
   const mounted = useSyncExternalStore(
     subscribeToClient,
     getClientSnapshot,
@@ -80,13 +80,15 @@ export function PreloaderProvider({ children }: PreloaderProviderProps) {
 
   return (
     <PreloaderContext.Provider value={value}>
-      {phase !== "ready" && (
-        <PreloaderOverlay
-          assetsReady={assetsReady}
-          onExitStart={handleExitStart}
-          onExited={handleExited}
-        />
-      )}
+      {
+        /* phase !== "ready" */ false && (
+          <PreloaderOverlay
+            assetsReady={assetsReady}
+            onExitStart={handleExitStart}
+            onExited={handleExited}
+          />
+        )
+      }
       <div
         style={{ display: "contents" }}
         inert={contentLocked ? true : undefined}
