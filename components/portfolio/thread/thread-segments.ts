@@ -1,8 +1,12 @@
 import { HERO_BACK, HERO_FRONT } from "./route-data";
 import type { ThreadModel } from "./thread-geometry";
 import {
+  assertDistance,
   closestPointOnPolyline,
   cumulativeLengths,
+  parsePath,
+  pathEnd,
+  serializePath,
   type Point,
   type Rect,
 } from "./thread-path";
@@ -70,8 +74,11 @@ export type SegmentDef = {
 };
 
 /**
- * The hero is 11 pieces split across two layers. This is the order the thread
- * travels through them, i.e. the order a draw-on animation should follow.
+ * The hero load animation draws these 10 pieces, split across two layers. This
+ * is the order the thread travels through them, i.e. the order a draw-on
+ * animation should follow. The last hero piece (back[6]) is not listed here:
+ * it is the opening of the "work" segment (see withHeroTail), so it is drawn by
+ * scroll together with the rest of the work route.
  */
 const HERO_TRAVEL = [
   { layer: "back", index: 0 },
@@ -84,7 +91,6 @@ const HERO_TRAVEL = [
   { layer: "front", index: 3 },
   { layer: "back", index: 4 },
   { layer: "back", index: 5 },
-  { layer: "back", index: 6 },
 ] as const;
 
 const HERO_SEGMENTS: SegmentDef[] = HERO_TRAVEL.map(
@@ -106,6 +112,27 @@ const HERO_SEGMENTS: SegmentDef[] = HERO_TRAVEL.map(
 const HERO_COUNT = HERO_SEGMENTS.length;
 
 /**
+ * hero.back[6] ends exactly where model.work starts (hero.handoff), so the two
+ * are one continuous stroke. The geometry model is unchanged; only the
+ * presentation is: the tail is prepended to the work route, and the duplicate
+ * "M" of the work route is dropped.
+ */
+function withHeroTail(model: ThreadModel): Route {
+  const { back, backPoints } = model.hero;
+  const tail = back[back.length - 1];
+  const tailPoints = backPoints[backPoints.length - 1];
+
+  assertDistance(pathEnd(tail), model.work.start, "hero tail → work start");
+
+  const [, ...rest] = parsePath(model.work.d);
+
+  return {
+    d: `${tail} ${serializePath(rest)}`,
+    points: [...tailPoints, ...model.work.points.slice(1)],
+  };
+}
+
+/**
  * Listed in PAINT order (== DOM order, which is SVG z-order). This matches the
  * previous layer: every trunk piece, then the AI branch, then the signature,
  * then the footer lead. `order` is the travel order and is independent of it.
@@ -119,7 +146,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     role: "trunk",
     order: HERO_COUNT,
     className: "thread-path",
-    route: (m) => m.work,
+    route: withHeroTail,
   },
   {
     id: "capabilities.entry",
