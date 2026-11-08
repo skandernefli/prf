@@ -14,7 +14,16 @@ import {
   WORK_INDEX,
 } from "./route-data";
 import { ANCHOR_LABELS } from "./thread-anchors";
+import { moveJunction } from "./thread-junction";
 import { getRect, type MeasuredLayout } from "./thread-measure";
+import {
+  MOBILE_CASE_STUDY_ROUTE,
+  blendKabriSuffix,
+  blendRouteEnd,
+  joinRouteStart,
+  phoneTweak,
+  squashTemplate,
+} from "./thread-mobile";
 import {
   PathBuilder,
   affineFrom3,
@@ -33,6 +42,7 @@ import {
   distance,
   endpointTangent,
   flattenPath,
+  format,
   lineCommand,
   middle,
   moveCommand,
@@ -53,6 +63,7 @@ import {
   type Rect,
 } from "./thread-path";
 
+const MOBILE_SPLIT_ROOM = 52;
 const REFERENCE_WIDTH = 1425;
 const REFERENCE_HERO_HEIGHT = 900;
 const REFERENCE_PROJECT_HEIGHT = 1024.703125;
@@ -317,6 +328,7 @@ function buildHero(
     rectKey(c),
     rectKey(ch),
     rectKey(layout.hero),
+    layout.heroOCounter ? rectKey(layout.heroOCounter) : "no-counter",
     layout.width,
   ].join("|");
 
@@ -347,14 +359,30 @@ function buildHero(
       x: from.left + 0.116 * from.width,
       y: from.top - 0.728 * from.height,
     };
-    const oEntry = {
-      x: o.left + 1.157 * o.width,
-      y: o.top + 0.364 * o.height,
+    // The turn happens INSIDE the hole of the O. The thread slips behind the
+    // letter, shows up in the counter, curls once and leaves again; both
+    // front/back switches sit in empty space, so nothing pops.
+    const counter = layout.heroOCounter ?? {
+      left: o.left + 0.33 * o.width,
+      top: o.top + 0.3 * o.height,
+      width: 0.34 * o.width,
+      height: 0.4 * o.height,
+      right: o.left + 0.67 * o.width,
+      bottom: o.top + 0.7 * o.height,
     };
-    const oExit = {
-      x: o.left + 0.984 * o.width,
-      y: o.top + 0.591 * o.height,
-    };
+    const ca = counter.width / 2;
+    const cb = counter.height / 2;
+    const cc = { x: counter.left + ca, y: counter.top + cb };
+    const oEntry = { x: cc.x - 0.8 * ca, y: cc.y - 0.82 * cb };
+    const oQ = { x: cc.x + 0.78 * ca, y: cc.y - 0.02 * cb };
+    const oR = { x: cc.x - 0.1 * ca, y: cc.y + 0.72 * cb };
+    const oExit = { x: cc.x - 0.92 * ca, y: cc.y + 0.86 * cb };
+    const oLoopD = [
+      `M ${format(oEntry.x)} ${format(oEntry.y)}`,
+      `C ${format(oEntry.x + 0.9 * ca)} ${format(oEntry.y + 0.12 * cb)}, ${format(oQ.x)} ${format(oQ.y - 0.75 * cb)}, ${format(oQ.x)} ${format(oQ.y)}`,
+      `C ${format(oQ.x)} ${format(oQ.y + 0.55 * cb)}, ${format(oR.x + 0.9 * ca)} ${format(oR.y)}, ${format(oR.x)} ${format(oR.y)}`,
+      `C ${format(oR.x - 0.5 * ca)} ${format(oR.y)}, ${format(oExit.x + 0.4 * ca)} ${format(oExit.y - 0.04 * cb)}, ${format(oExit.x)} ${format(oExit.y)}`,
+    ].join(" ");
     const cEntry = {
       x: c.left + 1.026 * c.width,
       y: c.top + 0.285 * c.height,
@@ -393,7 +421,9 @@ function buildHero(
       y: chDown.y + 0.3267 * ch.height,
     };
     handoff = {
-      x: ch.left + 0.59 * ch.width,
+      x: phoneTweak(layout.width, "hero")
+        ? layout.width - clamp(layout.pagePad * 0.45, 6, 14)
+        : ch.left + 0.59 * ch.width,
       y: layout.hero.bottom - 20,
     };
 
@@ -505,18 +535,43 @@ function buildHero(
 
     const generated = channels.map(({ index, start, end, center }) => {
       const reference = HERO_REFERENCE[index];
-      const matrix = loopChannels.has(index)
-        ? similarityFrom2([reference.start, reference.end], [start, end])
-        : affineFrom3(
-            [reference.start, reference.end, centerOf(reference.bounds)],
-            [start, end, normalizePoint(center, layout.width, layout.height)],
-          );
+      // On phones, map the loop's third point as well as its endpoints.
+      // A two-point similarity transform preserves the desktop loop's relative
+      // proportions, which can make a narrow mobile glyph produce an oversized
+      // loop. The three-point affine fit keeps the loop attached to the actual
+      // measured glyph bounds instead.
+      const matrix =
+        loopChannels.has(index) && !phoneTweak(layout.width, "hero")
+          ? similarityFrom2([reference.start, reference.end], [start, end])
+          : affineFrom3(
+              [reference.start, reference.end, centerOf(reference.bounds)],
+              [start, end, normalizePoint(center, layout.width, layout.height)],
+            );
 
       return applyAffine(reference.d, matrix);
     });
 
+    generated[7] = oLoopD;
+
     back = generated.slice(0, 7);
     front = generated.slice(7);
+
+    if (phoneTweak(layout.width, "hero")) {
+      // Phones: the straight drop crossed the intro paragraph and scroll cue.
+      // Slide over to the right margin before reaching them.
+      const from = pathStart(back[6]);
+      const dy = handoff.y - from.y;
+      // Finish the slide well above the paragraph (about 40% of the way
+      // down), then run straight down the margin.
+      const slideY = from.y + 0.4 * dy;
+      back[6] = `M ${format(from.x)} ${format(from.y)} C ${format(
+        from.x,
+      )} ${format(from.y + 0.16 * dy)}, ${format(handoff.x)} ${format(
+        slideY - 0.18 * dy,
+      )}, ${format(handoff.x)} ${format(slideY)} L ${format(handoff.x)} ${format(
+        handoff.y,
+      )}`;
+    }
   }
 
   const order: Array<{ array: "back" | "front"; index: number }> = [
@@ -547,6 +602,19 @@ function buildHero(
     const tangent = endpointTangent(read(order[index - 1]), "end");
     if (!tangent) continue;
     assign(order[index], alignStartTangent(read(order[index]), tangent));
+  }
+
+  if (!exact) {
+    // Front/back switches are only invisible in free space. At fitted layouts
+    // three of them land inside a glyph (measured at 1900px wide), so each is
+    // slid along the thread, keeping the piece count, order and shapes. The
+    // distances are fractions of the glyph's own width, so they scale with it.
+    //
+    //  The O's loop now lives inside its counter (see above), so its two
+    //  front/back switches need no sliding.
+    //  3. front[2] → back[3]: the rail ran behind the apex of the C of LAUNCH.
+    //     The front piece now carries it past the C, into the open gap.
+    [front[2], back[3]] = moveJunction(front[2], back[3], 0.16 * ch.width);
   }
 
   back[back.length - 1] = alignEndTangent(back[back.length - 1], {
@@ -640,15 +708,26 @@ function buildWork(
   previous: RouteModel | undefined,
 ): RouteModel {
   const drawing = getRect(layout, "work.flow.drawing");
+  const heading = getRect(layout, "work.flow.heading");
+  // Single-column layout: the title sits ABOVE the drawing, so the straight
+  // hero -> drawing diagonal would slice through it.
+  const stacked =
+    phoneTweak(layout.width, "work") && heading.bottom <= drawing.top + 8;
   const workExitX =
     drawing.left +
     ((REF_WORK.end.x - REF_WORK.drawing.left) / REF_WORK.drawing.width) *
       drawing.width;
-  const end = { x: workExitX, y: capsTop };
+  // Phones (as on production): the thread rides the right margin past the
+  // title, and leaves the drawing the same way, hugging the right margin down
+  // past the paragraph into the next section.
+  const phoneRailX = layout.width - clamp(layout.pagePad * 0.45, 6, 14);
+  const end = { x: stacked ? phoneRailX : workExitX, y: capsTop };
+  const tailStart = REF_WORK.drawingBottom - 0.5;
   const key = [
     pointKey(hero.handoff),
     pointKey(end),
     rectKey(drawing),
+    rectKey(heading),
     layout.width,
   ].join("|");
 
@@ -698,8 +777,52 @@ function buildWork(
   };
 
   const builder = new PathBuilder(warp(REF_WORK.start));
+
+  if (stacked) {
+    // Ride the right margin past the title, then ease into the drawing.
+    const railX = layout.width - clamp(layout.pagePad * 0.45, 6, 14);
+    const entry = {
+      x:
+        drawing.left +
+        ((REF_WORK.start.x - REF_WORK.drawing.left) / REF_WORK.drawing.width) *
+          drawing.width,
+      y: drawing.top,
+    };
+    const approachY = Math.max(
+      start.y + 12,
+      Math.min(start.y + 90, heading.top - 8),
+    );
+
+    if (Math.abs(start.x - railX) > 1) {
+      const dy = approachY - start.y;
+      builder.cubic(
+        { x: start.x, y: start.y + 0.55 * dy },
+        { x: railX, y: approachY - 0.55 * dy },
+        { x: railX, y: approachY },
+      );
+    } else {
+      builder.line({ x: railX, y: approachY });
+    }
+
+    // Start turning as soon as we are clear of the last line of the title, so
+    // the sweep to the drawing has the whole gap to be smooth in.
+    const bendY = Math.min(
+      entry.y - 16,
+      heading.bottom + clamp(0.1 * (entry.y - heading.bottom), 6, 12),
+    );
+    builder.line({ x: railX, y: bendY });
+    const bendDy = entry.y - bendY;
+    builder.cubic(
+      { x: railX, y: bendY + 0.55 * bendDy },
+      { x: entry.x, y: entry.y - 0.55 * bendDy },
+      entry,
+    );
+  }
+
   const boundaries = [REF_WORK.drawing.top, REF_WORK.drawingBottom];
   let rawCurrent: Point = { ...REF_WORK.start };
+  // Direction the path is travelling at its current point (for the phone tail).
+  let lastControl: Point | null = null;
 
   for (const command of parsePath(WORK_INDEX)) {
     if (command.command === "M") {
@@ -707,9 +830,17 @@ function buildWork(
       continue;
     }
 
+    // Phones: the reference tail (below the drawing) swings back to the
+    // desktop exit column, straight through the paragraph. It is replaced
+    // below by a tail that stays on the right margin.
+    const inTail = stacked && rawCurrent.y >= tailStart;
+
     if (command.command === "L") {
       const next = { x: command.values[0], y: command.values[1] };
-      builder.line(warp(next));
+      if (!inTail) {
+        lastControl = builder.current;
+        builder.line(warp(next));
+      }
       rawCurrent = next;
       continue;
     }
@@ -723,7 +854,11 @@ function buildWork(
         end,
       ];
       for (const part of splitCubicAtZones(full, boundaries)) {
-        builder.cubic(warp(part[1]), warp(part[2]), warp(part[3]));
+        if (stacked && part[3].y <= REF_WORK.drawing.top + 0.5) continue;
+        if (stacked && part[0].y >= tailStart) continue;
+        const c2 = warp(part[2]);
+        lastControl = c2;
+        builder.cubic(warp(part[1]), c2, warp(part[3]));
       }
       rawCurrent = end;
       continue;
@@ -731,24 +866,64 @@ function buildWork(
 
     if (command.command === "Q") {
       const end = { x: command.values[2], y: command.values[3] };
-      builder.quad(
-        warp({ x: command.values[0], y: command.values[1] }),
-        warp(end),
-      );
+      if (!inTail) {
+        const control = warp({ x: command.values[0], y: command.values[1] });
+        lastControl = control;
+        builder.quad(control, warp(end));
+      }
       rawCurrent = end;
       continue;
     }
 
     const end = { x: command.values[5], y: command.values[6] };
-    builder.arc(
-      command.values[0],
-      command.values[1],
-      command.values[2],
-      command.values[3] ? 1 : 0,
-      command.values[4] ? 1 : 0,
-      warp(end),
-    );
+    if (!inTail) {
+      lastControl = null;
+      builder.arc(
+        command.values[0],
+        command.values[1],
+        command.values[2],
+        command.values[3] ? 1 : 0,
+        command.values[4] ? 1 : 0,
+        warp(end),
+      );
+    }
     rawCurrent = end;
+  }
+
+  if (stacked) {
+    // Leave the drawing the way production does: carry on in the direction
+    // we were going, then settle onto the right margin and run down past the
+    // paragraph into the next section.
+    const from = builder.current;
+    const dy = end.y - from.y;
+    if (dy > 8) {
+      let tx = 0;
+      let ty = 1;
+      if (lastControl) {
+        const vx = from.x - lastControl.x;
+        const vy = from.y - lastControl.y;
+        const len = Math.hypot(vx, vy);
+        if (len > 0.001 && vy > 0) {
+          tx = vx / len;
+          ty = vy / len;
+        }
+      }
+      const reach = clamp(0.4 * dy, 16, 110);
+      // The route must finish with a short vertical run: the capabilities
+      // entry continues straight down from here (see assertVerticalEnd).
+      const settle = {
+        x: end.x,
+        y: end.y - clamp(0.2 * dy, 4, 28),
+      };
+      builder.cubic(
+        { x: from.x + tx * reach, y: from.y + ty * reach },
+        { x: settle.x, y: settle.y - 0.45 * (settle.y - from.y) },
+        settle,
+      );
+      builder.line(end);
+    } else {
+      builder.line(end);
+    }
   }
 
   let d = retargetStart(builder.d, start);
@@ -778,11 +953,41 @@ function buildCapabilities(
   );
   const leftRailX = Math.max(24, heading.left + 32);
   const lowerRailY = Math.max(heading.bottom + 24, orbit.top - 164);
-  const splitX = orbit.left + orbit.width / 2;
-  const ringTop = orbit.top - 12;
-  const ringBottom = orbit.bottom - 4;
-  const ringRx = orbit.width / 2;
-  const ringRy = (ringBottom - ringTop) / 2;
+
+  let splitX = orbit.left + orbit.width / 2;
+  // The capability dots are placed in % of the orbit box, on the ellipse that
+  // fills that box exactly. The ring must be that same ellipse, otherwise the
+  // dots drift off the thread.
+  let ringTop = orbit.top;
+  let ringBottom = orbit.bottom;
+  let ringRx = orbit.width / 2;
+  let ringRy = (ringBottom - ringTop) / 2;
+  let mobileColumns: { xL: number; xR: number; capRadius: number } | undefined;
+
+  // On phones, size the two capability rails from the actual measured dots,
+  // not the much larger decorative orbit rectangle. This avoids the oversized
+  // empty capsule visible in the local mobile screenshot.
+  if (phoneTweak(layout.width, "capabilities")) {
+    const dots = (side: "product" | "ai") =>
+      [1, 2, 3, 4, 5].map((index) =>
+        centerOf(getRect(layout, `capabilities.${side}.${index}`)),
+      );
+    const productDots = dots("product");
+    const aiDots = dots("ai");
+    const xL =
+      productDots.reduce((sum, point) => sum + point.x, 0) / productDots.length;
+    const xR = aiDots.reduce((sum, point) => sum + point.x, 0) / aiDots.length;
+    const ys = [...productDots, ...aiDots].map((point) => point.y);
+    const capRadius = clamp(layout.width * 0.035, 8, 14);
+
+    splitX = (xL + xR) / 2;
+    // Room above the first and below the last dot for the Y split / merge.
+    ringTop = Math.min(...ys) - MOBILE_SPLIT_ROOM;
+    ringBottom = Math.max(...ys) + MOBILE_SPLIT_ROOM;
+    ringRx = Math.max(Math.abs(splitX - xL), Math.abs(xR - splitX));
+    ringRy = (ringBottom - ringTop) / 2;
+    mobileColumns = { xL, xR, capRadius };
+  }
 
   const verticalRoom = lowerRailY - capsStart.y;
   const horizontalRoom = rightRailX - leftRailX;
@@ -811,11 +1016,23 @@ function buildCapabilities(
   }
   cornerR = Math.max(3, cornerR);
 
+  const mobileDotKey = phoneTweak(layout.width, "capabilities")
+    ? ["product", "ai"]
+        .flatMap((side) =>
+          [1, 2, 3, 4, 5].map((index) =>
+            rectKey(getRect(layout, `capabilities.${side}.${index}`)),
+          ),
+        )
+        .join("|")
+    : "desktop";
+
   const key = [
     pointKey(capsStart),
     rectKey(heading),
     rectKey(orbit),
+    mobileDotKey,
     layout.width,
+    layout.capabilities.bottom,
   ].join("|");
 
   const entryKey = `${key}|entry`;
@@ -843,36 +1060,100 @@ function buildCapabilities(
   }
 
   const entryBuilder = new PathBuilder(capsStart);
-  entryBuilder
-    .line({ x: capsStart.x, y: capsStart.y + cornerR })
-    .arc(cornerR, cornerR, 0, 0, 0, {
-      x: capsStart.x + cornerR,
-      y: capsStart.y + 2 * cornerR,
-    })
-    .line({ x: rightRailX - cornerR, y: capsStart.y + 2 * cornerR })
-    .arc(cornerR, cornerR, 0, 0, 1, {
-      x: rightRailX,
-      y: capsStart.y + 3 * cornerR,
-    })
-    .line({ x: rightRailX, y: lowerRailY - cornerR })
-    .arc(cornerR, cornerR, 0, 0, 1, {
-      x: rightRailX - cornerR,
-      y: lowerRailY,
-    })
-    .line({ x: leftRailX + cornerR, y: lowerRailY })
-    .arc(cornerR, cornerR, 0, 0, 0, {
-      x: leftRailX + cornerR,
-      y: lowerRailY + 2 * cornerR,
-    })
-    .line({ x: splitX - cornerR, y: lowerRailY + 2 * cornerR })
-    .arc(cornerR, cornerR, 0, 0, 1, {
-      x: splitX,
-      y: lowerRailY + 3 * cornerR,
-    })
-    .line({ x: splitX, y: ringTop });
+  if (mobileColumns) {
+    // Phones: no rounded-rectangle serpentine. One easy S down the right
+    // margin, past the headline, then in to the centre of the two rails.
+    const railX = layout.width - clamp(layout.pagePad * 0.45, 6, 14);
+    const slideY =
+      capsStart.y + clamp(0.35 * (heading.top - capsStart.y), 24, 90);
+    const dy1 = slideY - capsStart.y;
+    if (Math.abs(railX - capsStart.x) > 1) {
+      entryBuilder.cubic(
+        { x: capsStart.x, y: capsStart.y + 0.55 * dy1 },
+        { x: railX, y: slideY - 0.55 * dy1 },
+        { x: railX, y: slideY },
+      );
+    } else {
+      entryBuilder.line({ x: railX, y: slideY });
+    }
+    const downY = Math.max(slideY, heading.bottom + 16);
+    if (downY > slideY + 0.5) entryBuilder.line({ x: railX, y: downY });
+    const dy2 = ringTop - downY;
+    if (dy2 > 1) {
+      entryBuilder.cubic(
+        { x: railX, y: downY + 0.55 * dy2 },
+        { x: splitX, y: ringTop - 0.55 * dy2 },
+        { x: splitX, y: ringTop },
+      );
+    }
+  } else
+    entryBuilder
+      .line({ x: capsStart.x, y: capsStart.y + cornerR })
+      .arc(cornerR, cornerR, 0, 0, 0, {
+        x: capsStart.x + cornerR,
+        y: capsStart.y + 2 * cornerR,
+      })
+      .line({ x: rightRailX - cornerR, y: capsStart.y + 2 * cornerR })
+      .arc(cornerR, cornerR, 0, 0, 1, {
+        x: rightRailX,
+        y: capsStart.y + 3 * cornerR,
+      })
+      .line({ x: rightRailX, y: lowerRailY - cornerR })
+      .arc(cornerR, cornerR, 0, 0, 1, {
+        x: rightRailX - cornerR,
+        y: lowerRailY,
+      })
+      .line({ x: leftRailX + cornerR, y: lowerRailY })
+      .arc(cornerR, cornerR, 0, 0, 0, {
+        x: leftRailX + cornerR,
+        y: lowerRailY + 2 * cornerR,
+      })
+      .line({ x: splitX - cornerR, y: lowerRailY + 2 * cornerR })
+      .arc(cornerR, cornerR, 0, 0, 1, {
+        x: splitX,
+        y: lowerRailY + 3 * cornerR,
+      })
+      .line({ x: splitX, y: ringTop });
 
-  const productD = `${moveCommand({ x: splitX, y: ringTop })} A ${ringRx} ${ringRy} 0 0 0 ${splitX} ${ringBottom}`;
-  const aiD = `${moveCommand({ x: splitX, y: ringTop })} A ${ringRx} ${ringRy} 0 0 1 ${splitX} ${ringBottom}`;
+  let productD = `${moveCommand({ x: splitX, y: ringTop })} A ${ringRx} ${ringRy} 0 0 0 ${splitX} ${ringBottom}`;
+  let aiD = `${moveCommand({ x: splitX, y: ringTop })} A ${ringRx} ${ringRy} 0 0 1 ${splitX} ${ringBottom}`;
+
+  if (mobileColumns) {
+    const { xL, xR } = mobileColumns;
+    const dL = splitX - xL;
+    const dR = xR - splitX;
+    const top = format(ringTop);
+    const bottom = format(ringBottom);
+
+    if (dL > 4 && dR > 4) {
+      // Smooth Y split at the top, straight rails through the dots, smooth
+      // merge at the bottom. Every join has a vertical tangent.
+      const k = MOBILE_SPLIT_ROOM - 4;
+      const branch = (x: number) => {
+        const yTop = ringTop + k;
+        const yBottom = ringBottom - k;
+        return (
+          `M ${format(splitX)} ${top} ` +
+          `C ${format(splitX)} ${format(ringTop + 0.55 * k)}, ${format(x)} ${format(yTop - 0.55 * k)}, ${format(x)} ${format(yTop)} ` +
+          `L ${format(x)} ${format(yBottom)} ` +
+          `C ${format(x)} ${format(yBottom + 0.55 * k)}, ${format(splitX)} ${format(ringBottom - 0.55 * k)}, ${format(splitX)} ${bottom}`
+        );
+      };
+      productD = branch(xL);
+      aiD = branch(xR);
+    } else {
+      // Degenerate single-column layouts still share exact branch endpoints.
+      productD = `${moveCommand({ x: splitX, y: ringTop })} ${lineCommand({
+        x: xL,
+        y: ringBottom,
+      })} ${lineCommand({ x: splitX, y: ringBottom })}`;
+      aiD = `${moveCommand({ x: splitX, y: ringTop })} ${lineCommand({
+        x: xR,
+        y: ringBottom,
+      })} ${lineCommand({ x: splitX, y: ringBottom })}`;
+    }
+  }
+
   const exitD = `${moveCommand({ x: splitX, y: ringBottom })} ${lineCommand({
     x: splitX,
     y: layout.capabilities.bottom,
@@ -891,14 +1172,51 @@ function buildCapabilities(
   };
 }
 
-function reframeTemplate(template: Template, frame: Rect): string {
+/**
+ * Maps the reference template Y coordinates to the live DOM Y coordinates.
+ * Instead of blindly stretching the whole path, it anchors the middle of the
+ * path to the middle of the actual rendered artwork bands.
+ */
+function dynamicReframe(
+  template: Template,
+  frame: Rect,
+  layout: MeasuredLayout,
+  id: string,
+): string {
   const xScale = frame.width / REFERENCE_WIDTH;
-  const yScale = frame.height / template.height;
 
-  return transformPath(template.d, (value) => ({
-    x: frame.left + value.x * xScale,
-    y: frame.top + (value.y - template.top) * yScale,
-  }));
+  // Try to find the actual artwork bands to anchor the Y axis
+  const ids = NARROW_BAND_IDS[id] || [];
+  const bands = artworkBands(layout, ids, frame.top - 100, frame.bottom + 100);
+
+  // Define reference points
+  const refTop = template.top;
+  const refBottom = template.top + template.height;
+  const refMid = refTop + template.height / 2;
+
+  // Define live points
+  const liveTop = frame.top;
+  const liveBottom = frame.bottom;
+  const liveMid =
+    bands.length > 0
+      ? (bands[0].top + bands[bands.length - 1].bottom) / 2
+      : (frame.top + frame.bottom) / 2;
+
+  return transformPath(template.d, (value) => {
+    const x = frame.left + value.x * xScale;
+
+    // Piecewise linear interpolation to anchor to the live bands
+    let y = value.y;
+    if (value.y < refMid) {
+      const p = (value.y - refTop) / Math.max(1, refMid - refTop);
+      y = liveTop + p * (liveMid - liveTop);
+    } else {
+      const p = (value.y - refMid) / Math.max(1, refBottom - refMid);
+      y = liveMid + p * (liveBottom - liveMid);
+    }
+
+    return { x, y };
+  });
 }
 
 function distanceToRect(value: Point, rect: Rect) {
@@ -1011,20 +1329,175 @@ function parseCommandValues(command: string) {
   return parsed.command === "C" ? parsed.values : [];
 }
 
+// ---------------------------------------------------------------------------
+// Phones: weave the thread through the case-study artwork in reading order,
+// passing just beneath each piece (alternating between the two page margins),
+// the way the reference does, instead of squashing the desktop template.
+// (Only used when MOBILE_CASE_STUDY_ROUTE === "weave"; the default is
+// "template", which squashes the reference route to the phone layout.)
+// ---------------------------------------------------------------------------
+const NARROW_BAND_IDS: Record<string, string[]> = {
+  kabri: [
+    "case.study.kabri.lease",
+    "case.study.kabri.inspection",
+    "case.study.kabri.repair",
+    "case.study.kabri.book",
+  ],
+  norma: [
+    "case.study.norma.ledger-top",
+    "case.study.norma.ledger-bottom",
+    "case.study.norma.paper-main",
+    "case.study.norma.paper-acme",
+    "case.study.norma.paper-rejected",
+  ],
+  shopops: [
+    "case.study.shopops.message",
+    "case.study.shopops.plate",
+    "case.study.shopops.fork",
+    "case.study.shopops.reply",
+    "case.study.shopops.ticket",
+    "case.study.shopops.wallet",
+    "case.study.shopops.dashboard",
+    "case.study.shopops.bag",
+  ],
+  legalexy: [
+    "case.study.legalexy.pan",
+    "case.study.legalexy.gst",
+    "case.study.legalexy.bank",
+    "case.study.legalexy.itr",
+    "case.study.legalexy.application",
+    "case.study.legalexy.assessment",
+    "case.study.legalexy.outcome",
+  ],
+};
+
+type Band = { top: number; bottom: number };
+
+function safeRect(layout: MeasuredLayout, id: string): Rect | null {
+  try {
+    const rect = getRect(layout, id);
+    return rect.width > 4 && rect.height > 4 ? rect : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Artwork rects -> vertical bands (side-by-side pieces merge into one). */
+function artworkBands(
+  layout: MeasuredLayout,
+  ids: string[],
+  fromY: number,
+  toY: number,
+): Band[] {
+  const rects = ids
+    .map((id) => safeRect(layout, id))
+    .filter((rect): rect is Rect => rect !== null)
+    .filter((rect) => rect.top > fromY && rect.bottom < toY)
+    .sort((a, b) => a.top - b.top);
+
+  const bands: Band[] = [];
+  for (const rect of rects) {
+    const last = bands[bands.length - 1];
+    if (last && rect.top < last.bottom - 4) {
+      last.bottom = Math.max(last.bottom, rect.bottom);
+    } else {
+      bands.push({ top: rect.top, bottom: rect.bottom });
+    }
+  }
+  return bands;
+}
+
+function narrowEdges(layout: MeasuredLayout) {
+  const edge = clamp(layout.pagePad * 0.45, 6, 14);
+  return { left: edge, right: layout.width - edge };
+}
+
+/**
+ * Appends a serpentine to `builder`: down one margin past a piece, under it
+ * to the other margin, down past the next piece, and so on, finishing
+ * vertically at `endY`. Returns the x the thread finishes on.
+ */
+function appendWeave(
+  builder: PathBuilder,
+  layout: MeasuredLayout,
+  bands: Band[],
+  blockers: number[],
+  endY: number,
+): number {
+  const { left, right } = narrowEdges(layout);
+  const from = builder.current;
+  let cur = Math.abs(from.x - left) < Math.abs(from.x - right) ? left : right;
+  let opp = cur === left ? right : left;
+  const vertices: Point[] = [from];
+
+  if (Math.abs(from.x - cur) > 1) {
+    const y1 = Math.min(from.y + 20, endY - 4);
+    vertices.push({ x: from.x, y: y1 }, { x: cur, y: y1 });
+  }
+
+  bands.forEach((band, index) => {
+    const nextTops = [
+      ...(bands[index + 1] ? [bands[index + 1].top] : []),
+      ...blockers.filter((top) => top > band.bottom),
+      endY,
+    ];
+    const gap = Math.min(...nextTops) - band.bottom;
+    if (index === bands.length - 1 && gap < 70) return;
+    const under = band.bottom + clamp(0.4 * gap, 8, 16);
+    vertices.push({ x: cur, y: under }, { x: opp, y: under });
+    [cur, opp] = [opp, cur];
+  });
+
+  vertices.push({ x: cur, y: endY });
+  appendRoundedCorners(builder, vertices, () => 14);
+  return cur;
+}
+
 function buildProjectTemplate(
   layout: MeasuredLayout,
   id: "norma" | "shopops" | "legalexy",
   template: Template,
   previous: RouteModel | undefined,
   previousEnd: Point,
+  nextStartX?: number,
 ): RouteModel {
   const frame = getRect(layout, `case.study.${id}`);
-  const key = [pointKey(previousEnd), rectKey(frame), layout.width].join("|");
+  const key = [
+    pointKey(previousEnd),
+    rectKey(frame),
+    layout.width,
+    nextStartX === undefined ? "end" : nextStartX.toFixed(1),
+  ].join("|");
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
 
-  let d = reframeTemplate(template, frame);
-  d = retargetStart(d, previousEnd);
+  if (layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "weave") {
+    const title = safeRect(layout, `case.study.${id}.title`);
+    const bands = artworkBands(
+      layout,
+      NARROW_BAND_IDS[id],
+      previousEnd.y,
+      frame.bottom,
+    );
+    const builder = new PathBuilder(previousEnd);
+    appendWeave(builder, layout, bands, title ? [title.top] : [], frame.bottom);
+    return routeFromPath(key, builder.d, 10);
+  }
+
+  // Phones squash the reference route to the narrow frame; larger screens
+  // anchor it to the live artwork bands.
+  let d =
+    layout.width <= 700
+      ? squashTemplate(template.d, template, frame, REFERENCE_WIDTH)
+      : dynamicReframe(template, frame, layout, id);
+  // The route must begin exactly where the previous case study ended. On a
+  // phone the squashed template's own start can be tens of pixels away.
+  d = joinRouteStart(d, pathStart(d), previousEnd, frame.height);
+  // Phones: hand over to the next case study by easing the tail of this route
+  // toward the next entry, keeping the route through the artwork untouched.
+  if (layout.width <= 700 && nextStartX !== undefined) {
+    d = blendRouteEnd(d, nextStartX, frame);
+  }
 
   if (id === "shopops") {
     const message = getRect(layout, "case.study.shopops.message");
@@ -1041,6 +1514,7 @@ function buildKabri(
   layout: MeasuredLayout,
   previous: RouteModel | undefined,
   start: Point,
+  nextStartX?: number,
 ): RouteModel {
   const frame = getRect(layout, "case.study.kabri");
   const north = centerOf(getRect(layout, "case.study.kabri.door.north"));
@@ -1051,9 +1525,76 @@ function buildKabri(
     pointKey(north),
     pointKey(east),
     layout.width,
+    nextStartX === undefined ? "end" : nextStartX.toFixed(1),
   ].join("|");
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
+
+  // Phones: exactly production's route (the whole reference route squashed to
+  // the frame, as for the other case studies), not a rebuilt hall prefix.
+  if (layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE !== "weave") {
+    let d = squashTemplate(
+      PROJECT_TEMPLATES.kabri.d,
+      PROJECT_TEMPLATES.kabri,
+      frame,
+      REFERENCE_WIDTH,
+    );
+    d = joinRouteStart(d, pathStart(d), start, frame.height);
+    if (nextStartX !== undefined) d = blendRouteEnd(d, nextStartX, frame);
+    return routeFromPath(key, d, 10);
+  }
+
+  if (layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "weave") {
+    const { right } = narrowEdges(layout);
+    const flat = getRect(layout, "case.study.kabri.flat");
+    const title = safeRect(layout, "case.study.kabri.title");
+    const blockers = title ? [title.top] : [];
+    const all = artworkBands(
+      layout,
+      NARROW_BAND_IDS.kabri,
+      start.y,
+      frame.bottom,
+    );
+    const before = all.filter((band) => band.bottom <= flat.top);
+    const after = all.filter((band) => band.top >= flat.bottom);
+    const rr = Math.min(24, Math.max(14, 0.155 * (east.y - north.y)));
+    const hall = east.y - 2;
+    const b = new PathBuilder(start);
+    const approachY = Math.max(start.y + 40, north.y - 50);
+    const cur = appendWeave(b, layout, before, blockers, approachY);
+    const dN = north.y - approachY;
+    b.cubic(
+      { x: cur, y: approachY + 0.5 * dN },
+      { x: north.x, y: north.y - 0.5 * dN },
+      north,
+    )
+      .cubic(
+        { x: north.x, y: north.y + 0.336 * (east.y - north.y) },
+        { x: north.x, y: north.y + 0.664 * (east.y - north.y) },
+        { x: north.x, y: east.y - rr },
+      )
+      .cubic(
+        { x: north.x, y: east.y - rr * 0.55 },
+        { x: north.x + rr * 0.45, y: hall },
+        { x: north.x + rr, y: hall },
+      )
+      .cubic(
+        { x: north.x + rr + 56, y: hall },
+        { x: east.x - 58, y: east.y },
+        east,
+      );
+    const dxE = right - east.x;
+    if (dxE > 6) {
+      const dyE = Math.max(40, dxE * 0.9);
+      b.cubic(
+        { x: east.x + 0.55 * dxE, y: east.y },
+        { x: right, y: east.y + 0.45 * dyE },
+        { x: right, y: east.y + dyE },
+      );
+    }
+    appendWeave(b, layout, after, blockers, frame.bottom);
+    return routeFromPath(key, b.d, 10);
+  }
 
   const r = Math.min(24, Math.max(14, 0.155 * (east.y - north.y)));
   const hallY = east.y - 2;
@@ -1087,11 +1628,44 @@ function buildKabri(
   ]);
 
   const xScale = frame.width / REFERENCE_WIDTH;
-  const yScale = frame.height / PROJECT_TEMPLATES.kabri.height;
-  const framePoint = (value: Point): Point => ({
-    x: frame.left + value.x * xScale,
-    y: frame.top + (value.y - PROJECT_TEMPLATES.kabri.top) * yScale,
-  });
+
+  // FIX: Anchor the suffix Y mapping to the east door, rather than stretching from the top.
+  const refEastY = KABRI_EAST.y;
+  const refBottomY =
+    PROJECT_TEMPLATES.kabri.top + PROJECT_TEMPLATES.kabri.height;
+  const liveBottomY = frame.bottom;
+  const liveEastY = east.y;
+
+  const yScaleTop =
+    (liveEastY - frame.top) /
+    Math.max(1, refEastY - PROJECT_TEMPLATES.kabri.top);
+  const yScaleBottom =
+    (liveBottomY - liveEastY) / Math.max(1, refBottomY - refEastY);
+
+  const parityPhone =
+    layout.width <= 700 && !phoneTweak(layout.width, "caseStudies");
+  const yScaleLinear =
+    frame.height / Math.max(1, PROJECT_TEMPLATES.kabri.height);
+
+  const framePoint = (value: Point): Point => {
+    // Production mapping: one linear stretch of the whole reference route.
+    if (parityPhone) {
+      return {
+        x: frame.left + value.x * xScale,
+        y: frame.top + (value.y - PROJECT_TEMPLATES.kabri.top) * yScaleLinear,
+      };
+    }
+    const isBelowEast = value.y >= refEastY;
+    const yScale = isBelowEast ? yScaleBottom : yScaleTop;
+
+    return {
+      x: frame.left + value.x * xScale,
+      y: isBelowEast
+        ? liveEastY + (value.y - refEastY) * yScale
+        : liveEastY - (refEastY - value.y) * yScale,
+    };
+  };
+
   const mappedEast = framePoint(KABRI_EAST);
   const offset = {
     x: east.x - mappedEast.x,
@@ -1099,7 +1673,9 @@ function buildKabri(
   };
   const mappedSuffix = transformPath(suffix, (value) => {
     const mapped = framePoint(value);
-    return { x: mapped.x + offset.x, y: mapped.y + offset.y };
+    return phoneTweak(layout.width, "caseStudies")
+      ? blendKabriSuffix(mapped, offset, east.y, frame, layout.width)
+      : { x: mapped.x + offset.x, y: mapped.y + offset.y };
   });
   const mappedEnd = pathEnd(mappedSuffix);
   const suffixWithBottom = retargetEnd(mappedSuffix, {
@@ -1107,8 +1683,54 @@ function buildKabri(
     y: frame.bottom,
   });
 
-  const d = `${prefix.d} ${suffixWithBottom}`;
+  // One continuous subpath: the suffix starts exactly where the prefix ends
+  // (the east door), so its leading "M" is dropped. A second "M" would make
+  // this a compound path, and DrawSVG/stroke-dash restarts per subpath, so
+  // the part after the door would not follow the pen.
+  const [, ...suffixRest] = parsePath(suffixWithBottom);
+  assertDistance(
+    prefix.end,
+    pathStart(mappedSuffix),
+    "KABRI hall → east door suffix",
+  );
+  const d = `${prefix.d} ${serializePath(suffixRest)}`;
   return routeFromPath(key, d, 10);
+}
+
+/**
+ * Appends a smooth S-curve from the builder's current point to `to`. Both ends
+ * are vertical, so it joins straight runs (and the next curve) without a kink.
+ * When the two x's are (almost) equal the curve bulges sideways by `amp` and
+ * comes back, so the road still meanders instead of becoming a ruler line.
+ */
+function meander(builder: PathBuilder, to: Point, amp: number, side: 1 | -1) {
+  const from = builder.current;
+  const dy = to.y - from.y;
+  if (dy < 0.5) {
+    builder.line(to);
+    return;
+  }
+
+  if (Math.abs(to.x - from.x) > 2 || amp < 1) {
+    builder.cubic(
+      { x: from.x, y: from.y + 0.55 * dy },
+      { x: to.x, y: to.y - 0.55 * dy },
+      to,
+    );
+    return;
+  }
+
+  const mid = { x: from.x + side * amp, y: from.y + 0.5 * dy };
+  builder.cubic(
+    { x: from.x, y: from.y + 0.3 * dy },
+    { x: mid.x, y: mid.y - 0.22 * dy },
+    mid,
+  );
+  builder.cubic(
+    { x: mid.x, y: mid.y + 0.22 * dy },
+    { x: to.x, y: to.y - 0.3 * dy },
+    to,
+  );
 }
 
 function buildWhy(
@@ -1133,186 +1755,67 @@ function buildWhy(
     ...nodes.map(pointKey),
     ...copies.map(rectKey),
     layout.width,
+    "v3",
   ].join("|");
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
 
-  const wrapX = clamp(title.left - 4, 8, layout.width - 8);
-  const topY = clamp(title.top - 96, start.y + 48, title.top - 24);
-  let rTop = clamp(
-    Math.min(32, 0.35 * (topY - start.y), 0.25 * (start.x - wrapX)),
-    8,
-    32,
-  );
-  if (start.x - wrapX < 2 * rTop + 24) {
-    rTop = Math.max(8, (start.x - wrapX - 24) / 2);
-  }
-
-  const rBottom = clamp(Math.min(12, 0.3 * (title.left - 8)), 4, 12);
-  const edge = 4;
-  let uR = clamp(wrapX - rBottom - edge, 3, 12);
-  let returnY = title.bottom + 2 * uR;
-  let useHook = false;
-
-  if (returnY > intro.top - 8) {
-    const available = (intro.top - 8 - title.bottom) / 2;
-    if (available >= 3) {
-      uR = Math.min(uR, available);
-      returnY = title.bottom + 2 * uR;
-    } else {
-      useHook = true;
-      returnY = Math.max(title.bottom + 8, intro.top - 8);
-    }
-  }
-
-  const descentX = clamp(
-    Math.max(layout.width / 2, intro.right + 40),
-    8,
-    layout.width - 8,
-  );
-  const rCenter = clamp(Math.min(20, 0.4 * (nodes[0].y - returnY)), 8, 20);
+  // The thread never turns back on itself: it slides to the right of the
+  // headline (the title anchor is a text range, so this is the widest line,
+  // not the whole container), runs down past the intro, then wanders from
+  // bullet to bullet like a village road.
+  const narrow = layout.width <= 700;
+  const maxX = layout.width - clamp(layout.pagePad * 0.45, 6, 14);
+  const railX = narrow
+    ? maxX
+    : clamp(
+        Math.max(title.right + 28, start.x),
+        start.x,
+        Math.max(start.x, maxX - 8),
+      );
 
   const builder = new PathBuilder(start);
-  builder
-    .line({ x: start.x, y: topY - rTop })
-    .arc(rTop, rTop, 0, 0, 1, { x: start.x - rTop, y: topY })
-    .line({ x: wrapX + rTop, y: topY })
-    .arc(rTop, rTop, 0, 0, 0, { x: wrapX, y: topY + rTop })
-    .line({ x: wrapX, y: title.bottom - rBottom });
 
-  if (useHook) {
-    const hookY = Math.max(4, returnY - title.bottom);
-    const hookX = Math.max(
-      4,
-      Math.min(24, wrapX - rBottom - edge, descentX - rCenter - wrapX - 8),
-    );
-
-    builder.cubic(
-      { x: wrapX, y: title.bottom + 0.55 * hookY },
-      { x: wrapX + 0.55 * hookX, y: returnY },
-      { x: wrapX + hookX, y: returnY },
-    );
-  } else {
-    builder.arc(rBottom, rBottom, 0, 0, 1, {
-      x: wrapX - rBottom,
-      y: title.bottom,
-    });
-
-    const availableRun = wrapX - rBottom - (edge + uR);
-    const run = Math.min(24, Math.max(0, availableRun));
-    const uStartX = Math.min(
-      wrapX - rBottom,
-      Math.max(edge + uR, wrapX - rBottom - run),
-    );
-
-    if (uStartX < wrapX - rBottom - 0.01) {
-      builder.line({ x: uStartX, y: title.bottom });
-    }
-
-    builder.arc(uR, uR, 0, 0, 0, {
-      x: uStartX,
-      y: returnY,
-    });
-  }
-
-  builder
-    .line({ x: descentX - rCenter, y: returnY })
-    .arc(rCenter, rCenter, 0, 0, 1, {
-      x: descentX,
-      y: returnY + rCenter,
-    });
-
-  const first = nodes[0];
-  const descentY = Math.max(returnY + rCenter, intro.bottom + 24);
-  const curveDy = first.y - descentY;
-
-  if (descentY > returnY + rCenter + 0.01) {
-    builder.line({ x: descentX, y: descentY });
-  }
-
-  if (curveDy > 0.01) {
-    builder.cubic(
-      { x: descentX, y: descentY + 0.55 * curveDy },
-      { x: first.x, y: first.y - 0.55 * curveDy },
-      first,
-    );
-  } else {
-    builder.line(first);
-  }
-
-  const sides = copies.map((copy, index) =>
-    (copy.left + copy.right) / 2 > nodes[index].x ? 1 : -1,
+  // 1. Slide over to the rail before the headline starts.
+  const slideY = Math.max(
+    start.y + 24,
+    Math.min(title.top - 16, start.y + 160),
   );
-  const alternating = sides.some((side) => side !== sides[0]);
-
-  if (alternating) {
-    nodes.forEach((node, index) => {
-      const copy = copies[index];
-      const next = index < nodes.length - 1 ? nodes[index + 1] : aboutStart;
-      const gap = clamp(0.08 * copy.height, 12, 24);
-      const underY = copy.bottom + gap;
-      const minCorner = Math.min(8, gap);
-      const corner = clamp(
-        Math.min(
-          20,
-          gap,
-          0.35 * Math.abs(next.x - node.x),
-          0.35 * Math.max(0, underY - node.y),
-        ),
-        minCorner,
-        20,
-      );
-
-      appendRoundedCorners(
-        builder,
-        [
-          builder.current,
-          { x: node.x, y: underY },
-          { x: next.x, y: underY },
-          next,
-        ],
-        (vertexIndex) => (vertexIndex === 1 || vertexIndex === 2 ? corner : 0),
-      );
-    });
-  } else {
-    const spineX = nodes[0].x;
-    const last = nodes[nodes.length - 1];
-    builder.line({ x: spineX, y: last.y });
-
-    const lastCopy = copies[copies.length - 1];
-    const gap = clamp(0.08 * lastCopy.height, 12, 24);
-    const underY = lastCopy.bottom + gap;
-    const dy = aboutStart.y - last.y;
-    const dx = aboutStart.x - spineX;
-    const room = aboutStart.y - underY;
-
-    if (dy > 0.01 && Math.abs(dx) > 0.5 && room > 16) {
-      const corner = clamp(
-        Math.min(20, 0.35 * Math.abs(dx), 0.35 * room),
-        8,
-        20,
-      );
-
-      appendRoundedCorners(
-        builder,
-        [
-          builder.current,
-          { x: spineX, y: underY },
-          { x: aboutStart.x, y: underY },
-          aboutStart,
-        ],
-        (vertexIndex) => (vertexIndex === 1 || vertexIndex === 2 ? corner : 0),
-      );
-    } else if (dy > 0.01 && Math.abs(dx) > 0.5) {
-      builder.cubic(
-        { x: spineX, y: last.y + 0.55 * dy },
-        { x: aboutStart.x, y: aboutStart.y - 0.55 * dy },
-        aboutStart,
-      );
-    } else {
-      builder.line(aboutStart);
-    }
+  if (Math.abs(railX - start.x) > 1) {
+    const dy = slideY - start.y;
+    builder.cubic(
+      { x: start.x, y: start.y + 0.55 * dy },
+      { x: railX, y: slideY - 0.55 * dy },
+      { x: railX, y: slideY },
+    );
+  } else if (slideY > start.y) {
+    builder.line({ x: railX, y: slideY });
   }
+
+  // 2. Down the rail, past the headline and the intro.
+  const introY = Math.min(intro.bottom + 20, nodes[0].y - 24);
+  if (introY > builder.current.y + 0.5) {
+    builder.line({ x: railX, y: introY });
+  }
+
+  // 3. Into the first bullet, then bullet to bullet. Each hop first drops
+  // below the copy it just passed, so the curve never touches text.
+  const amp = clamp(0.5 * (nodes[0].x - 4), 0, 9);
+  meander(builder, nodes[0], 0, 1);
+
+  const targets = [...nodes.slice(1), aboutStart];
+  targets.forEach((target, index) => {
+    const copy = copies[index];
+    const gap = clamp(0.08 * copy.height, 12, 24);
+    const dropY = Math.min(
+      Math.max(builder.current.y + 24, copy.bottom + gap),
+      target.y - 24,
+    );
+    if (dropY > builder.current.y + 0.5) {
+      builder.line({ x: builder.current.x, y: dropY });
+    }
+    meander(builder, target, amp, index % 2 === 0 ? 1 : -1);
+  });
 
   return routeFromPath(key, builder.d, 10);
 }
@@ -1323,7 +1826,9 @@ function buildAbout(
 ): AboutModel {
   const section = getRect(layout, "conclusion.section");
   const profile = getRect(layout, "conclusion.profile");
-  const key = [rectKey(section), rectKey(profile), layout.width].join("|");
+  const key = [rectKey(section), rectKey(profile), layout.width, "v2"].join(
+    "|",
+  );
   if (previous && previous.key === key) return previous;
 
   const reference = {
@@ -1343,7 +1848,41 @@ function buildAbout(
   let x0: number;
   const y0 = section.top;
 
-  if (free >= 200 && rawScale >= 0.42) {
+  // Phones: profile text fills the whole width, so the fingerprint can't sit
+  // beside it. Park it (mirrored, hanging off the right-hand rail) BELOW the
+  // profile and run the thread down the margin to reach it.
+  const sideBySide = free >= 200 && rawScale >= 0.42;
+  if (!sideBySide && profile.width > section.width * 0.7) {
+    // Phones: the profile text fills the width. Run the thread down the left
+    // margin (clear of the text), then draw the fingerprint at full width,
+    // centred, below the profile.
+    const rail = clamp(layout.pagePad * 0.45, 6, 14);
+    const top = Math.max(section.top + 1, profile.bottom + 24);
+    // Production shows the print at under half the screen width on phones.
+    const s = clamp(
+      Math.min(
+        0.46,
+        (layout.width - 2 * rail) / reference.width,
+        (section.bottom - top - 16) / reference.height,
+      ),
+      0.3,
+      0.46,
+    );
+    const axisOffset = 869.25 - reference.left;
+    const bboxLeft = (layout.width - reference.width * s) / 2;
+    const axisX = bboxLeft + axisOffset * s;
+    const mapped = transformPath(CONCLUSION_FINGERPRINT, (value) => ({
+      x: axisX + (value.x - 869.25) * s,
+      y: top + (value.y - reference.top) * s,
+    }));
+    const tail = mapped.replace(/^M\s+\S+\s+\S+\s*/, "");
+    const lead = `M ${format(axisX)} ${format(section.top)} L ${format(
+      axisX,
+    )} ${format(top)} `;
+    return { ...routeFromPath(key, lead + tail, 6), rect: section };
+  }
+
+  if (sideBySide) {
     const targetWidth = reference.width * scale;
     x0 = profile.right + Math.max(16, (free - targetWidth) / 2);
   } else {
@@ -1367,38 +1906,105 @@ function buildAbout(
   };
 }
 
+/**
+ * The owl: one continuous stroke (outline with two ear tufts, a brow ridge
+ * that drops between two ringed eyes, a beak notch, then the chest line down
+ * to where the thread ends). Drawn in a 100 × 114 box, entry at (50, 0) with a
+ * vertical tangent, exit at (50, 114).
+ */
+const OWL_PATH = [
+  "M 50 0",
+  "C 50 5, 55 7, 62 6",
+  "C 70 6, 76 5, 79 2",
+  "C 83 12, 86 22, 86 36",
+  "C 88 56, 90 76, 84 92",
+  "C 78 108, 64 114, 50 114",
+  "C 36 114, 22 108, 16 92",
+  "C 10 76, 12 56, 14 36",
+  "C 14 22, 17 12, 21 2",
+  "C 24 5, 30 6, 38 6",
+  "C 44 7, 50 9, 50 18",
+  "L 50 36",
+  "C 50 40, 47 42, 44 44",
+  "A 9 9 0 1 1 26 44",
+  "A 9 9 0 1 1 44 44",
+  "C 47 52, 53 52, 56 44",
+  "A 9 9 0 1 0 74 44",
+  "A 9 9 0 1 0 56 44",
+  "C 56 60, 50 74, 50 92",
+  "L 50 114",
+].join(" ");
+const OWL_WIDTH = 100;
+const OWL_HEIGHT = 114;
+
 function buildContact(
   layout: MeasuredLayout,
   previous: RouteModel | undefined,
   start: Point,
 ): { route: RouteModel; terminal: Point } {
   const section = getRect(layout, "footer.section");
-  const terminal = {
-    x: section.right - layout.pagePad - 12,
-    y: section.bottom - 30,
-  };
-  const key = [pointKey(start), pointKey(terminal), layout.pagePad].join("|");
+  const links = getRect(layout, "footer.links");
+  const back = getRect(layout, "footer.back");
+  const narrow = layout.width <= 700;
+
+  // Where the owl sits, and how big it is.
+  let scale: number;
+  let cx: number;
+  let top: number;
+  if (narrow) {
+    const room = back.top - (links.bottom + 28) - 28;
+    scale = clamp(room / OWL_HEIGHT, 0.7, 1.5);
+    cx = layout.width / 2;
+    top = Math.min(links.bottom + 28, back.top - 28 - OWL_HEIGHT * scale);
+  } else {
+    scale = clamp((0.2 * layout.width) / OWL_WIDTH, 1.6, 3);
+    cx =
+      section.right -
+      layout.pagePad -
+      (OWL_WIDTH * scale) / 2 -
+      0.05 * layout.width;
+    const leadRoom = clamp(0.22 * section.height, 90, 220);
+    top = Math.max(start.y + leadRoom, section.top + 0.16 * section.height);
+    const maxScale = (section.bottom - 56 - top) / OWL_HEIGHT;
+    scale = Math.min(scale, Math.max(1, maxScale));
+  }
+
+  const terminal = { x: cx, y: top + OWL_HEIGHT * scale };
+  const key = [
+    pointKey(start),
+    pointKey(terminal),
+    scale.toFixed(3),
+    rectKey(links),
+    layout.pagePad,
+    layout.width,
+    "owl1",
+  ].join("|");
   const cached = reuseRoute(previous, key);
   if (cached) return { route: cached, terminal };
 
-  const dx = terminal.x - start.x;
-  const dy = terminal.y - start.y;
-  const length = Math.hypot(dx, dy);
-  const unit = { x: dx / length, y: dy / length };
-  const leadLength = clamp(0.12 * length, 60, 160);
-  const leadEnd = {
-    x: start.x + unit.x * leadLength,
-    y: start.y + unit.y * leadLength,
-  };
-  const d = `${moveCommand(start)} ${cubicCommand(
-    { x: start.x, y: start.y + 0.55 * leadLength },
-    {
-      x: leadEnd.x - unit.x * 0.35 * leadLength,
-      y: leadEnd.y - unit.y * 0.35 * leadLength,
-    },
-    leadEnd,
-  )} ${lineCommand(terminal)}`;
-  return { route: routeFromPath(key, d, 10), terminal };
+  // applyAffine (not transformPath) so the eye arcs' radii scale with it.
+  const owl = applyAffine(OWL_PATH, {
+    a: scale,
+    b: 0,
+    c: 0,
+    d: scale,
+    e: cx - (OWL_WIDTH / 2) * scale,
+    f: top,
+  }).replace(/^M\s+\S+\s+\S+\s*/, "");
+
+  const builder = new PathBuilder(start);
+  const entry = { x: cx, y: top };
+
+  if (narrow) {
+    // Down the margin, clear of the headline and the contact rows, then in.
+    const dropY = Math.max(start.y + 24, links.bottom + 12);
+    if (dropY > start.y + 0.5) builder.line({ x: start.x, y: dropY });
+    meander(builder, entry, 0, 1);
+  } else {
+    meander(builder, entry, 0, 1);
+  }
+
+  return { route: routeFromPath(key, `${builder.d} ${owl}`, 6), terminal };
 }
 
 function workDerivedAnchors(points: Point[], drawing: Rect) {
@@ -1480,10 +2086,22 @@ export function buildThreadModel(
     exit: previous?.capsExit,
   });
 
+  // x where each case study's route begins (the entry the previous one must
+  // hand over to). Only phones use it; larger screens anchor to the artwork.
+  const entryX = (
+    id: "kabri" | "norma" | "shopops" | "legalexy",
+    template: Template,
+  ) => {
+    const frame = getRect(layout, `case.study.${id}`);
+    return (
+      frame.left + pathStart(template.d).x * (frame.width / REFERENCE_WIDTH)
+    );
+  };
   const kabri = buildKabri(
     layout,
     previous?.projects.kabri,
     capabilities.exit.end,
+    entryX("norma", PROJECT_TEMPLATES.norma),
   );
   const norma = buildProjectTemplate(
     layout,
@@ -1491,6 +2109,7 @@ export function buildThreadModel(
     PROJECT_TEMPLATES.norma,
     previous?.projects.norma,
     kabri.end,
+    entryX("shopops", PROJECT_TEMPLATES["shop-ops"]),
   );
   const shopops = buildProjectTemplate(
     layout,
@@ -1498,6 +2117,7 @@ export function buildThreadModel(
     PROJECT_TEMPLATES["shop-ops"],
     previous?.projects.shopops,
     norma.end,
+    entryX("legalexy", PROJECT_TEMPLATES["lega-lexy"]),
   );
   const legalexy = buildProjectTemplate(
     layout,
@@ -1524,35 +2144,69 @@ export function buildThreadModel(
   const capabilityCore =
     layout.width <= 700 ? 0.9 : layout.width <= 820 ? 1.1 : 1.35;
 
+  // Markers are projected onto the thread so the ring is always ON it, even
+  // when the DOM dot is a pixel or two off the arc.
+  const fineProduct = flattenPath(capabilities.product.d, 2);
+  const fineAi = flattenPath(capabilities.ai.d, 2);
+  const fineProductLengths = cumulativeLengths(fineProduct);
+  const fineAiLengths = cumulativeLengths(fineAi);
+  const snapTo = (points: Point[], lengths: number[], target: Point): Point =>
+    closestPointOnPolyline(points, lengths, target).point;
+
   for (let index = 1; index <= 5; index += 1) {
     capabilityMarkers.push({
       id: `capabilities.product.${index}`,
       kind: "service",
-      point: centerOf(getRect(layout, `capabilities.product.${index}`)),
+      point: snapTo(
+        fineProduct,
+        fineProductLengths,
+        centerOf(getRect(layout, `capabilities.product.${index}`)),
+      ),
       radius: capabilityRadius,
       core: capabilityCore,
     });
     capabilityMarkers.push({
       id: `capabilities.ai.${index}`,
       kind: "service",
-      point: centerOf(getRect(layout, `capabilities.ai.${index}`)),
+      point: snapTo(
+        fineAi,
+        fineAiLengths,
+        centerOf(getRect(layout, `capabilities.ai.${index}`)),
+      ),
       radius: capabilityRadius,
       core: capabilityCore,
     });
   }
 
+  // Bullet dots are thread markers, drawn exactly like the capability dots.
+  const whyMarkers: MarkerModel[] = [1, 2, 3, 4, 5].map((index) => ({
+    id: `why.point.${index}`,
+    kind: "service",
+    point: centerOf(getRect(layout, `why.point.${index}`)),
+    radius: capabilityRadius,
+    core: capabilityCore,
+  }));
+
+  // On phones the Kabri route is production's, squashed; the door dots are
+  // projected onto it so they always sit on the thread.
+  const snapDoor = (point: Point): Point => {
+    if (layout.width > 700) return point;
+    const fine = flattenPath(kabri.d, 2);
+    return closestPointOnPolyline(fine, cumulativeLengths(fine), point).point;
+  };
+
   const doorMarkers: MarkerModel[] = [
     {
       id: "case.study.kabri.door.north",
       kind: "door",
-      point: centerOf(getRect(layout, "case.study.kabri.door.north")),
+      point: snapDoor(centerOf(getRect(layout, "case.study.kabri.door.north"))),
       radius: 4,
       core: 1.5,
     },
     {
       id: "case.study.kabri.door.east",
       kind: "door",
-      point: centerOf(getRect(layout, "case.study.kabri.door.east")),
+      point: snapDoor(centerOf(getRect(layout, "case.study.kabri.door.east"))),
       radius: 4,
       core: 1.5,
     },
@@ -1714,7 +2368,7 @@ export function buildThreadModel(
     conclusion,
     footer: footer.route,
     pagePath,
-    markers: [...capabilityMarkers, ...doorMarkers],
+    markers: [...capabilityMarkers, ...whyMarkers, ...doorMarkers],
     terminal: footer.terminal,
     derived,
     keys,

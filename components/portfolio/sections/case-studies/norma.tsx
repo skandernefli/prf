@@ -1,5 +1,6 @@
 import { InlineReferenceElement } from "../../inline-reference-element";
 import { InlineReferenceSvg } from "../../inline-reference-svg";
+import { ScanConnectors } from "../../scan-connectors";
 import { ProjectHeader, ProjectLink, ProjectTitle } from "../shared";
 
 export function Norma() {
@@ -105,6 +106,7 @@ export function Norma() {
           label="Extracted invoice values"
           className="scan-extracted"
         />
+        <ScanConnectors />
       </div>
       <ProjectLink />{" "}
     </article>

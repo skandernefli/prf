@@ -104,6 +104,22 @@ body {
   fill: var(--signal);
 }
 
+.thread-pen-group {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.thread-pen {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1.8px;
+  vector-effect: non-scaling-stroke;
+}
+
+.thread-pen-core {
+  fill: var(--signal);
+}
+
 .thread-head {
   position: fixed;
   z-index: 19;
@@ -1439,16 +1455,17 @@ body {
   padding-block: var(--why-me-point-padding);
 }
 
+/* The visible dot is a thread marker (see MARKER_DEFS), identical to the
+   capability dots. This element is only the measured anchor. */
 .why-me-node {
   position: absolute;
   z-index: 19;
-  top: calc(var(--why-me-point-padding) + 2px);
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--signal);
-  border-radius: 50%;
-  background: var(--ivory);
-  transform: translateX(-50%);
+  top: calc(var(--why-me-point-padding) + 14px);
+  width: 0;
+  height: 0;
+  border: 0;
+  background: none;
+  pointer-events: none;
 }
 
 .why-me-point:nth-child(odd) .why-me-node {
@@ -2021,7 +2038,7 @@ body {
   }
 
   .work-flow-copy {
-    padding: 5rem 0 2.5rem;
+    padding: 5rem 0 4.5rem;
   }
 
   .work-flow-copy h2 {
@@ -2048,7 +2065,7 @@ body {
 
   .capability-orbit {
     width: 30%;
-    height: 48rem;
+    height: 66rem;
     margin-top: 8.5rem;
   }
 
@@ -2097,7 +2114,7 @@ body {
 
   .case-studys {
     --case-study-unit: min(1vw, 4.5px);
-    --project-section-height: max(1030px, 135svh);
+    --project-section-height: max(1200px, 155svh);
   }
 
   .case-study {
@@ -2668,7 +2685,21 @@ body {
   }
 
   .footer-statement {
-    font-size: clamp(2.4rem, 10vw, 4rem);
+    font-size: clamp(1.9rem, 8.4vw, 3.6rem);
+  }
+
+  .footer-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .footer-link {
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+
+  /* Room for the owl between the contact rows and "back to top". */
+  .footer-stage {
+    padding-bottom: 14rem;
   }
 
   .footer-pull {
@@ -2691,8 +2722,8 @@ body {
 @media (min-width: 600px) and (max-width: 700px) {
   .lega-lexy-study {
     --project-section-height: max(
-      1030px,
-      135svh,
+      1200px,
+      155svh,
       calc(var(--case-study-unit) * 160 + 180px)
     );
   }
@@ -2724,7 +2755,7 @@ body {
 
   .capability-orbit {
     width: 24%;
-    height: 52rem;
+    height: 70rem;
   }
 }
 .custom-cursor {
@@ -2756,4 +2787,33 @@ body {
   transition:
     width var(--fast) ease,
     height var(--fast) ease;
+}
+
+/* Phones: reserve room under the profile for the (mirrored) fingerprint thread
+   so it never has to overlap the heading/bio text. */
+@media (max-width: 700px) {
+  .conclusion-stage {
+    padding-bottom: calc(2.5rem + min(900px, 2.11 * (100vw - 1.2rem)));
+  }
+}
+
+/* Norma: dashed threads from the extracted values to the invoice's orange
+   boxes. Overlay is measured in JS (see scan-connectors.tsx). */
+.scan-connectors {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.scan-connector {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1.4px;
+  stroke-dasharray: 4 6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }

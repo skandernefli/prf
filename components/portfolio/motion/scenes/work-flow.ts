@@ -1,10 +1,6 @@
 import { gsap } from "gsap";
 
-import {
-  addFromTo,
-  maskLine,
-  scrollTriggerDefaults,
-} from "../motion-utils";
+import { addFromTo, maskLine, scrollTriggerDefaults } from "../motion-utils";
 
 export function buildWorkFlowScene(root: HTMLElement) {
   const section = root.querySelector<HTMLElement>(".work-flow");
@@ -20,12 +16,7 @@ export function buildWorkFlowScene(root: HTMLElement) {
 
   if (copy && headingInners.length > 0) {
     const heading = gsap.timeline({
-      scrollTrigger: scrollTriggerDefaults(
-        copy,
-        "top 86%",
-        "top 44%",
-        0.65,
-      ),
+      scrollTrigger: scrollTriggerDefaults(copy, "top 100%", "top 0%", 0.65),
     });
 
     addFromTo(
@@ -43,15 +34,16 @@ export function buildWorkFlowScene(root: HTMLElement) {
     );
   }
 
-  const description =
-    section.querySelector<HTMLElement>(".work-flow-description");
+  const description = section.querySelector<HTMLElement>(
+    ".work-flow-description",
+  );
 
   if (description) {
     const reveal = gsap.timeline({
       scrollTrigger: scrollTriggerDefaults(
         description,
-        "top 92%",
-        "top 68%",
+        "top 50%",
+        "top 40%",
         0.5,
       ),
     });
@@ -70,17 +62,11 @@ export function buildWorkFlowScene(root: HTMLElement) {
     );
   }
 
-  const labels =
-    section.querySelectorAll<HTMLElement>(".work-flow-label");
+  const labels = section.querySelectorAll<HTMLElement>(".work-flow-label");
 
   labels.forEach((label) => {
     const reveal = gsap.timeline({
-      scrollTrigger: scrollTriggerDefaults(
-        label,
-        "top 88%",
-        "top 68%",
-        0.45,
-      ),
+      scrollTrigger: scrollTriggerDefaults(label, "top 50%", "top 40%", 0.45),
     });
 
     addFromTo(

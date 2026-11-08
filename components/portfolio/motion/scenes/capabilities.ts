@@ -1,17 +1,14 @@
 import { gsap } from "gsap";
 
-import {
-  addFromTo,
-  maskLine,
-  scrollTriggerDefaults,
-} from "../motion-utils";
+import { addFromTo, maskLine, scrollTriggerDefaults } from "../motion-utils";
 
 export function buildCapabilitiesScene(root: HTMLElement) {
   const section = root.querySelector<HTMLElement>(".capabilities");
   if (!section) return;
 
-  const headingTrigger =
-    section.querySelector<HTMLElement>(".capability-heading");
+  const headingTrigger = section.querySelector<HTMLElement>(
+    ".capability-heading",
+  );
   const headingLines = Array.from(
     section.querySelectorAll<HTMLElement>(".capability-heading h2 > span"),
   );
@@ -23,8 +20,8 @@ export function buildCapabilitiesScene(root: HTMLElement) {
     const heading = gsap.timeline({
       scrollTrigger: scrollTriggerDefaults(
         headingTrigger,
-        "top 86%",
-        "top 40%",
+        "top 55%",
+        "top 0%",
         0.65,
       ),
     });
@@ -50,8 +47,8 @@ export function buildCapabilitiesScene(root: HTMLElement) {
       const reveal = gsap.timeline({
         scrollTrigger: scrollTriggerDefaults(
           heading,
-          "top 90%",
-          "top 64%",
+          "top 50%",
+          "top 40%",
           0.45,
         ),
       });
@@ -77,12 +74,7 @@ export function buildCapabilitiesScene(root: HTMLElement) {
       if (!inner) return;
 
       const reveal = gsap.timeline({
-        scrollTrigger: scrollTriggerDefaults(
-          item,
-          "top 90%",
-          "top 70%",
-          0.55,
-        ),
+        scrollTrigger: scrollTriggerDefaults(item, "top 50%", "top 40%", 0.55),
       });
 
       addFromTo(

@@ -18,6 +18,7 @@ export function WhyMeSection() {
           id="why-me-title"
           data-thread-anchor="why.title"
           data-thread-label="Why Me · title box"
+          data-thread-anchor-mode="range"
         >
           <span>The risk</span>
           <span>you’re weighing</span>

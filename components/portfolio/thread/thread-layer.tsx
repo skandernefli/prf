@@ -261,6 +261,17 @@ export function ThreadLayer() {
           ))}
         </g>
 
+        {/* The pen: rides the tip of the thread while it is being drawn.
+            Positioned by the motion layer (see motion/thread-pen.ts). */}
+        <g
+          className="thread-pen-group"
+          data-thread-pen
+          transform="translate(0 0)"
+        >
+          <circle className="thread-pen" cx="0" cy="0" r="9" />
+          <circle className="thread-pen-core" cx="0" cy="0" r="3" />
+        </g>
+
         <g className="thread-terminal-group">
           <circle
             ref={terminalRingRef}

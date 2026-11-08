@@ -256,6 +256,20 @@ export function buildNormaScene(root: HTMLElement, mobile: boolean) {
         },
         0,
       );
+
+      // The dashed threads fade in once the values are on screen.
+      const connectors = Array.from(
+        article.querySelectorAll<SVGPathElement>(".scan-connector"),
+      );
+      if (connectors.length > 0) {
+        addFromTo(
+          reveal,
+          connectors,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.45, stagger: 0.12, ease: "power2.out" },
+          0.25,
+        );
+      }
     }
   }
 }

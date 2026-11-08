@@ -3,6 +3,7 @@ import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 
 import { getThreadSegments } from "../../thread/thread-dom";
 import { addFromTo } from "../motion-utils";
+import { penState, placePenOnPath, showPen } from "../thread-pen";
 
 gsap.registerPlugin(DrawSVGPlugin);
 
@@ -22,6 +23,10 @@ export function buildHeroScene(root: HTMLElement) {
   const heroPaths = getThreadSegments(root, "hero");
 
   const origin = backSvg?.querySelector<SVGCircleElement>(".thread-origin-dot");
+
+  // Hidden until the intro starts; the start dot is not part of the layout.
+  if (origin) gsap.set(origin, { autoAlpha: 0 });
+  showPen(root, false);
 
   const timeline = gsap.timeline({ delay: 0.15 });
 
@@ -77,9 +82,11 @@ export function buildHeroScene(root: HTMLElement) {
     );
   }
 
+  // The start dot stays where the thread begins; the pen (a separate ring) is
+  // what travels along the tip, here and later on scroll.
   const drawThread = (
     paths: SVGPathElement[],
-    dot: SVGCircleElement | null,
+    startDot: SVGCircleElement | null,
     position: number,
   ) => {
     if (!paths.length) return;
@@ -91,14 +98,24 @@ export function buildHeroScene(root: HTMLElement) {
 
     gsap.set(paths, { drawSVG: "0%" });
 
-    if (dot) {
+    if (startDot) {
       const firstPoint = paths[0].getPointAtLength(0);
 
-      dot.setAttribute("cx", firstPoint.x.toFixed(2));
-      dot.setAttribute("cy", firstPoint.y.toFixed(2));
+      startDot.setAttribute("cx", firstPoint.x.toFixed(2));
+      startDot.setAttribute("cy", firstPoint.y.toFixed(2));
 
-      gsap.set(dot, { autoAlpha: 1 });
+      timeline.set(startDot, { autoAlpha: 1 }, position);
     }
+
+    penState.introRunning = true;
+    placePenOnPath(root, paths[0], 0);
+    timeline.call(() => showPen(root, true), undefined, position);
+    timeline.eventCallback("onComplete", () => {
+      penState.introRunning = false;
+    });
+    timeline.eventCallback("onInterrupt", () => {
+      penState.introRunning = false;
+    });
 
     let previousPosition: number | string = position;
 
@@ -113,14 +130,7 @@ export function buildHeroScene(root: HTMLElement) {
         drawSVG: "100%",
         duration,
         ease: "none",
-        onUpdate: () => {
-          if (!dot) return;
-
-          const point = path.getPointAtLength(length * tween.ratio);
-
-          dot.setAttribute("cx", point.x.toFixed(2));
-          dot.setAttribute("cy", point.y.toFixed(2));
-        },
+        onUpdate: () => placePenOnPath(root, path, length * tween.ratio),
       });
 
       timeline.add(tween, previousPosition);

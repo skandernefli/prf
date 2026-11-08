@@ -276,6 +276,13 @@ export const MARKER_DEFS: readonly MarkerDef[] = [
       section: "capabilities",
     },
   ]),
+  ...[1, 2, 3, 4, 5].map(
+    (index): MarkerDef => ({
+      id: `why.point.${index}`,
+      segment: "why",
+      section: "why",
+    }),
+  ),
   {
     id: "case.study.kabri.door.north",
     segment: "kabri",

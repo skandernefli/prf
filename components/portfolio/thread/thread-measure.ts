@@ -13,6 +13,8 @@ export type MeasuredLayout = {
   pagePad: number;
   hero: Rect;
   capabilities: Rect;
+  /** The empty hole of the hero's "O", in root coordinates (null if unmeasurable). */
+  heroOCounter: Rect | null;
   anchors: Map<string, MeasuredAnchor>;
   signature: string;
 };
@@ -55,6 +57,97 @@ function selectedRect(
     throw new Error(`Thread layer requires ${description} (${selector}).`);
   }
   return rectFromElement(element, rootRect);
+}
+
+
+/**
+ * Finds the counter (the hole) of a single glyph by rasterising it with the
+ * element's own font and scanning for the empty region around the ink centre.
+ * Returns root-relative coordinates, or null when canvas/fonts are unavailable.
+ */
+export function measureGlyphCounter(
+  element: Element,
+  rootRect: DOMRect,
+): Rect | null {
+  try {
+    const char = (element.textContent ?? "").trim().charAt(0);
+    const style = window.getComputedStyle(element);
+    const size = Number.parseFloat(style.fontSize);
+    if (!char || !Number.isFinite(size) || size <= 0) return null;
+
+    const pad = Math.ceil(size * 0.25);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+
+    ctx.font = `${style.fontStyle} ${style.fontWeight} ${size}px ${style.fontFamily}`;
+    const metrics = ctx.measureText(char);
+    const ascent = metrics.fontBoundingBoxAscent ?? size * 0.9;
+    const descent = metrics.fontBoundingBoxDescent ?? size * 0.25;
+
+    canvas.width = Math.ceil(metrics.width + 2 * pad);
+    canvas.height = Math.ceil(ascent + descent + 2 * pad);
+    ctx.font = `${style.fontStyle} ${style.fontWeight} ${size}px ${style.fontFamily}`;
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#000";
+    ctx.fillText(char, pad, pad + ascent);
+
+    const { width, height } = canvas;
+    const data = ctx.getImageData(0, 0, width, height).data;
+    const ink = (x: number, y: number) => data[(y * width + x) * 4 + 3] > 127;
+
+    let minX = width;
+    let maxX = -1;
+    let minY = height;
+    let maxY = -1;
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        if (!ink(x, y)) continue;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+    if (maxX < 0) return null;
+
+    const cx = Math.round((minX + maxX) / 2);
+    const cy = Math.round((minY + maxY) / 2);
+    if (ink(cx, cy)) return null; // no hole at the centre
+
+    let left = cx;
+    while (left > minX && !ink(left, cy)) left -= 1;
+    let right = cx;
+    while (right < maxX && !ink(right, cy)) right += 1;
+    let top = cy;
+    while (top > minY && !ink(cx, top)) top -= 1;
+    let bottom = cy;
+    while (bottom < maxY && !ink(cx, bottom)) bottom += 1;
+
+    // The element's range box starts at the glyph origin and at the top of
+    // the font's content area, which is where the canvas text was drawn.
+    const live = element.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const box = range.getBoundingClientRect();
+    range.detach();
+    const originX = (box.width || live.width) > 0 ? box.left : live.left;
+    const originY = box.height > 0 ? box.top : live.top;
+
+    const x0 = originX - rootRect.left - pad;
+    const y0 = originY - rootRect.top - pad;
+    const rect = {
+      left: x0 + left + 1,
+      top: y0 + top + 1,
+      right: x0 + right,
+      bottom: y0 + bottom,
+      width: Math.max(0, right - left - 1),
+      height: Math.max(0, bottom - top - 1),
+    };
+    return rect.width > 2 && rect.height > 2 ? rect : null;
+  } catch {
+    return null;
+  }
 }
 
 export function measureLayout(root: HTMLElement): MeasuredLayout {
@@ -149,12 +242,23 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
     `dpr:${window.devicePixelRatio}`,
   );
 
+  const oElement = root.querySelector('[data-thread-anchor="hero.from.o"]');
+  const heroOCounter = oElement ? measureGlyphCounter(oElement, rootRect) : null;
+  if (heroOCounter) {
+    signatureParts.push(
+      `oc:${round(heroOCounter.left)},${round(heroOCounter.top)},${round(
+        heroOCounter.width,
+      )},${round(heroOCounter.height)}`,
+    );
+  }
+
   return {
     width: rootRect.width,
     height: rootRect.height,
     pagePad,
     hero,
     capabilities,
+    heroOCounter,
     anchors,
     signature: signatureParts.join("|"),
   };
