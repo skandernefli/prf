@@ -195,6 +195,7 @@ export function ThreadLayer() {
         className="thread-pen-group"
         data-thread-pen
         transform="translate(0 0)"
+        style={{ opacity: 0 }}
       >
         <circle className="thread-pen" cx="0" cy="0" r="9" />
         <circle className="thread-pen-core" cx="0" cy="0" r="3" />

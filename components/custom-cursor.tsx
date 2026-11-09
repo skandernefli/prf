@@ -4,6 +4,10 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef } from "react";
 
+// The four case-study titles that trigger the CTA state.
+const CTA_TITLE_SELECTOR =
+  "#norma-title, #shop-ops-title, #lega-lexy-title, #kabri-title";
+
 export default function CustomCursor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -35,6 +39,7 @@ export default function CustomCursor() {
       });
 
       let isVisible = false;
+      let isOverCTA = false;
 
       const showCursor = () => {
         gsap.to(cursor, {
@@ -46,12 +51,20 @@ export default function CustomCursor() {
 
       const hideCursor = () => {
         isVisible = false;
+        isOverCTA = false;
+        cursor.dataset.state = "default";
 
         gsap.to(cursor, {
           autoAlpha: 0,
           duration: 0.3,
           overwrite: "auto",
         });
+      };
+
+      const setCursorState = (nextIsOverCTA: boolean) => {
+        if (nextIsOverCTA === isOverCTA) return;
+        isOverCTA = nextIsOverCTA;
+        cursor.dataset.state = nextIsOverCTA ? "cta" : "default";
       };
 
       const handlePointerMove = (event: PointerEvent) => {
@@ -67,13 +80,19 @@ export default function CustomCursor() {
 
           isVisible = true;
           showCursor();
-
-          return;
+        } else {
+          // Smoothly follow subsequent movements
+          xTo(event.clientX);
+          yTo(event.clientY);
         }
 
-        // Smoothly follow subsequent movements
-        xTo(event.clientX);
-        yTo(event.clientY);
+        // Toggle the CTA state based on what the pointer is over.
+        // `event.target` is the topmost element under the pointer
+        // (the cursor itself has pointer-events: none), so closest()
+        // walks up to the matching case-study title.
+        const target = event.target as Element | null;
+        const overCTA = !!target?.closest?.(CTA_TITLE_SELECTOR);
+        setCursorState(overCTA);
       };
 
       window.addEventListener("pointermove", handlePointerMove);
@@ -94,7 +113,9 @@ export default function CustomCursor() {
 
   return (
     <div ref={containerRef} aria-hidden="true">
-      <div ref={cursorRef} className="custom-cursor" />
+      <div ref={cursorRef} className="custom-cursor" data-state="default">
+        <span className="custom-cursor-text">visit case study</span>
+      </div>
     </div>
   );
 }

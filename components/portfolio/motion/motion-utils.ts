@@ -55,11 +55,23 @@ function directMotionInner(line: HTMLElement) {
   );
 }
 
-export function maskLine(target: Element | null): HTMLElement | null {
+export type MaskLineOptions = {
+  /**
+   * Allow a line that is itself a thread anchor. Only the inner wrapper is ever
+   * transformed, never the line, so the anchor's measured box does not move.
+   * Lines that CONTAIN anchors stay refused: their anchors would move.
+   */
+  allowAnchoredLine?: boolean;
+};
+
+export function maskLine(
+  target: Element | null,
+  options: MaskLineOptions = {},
+): HTMLElement | null {
   if (
     !(target instanceof HTMLElement) ||
     !isNonEmpty(target) ||
-    target.hasAttribute("data-thread-anchor") ||
+    (!options.allowAnchoredLine && target.hasAttribute("data-thread-anchor")) ||
     target.querySelector("[data-thread-anchor]")
   ) {
     return null;

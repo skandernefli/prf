@@ -1,9 +1,4 @@
-import { gsap } from "gsap";
-
-import {
-  addFromTo,
-  maskExistingTitle,
-} from "../motion-utils";
+import { addFromTo, maskExistingTitle } from "../motion-utils";
 import {
   addCaseHeaderReveal,
   addCaseLinkReveal,
@@ -122,21 +117,29 @@ export function buildLegalexyScene(root: HTMLElement, mobile: boolean) {
     : null;
 
   if (title && titleInner) {
+    if (getComputedStyle(title).display === "inline") {
+      title.style.display = "inline-block";
+    }
+    if (getComputedStyle(titleInner).display === "inline") {
+      titleInner.style.display = "inline-block";
+    }
+    title.style.clipPath = "inset(-0.35em -0.15em -0.05em -0.15em)";
+
     const reveal = createCaseTimeline(title, "top 86%", "top 58%", 0.65);
     addFromTo(
       reveal,
       titleInner,
-      { yPercent: 112, opacity: 0 },
+      { yPercent: 112, filter: "blur(10px)" },
       {
         yPercent: 0,
-        opacity: 1,
-        duration: 0.85,
+        filter: "blur(0px)",
+        duration: 0.9,
         ease: "expo.out",
+        clearProps: "filter",
       },
       0,
     );
   }
-
   const pan = revealDocument(
     article,
     ".credit-pan",
@@ -252,9 +255,8 @@ export function buildLegalexyScene(root: HTMLElement, mobile: boolean) {
     0.04,
   );
 
-  const outcomeAmount = outcome?.panel.querySelector<HTMLElement>(
-    ":scope > strong",
-  );
+  const outcomeAmount =
+    outcome?.panel.querySelector<HTMLElement>(":scope > strong");
   if (outcome && outcomeAmount) {
     addFromTo(
       outcome.reveal,

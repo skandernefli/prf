@@ -1,7 +1,4 @@
-import {
-  addFromTo,
-  maskExistingTitle,
-} from "../motion-utils";
+import { addFromTo, maskExistingTitle } from "../motion-utils";
 import {
   addCaseHeaderReveal,
   addCaseLinkReveal,
@@ -23,16 +20,25 @@ export function buildNormaScene(root: HTMLElement, mobile: boolean) {
     : null;
 
   if (title && titleInner) {
+    if (getComputedStyle(title).display === "inline") {
+      title.style.display = "inline-block";
+    }
+    if (getComputedStyle(titleInner).display === "inline") {
+      titleInner.style.display = "inline-block";
+    }
+    title.style.clipPath = "inset(-0.35em -0.15em -0.05em -0.15em)";
+
     const reveal = createCaseTimeline(title, "top 86%", "top 58%", 0.65);
     addFromTo(
       reveal,
       titleInner,
-      { yPercent: 112, opacity: 0 },
+      { yPercent: 112, filter: "blur(10px)" },
       {
         yPercent: 0,
-        opacity: 1,
-        duration: 0.85,
+        filter: "blur(0px)",
+        duration: 0.9,
         ease: "expo.out",
+        clearProps: "filter",
       },
       0,
     );
@@ -41,12 +47,7 @@ export function buildNormaScene(root: HTMLElement, mobile: boolean) {
   const ledgerTop = article.querySelector<HTMLElement>(".scan-ledger-top");
   const ledgerTopInner = ledgerTop?.querySelector(":scope > span");
   if (ledgerTop && ledgerTopInner) {
-    const reveal = createCaseTimeline(
-      ledgerTop,
-      "top 88%",
-      "top 64%",
-      0.6,
-    );
+    const reveal = createCaseTimeline(ledgerTop, "top 88%", "top 64%", 0.6);
     addFromTo(
       reveal,
       ledgerTopInner,
@@ -112,12 +113,7 @@ export function buildNormaScene(root: HTMLElement, mobile: boolean) {
   );
   const riverCoverInner = riverCover?.querySelector(":scope > span");
   if (riverCover && riverCoverInner) {
-    const reveal = createCaseTimeline(
-      riverCover,
-      "top 88%",
-      "top 64%",
-      0.6,
-    );
+    const reveal = createCaseTimeline(riverCover, "top 88%", "top 64%", 0.6);
     addFromTo(
       reveal,
       riverCoverInner,
@@ -176,17 +172,10 @@ export function buildNormaScene(root: HTMLElement, mobile: boolean) {
     );
   }
 
-  const rejected = article.querySelector<HTMLElement>(
-    ".scan-paper-rejected",
-  );
+  const rejected = article.querySelector<HTMLElement>(".scan-paper-rejected");
   const rejectedInner = rejected?.querySelector(":scope > span");
   if (rejected && rejectedInner) {
-    const reveal = createCaseTimeline(
-      rejected,
-      "top 90%",
-      "top 66%",
-      0.55,
-    );
+    const reveal = createCaseTimeline(rejected, "top 90%", "top 66%", 0.55);
     addFromTo(
       reveal,
       rejectedInner,
@@ -211,12 +200,7 @@ export function buildNormaScene(root: HTMLElement, mobile: boolean) {
   );
   const ledgerBottomInner = ledgerBottom?.querySelector(":scope > span");
   if (ledgerBottom && ledgerBottomInner) {
-    const reveal = createCaseTimeline(
-      ledgerBottom,
-      "top 90%",
-      "top 68%",
-      0.55,
-    );
+    const reveal = createCaseTimeline(ledgerBottom, "top 90%", "top 68%", 0.55);
     addFromTo(
       reveal,
       ledgerBottomInner,
@@ -237,12 +221,7 @@ export function buildNormaScene(root: HTMLElement, mobile: boolean) {
       extracted.querySelectorAll<HTMLElement>(":scope > p, :scope dl > div"),
     );
     if (targets.length > 0) {
-      const reveal = createCaseTimeline(
-        extracted,
-        "top 92%",
-        "top 68%",
-        0.55,
-      );
+      const reveal = createCaseTimeline(extracted, "top 92%", "top 68%", 0.55);
       addFromTo(
         reveal,
         targets,

@@ -3,7 +3,7 @@ import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { THREAD_UPDATED_EVENT, getThreadSegment } from "../thread/thread-dom";
-import { penState, placePenOnPath, showPen } from "./thread-pen";
+import { penState, placePenOnPath } from "./thread-pen";
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
 
@@ -163,6 +163,10 @@ export function buildThreadScroll(root: HTMLElement): () => void {
     // The pen rides the tip of whichever leg is being drawn. It is derived
     // from the timeline position, not from tween callbacks, so it is correct
     // after fast scrolls, jumps (anchor links, reload mid-page) and reversals.
+    //
+    // Visibility is handled inside thread-pen: the pen shows while it is
+    // moving and hides after a short idle window, so we don't force it on
+    // here.
     const placePen = () => {
       if (penState.introRunning && window.scrollY < 1) return;
 
@@ -182,7 +186,6 @@ export function buildThreadScroll(root: HTMLElement): () => void {
         Math.max(0, (time - start) / Math.max(end - start, 0.001)),
       );
 
-      showPen(root, true);
       placePenOnPath(root, path, path.getTotalLength() * ratio);
     };
 

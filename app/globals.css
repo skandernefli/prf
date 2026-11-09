@@ -2863,21 +2863,62 @@ body {
   padding: 0;
 
   border: 1px solid var(--signal);
-  border-radius: 50%;
+  border-radius: 999px;
 
   pointer-events: none;
-  will-change: transform;
+  will-change: transform, width, height, background-color, border-color;
 
   opacity: 0;
   visibility: hidden;
 
   background: transparent;
+  overflow: hidden;
 
   transition:
-    width var(--fast) ease,
-    height var(--fast) ease;
+    width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
+.custom-cursor-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: var(--black);
+  white-space: nowrap;
+
+  opacity: 0;
+  transform: scale(0.6);
+
+  pointer-events: none;
+  user-select: none;
+
+  transition:
+    opacity 0.2s ease 0.06s,
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.06s;
+}
+
+.custom-cursor[data-state="cta"] {
+  width: 158px;
+  height: 40px;
+  background: var(--signal);
+  border-color: var(--signal);
+}
+
+.custom-cursor[data-state="cta"] .custom-cursor-text {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-cursor,
+  .custom-cursor-text {
+    transition: none !important;
+  }
+}
 /* Phones: reserve room under the profile for the (mirrored) fingerprint thread
    so it never has to overlap the heading/bio text. */
 @media (max-width: 700px) {

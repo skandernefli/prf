@@ -13,6 +13,13 @@
  *
  * Hero paths live in their own SVGs, so points are converted through the
  * screen CTMs instead of assuming the SVGs share a coordinate system.
+ *
+ * Visibility: the pen is shown only while it is actually being moved. Each
+ * placement resets a short idle timer; when no placement happens for IDLE_MS,
+ * the pen fades out. Callers that need the pen to stay put (e.g. a hero intro
+ * pause) can call `showPen(root, true)` after their last placement, which
+ * clears the timer and keeps the pen visible until the next placement or an
+ * explicit `showPen(root, false)`.
  */
 
 export const penState = { introRunning: false };
@@ -23,15 +30,56 @@ const penOf = (root: ParentNode) =>
 const pageSvgOf = (root: ParentNode) =>
   root.querySelector<SVGSVGElement>("svg.thread-layer");
 
+/** How long the pen stays visible after its last placement. */
+const IDLE_MS = 180;
+
+/** Sub-pixel threshold: below this, treat the pen as static. */
+const MOVE_EPSILON = 0.01;
+
+let lastX = Number.NaN;
+let lastY = Number.NaN;
+let primed = false;
+let hideTimer: number | null = null;
+
+const clearHideTimer = () => {
+  if (hideTimer !== null) {
+    window.clearTimeout(hideTimer);
+    hideTimer = null;
+  }
+};
+
 export function showPen(root: ParentNode, visible = true) {
   const pen = penOf(root);
-  if (pen) pen.style.opacity = visible ? "1" : "0";
+  if (!pen) return;
+
+  clearHideTimer();
+  pen.style.opacity = visible ? "1" : "0";
 }
 
 export function placePen(root: ParentNode, x: number, y: number) {
   const pen = penOf(root);
   if (!pen) return;
+
   pen.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+
+  const moved =
+    primed &&
+    (Math.abs(x - lastX) > MOVE_EPSILON || Math.abs(y - lastY) > MOVE_EPSILON);
+
+  lastX = x;
+  lastY = y;
+  primed = true;
+
+  if (moved) {
+    pen.style.opacity = "1";
+  }
+
+  clearHideTimer();
+  hideTimer = window.setTimeout(() => {
+    hideTimer = null;
+    const current = penOf(root);
+    if (current) current.style.opacity = "0";
+  }, IDLE_MS);
 }
 
 /** Puts the pen on `path` at `length` (user units of the path). */

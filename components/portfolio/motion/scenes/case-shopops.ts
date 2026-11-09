@@ -1,9 +1,4 @@
-import { gsap } from "gsap";
-
-import {
-  addFromTo,
-  maskExistingTitle,
-} from "../motion-utils";
+import { addFromTo, maskExistingTitle } from "../motion-utils";
 import {
   addCaseHeaderReveal,
   addCaseLinkReveal,
@@ -42,16 +37,25 @@ export function buildShopOpsScene(root: HTMLElement, mobile: boolean) {
     : null;
 
   if (title && titleInner) {
+    if (getComputedStyle(title).display === "inline") {
+      title.style.display = "inline-block";
+    }
+    if (getComputedStyle(titleInner).display === "inline") {
+      titleInner.style.display = "inline-block";
+    }
+    title.style.clipPath = "inset(-0.35em -0.15em -0.05em -0.15em)";
+
     const reveal = createCaseTimeline(title, "top 86%", "top 58%", 0.65);
     addFromTo(
       reveal,
       titleInner,
-      { yPercent: 112, opacity: 0 },
+      { yPercent: 112, filter: "blur(10px)" },
       {
         yPercent: 0,
-        opacity: 1,
-        duration: 0.85,
+        filter: "blur(0px)",
+        duration: 0.9,
         ease: "expo.out",
+        clearProps: "filter",
       },
       0,
     );
@@ -199,15 +203,9 @@ export function buildShopOpsScene(root: HTMLElement, mobile: boolean) {
     }
   }
 
-  const dashboard =
-    article.querySelector<HTMLElement>(".shop-ops-dashboard");
+  const dashboard = article.querySelector<HTMLElement>(".shop-ops-dashboard");
   if (dashboard) {
-    const reveal = createCaseTimeline(
-      dashboard,
-      "top 90%",
-      "top 68%",
-      0.55,
-    );
+    const reveal = createCaseTimeline(dashboard, "top 90%", "top 68%", 0.55);
     const children = Array.from(
       dashboard.querySelectorAll<HTMLElement>(
         ":scope > p, .shop-ops-dashboard-summary > div",
@@ -230,9 +228,7 @@ export function buildShopOpsScene(root: HTMLElement, mobile: boolean) {
       );
     }
 
-    const bars = Array.from(
-      dashboard.querySelectorAll(".shop-ops-chart rect"),
-    );
+    const bars = Array.from(dashboard.querySelectorAll(".shop-ops-chart rect"));
     if (bars.length > 0) {
       addFromTo(
         reveal,

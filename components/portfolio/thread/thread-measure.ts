@@ -39,11 +39,29 @@ function rangeRect(element: Element) {
   const rect = range.getBoundingClientRect();
   range.detach();
 
+  const box = element.getBoundingClientRect();
+
   if (rect.width === 0 && rect.height === 0) {
-    return element.getBoundingClientRect();
+    return box;
   }
 
-  return rect;
+  // The range follows the text wherever it is drawn, and the reveal animation
+  // pushes the title's lines down (yPercent) behind their masks. Mid-reveal the
+  // range would therefore reach far below the title and the route would be
+  // planned around a box that is not really there. Horizontally the range is
+  // what we want (the widest line); vertically the title's own box is the
+  // truth, so keep the range inside it.
+  const top = Math.max(rect.top, box.top);
+  const bottom = Math.max(top, Math.min(rect.bottom, box.bottom));
+
+  return {
+    left: rect.left,
+    right: rect.right,
+    top,
+    bottom,
+    width: rect.width,
+    height: bottom - top,
+  };
 }
 
 function selectedRect(
