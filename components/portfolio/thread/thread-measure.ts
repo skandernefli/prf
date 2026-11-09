@@ -205,6 +205,40 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
     });
   }
 
+  // Phone routes are mapped onto the header copy and a few unlabelled blocks,
+  // so those are measured here instead of being tagged in every section.
+  const extraRects: [selector: string, suffix: string, label: string][] = [
+    [".case-study-kicker", "kicker", "section label"],
+    [".case-study-description", "description", "paragraph"],
+    [".case-study-link", "link", "explore link"],
+    [".scan-extracted", "extracted", "extracted values"],
+  ];
+  root
+    .querySelectorAll<HTMLElement>("article.case-study[data-thread-anchor]")
+    .forEach((article) => {
+      const base = article.getAttribute("data-thread-anchor");
+      if (!base) return;
+      for (const [selector, suffix, label] of extraRects) {
+        const id = `${base}.${suffix}`;
+        const found = article.querySelector<HTMLElement>(selector);
+        if (!found || anchors.has(id)) continue;
+        const rect = found.getBoundingClientRect();
+        anchors.set(id, {
+          id,
+          label: `${base} · ${label}`,
+          mode: "rect",
+          rect: {
+            left: rect.left - rootRect.left,
+            top: rect.top - rootRect.top,
+            right: rect.right - rootRect.left,
+            bottom: rect.bottom - rootRect.top,
+            width: rect.width,
+            height: rect.height,
+          },
+        });
+      }
+    });
+
   if (process.env.NODE_ENV !== "production") {
     if (duplicates.size > 0) {
       throw new Error(

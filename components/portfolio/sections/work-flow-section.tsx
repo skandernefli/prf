@@ -73,7 +73,11 @@ export function WorkFlowSection() {
             Operate and improve
           </span>
         </div>
-        <p className="work-flow-description">
+        <p
+          className="work-flow-description"
+          data-thread-anchor="work.flow.description"
+          data-thread-label="WORK FLOW · closing paragraph"
+        >
           More than connecting a UI to an API. I connect human intent, product
           behavior, and the systems underneath.
         </p>

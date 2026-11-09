@@ -16,6 +16,7 @@ import {
 import { ANCHOR_LABELS } from "./thread-anchors";
 import { moveJunction } from "./thread-junction";
 import { getRect, type MeasuredLayout } from "./thread-measure";
+import { buildPhoneCasePath, phoneEntryX, smoothPath } from "./thread-phone";
 import {
   MOBILE_CASE_STUDY_ROUTE,
   blendKabriSuffix,
@@ -911,10 +912,15 @@ function buildWork(
       const reach = clamp(0.4 * dy, 16, 110);
       // The route must finish with a short vertical run: the capabilities
       // entry continues straight down from here (see assertVerticalEnd).
-      const settle = {
-        x: end.x,
-        y: end.y - clamp(0.2 * dy, 4, 28),
-      };
+      // On phones the thread has to be on the right margin before it gets
+      // level with the closing paragraph, as on production, so it never
+      // crosses the text.
+      const paragraph = layout.anchors.get("work.flow.description")?.rect;
+      let settleY = end.y - clamp(0.2 * dy, 4, 28);
+      if (paragraph && paragraph.top - 12 > from.y + 40) {
+        settleY = Math.min(settleY, paragraph.top - 12);
+      }
+      const settle = { x: end.x, y: settleY };
       builder.cubic(
         { x: from.x + tx * reach, y: from.y + ty * reach },
         { x: settle.x, y: settle.y - 0.45 * (settle.y - from.y) },
@@ -1060,6 +1066,7 @@ function buildCapabilities(
   }
 
   const entryBuilder = new PathBuilder(capsStart);
+  let phoneEntryD: string | undefined;
   if (mobileColumns) {
     // Phones: no rounded-rectangle serpentine. One easy S down the right
     // margin, past the headline, then in to the centre of the two rails.
@@ -1077,14 +1084,32 @@ function buildCapabilities(
       entryBuilder.line({ x: railX, y: slideY });
     }
     const downY = Math.max(slideY, heading.bottom + 16);
-    if (downY > slideY + 0.5) entryBuilder.line({ x: railX, y: downY });
     const dy2 = ringTop - downY;
-    if (dy2 > 1) {
-      entryBuilder.cubic(
-        { x: railX, y: downY + 0.55 * dy2 },
-        { x: splitX, y: ringTop - 0.55 * dy2 },
+    // Production: down the right margin, a sweep to the left under the
+    // headline, a small hook just before the split, then straight down into it.
+    const uY = heading.bottom + clamp(0.4 * (ringTop - heading.bottom), 40, 70);
+    const w = layout.width;
+    if (uY + 30 < ringTop && uY - 38 > slideY + 4) {
+      phoneEntryD = smoothPath([
+        { x: capsStart.x, y: capsStart.y },
+        { x: railX, y: slideY },
+        { x: railX, y: uY - 40 },
+        { x: railX - 0.07 * w, y: uY - 6 },
+        { x: 0.66 * w, y: uY },
+        { x: 0.575 * w, y: uY - 10 },
+        { x: splitX + 0.02 * w, y: uY - 26 },
+        { x: splitX, y: uY - 14 },
         { x: splitX, y: ringTop },
-      );
+      ]);
+    } else {
+      if (downY > slideY + 0.5) entryBuilder.line({ x: railX, y: downY });
+      if (dy2 > 1) {
+        entryBuilder.cubic(
+          { x: railX, y: downY + 0.55 * dy2 },
+          { x: splitX, y: ringTop - 0.55 * dy2 },
+          { x: splitX, y: ringTop },
+        );
+      }
     }
   } else
     entryBuilder
@@ -1160,7 +1185,7 @@ function buildCapabilities(
   })}`;
 
   return {
-    entry: routeFromPath(entryKey, entryBuilder.d, 8),
+    entry: routeFromPath(entryKey, phoneEntryD ?? entryBuilder.d, 8),
     product: routeFromPath(productKey, productD, 8),
     ai: routeFromPath(aiKey, aiD, 8),
     exit: routeFromPath(exitKey, exitD, 8),
@@ -1471,6 +1496,12 @@ function buildProjectTemplate(
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
 
+  if (layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "prod") {
+    let d = buildPhoneCasePath(layout, id, previousEnd);
+    if (nextStartX !== undefined) d = blendRouteEnd(d, nextStartX, frame, 0.2);
+    return routeFromPath(key, d, 10);
+  }
+
   if (layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "weave") {
     const title = safeRect(layout, `case.study.${id}.title`);
     const bands = artworkBands(
@@ -1529,6 +1560,12 @@ function buildKabri(
   ].join("|");
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
+
+  if (layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "prod") {
+    let d = buildPhoneCasePath(layout, "kabri", start);
+    if (nextStartX !== undefined) d = blendRouteEnd(d, nextStartX, frame, 0.2);
+    return routeFromPath(key, d, 10);
+  }
 
   // Phones: exactly production's route (the whole reference route squashed to
   // the frame, as for the other case studies), not a rebuilt hall prefix.
@@ -2093,6 +2130,9 @@ export function buildThreadModel(
     template: Template,
   ) => {
     const frame = getRect(layout, `case.study.${id}`);
+    if (layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "prod") {
+      return phoneEntryX(layout, id);
+    }
     return (
       frame.left + pathStart(template.d).x * (frame.width / REFERENCE_WIDTH)
     );
@@ -2195,20 +2235,24 @@ export function buildThreadModel(
     return closestPointOnPolyline(fine, cumulativeLengths(fine), point).point;
   };
 
+  // Production's phone layout has no door rings (the thread simply runs
+  // through the opening in the plan), so on phones they are drawn at zero size.
+  const noDoorRings =
+    layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "prod";
   const doorMarkers: MarkerModel[] = [
     {
       id: "case.study.kabri.door.north",
       kind: "door",
       point: snapDoor(centerOf(getRect(layout, "case.study.kabri.door.north"))),
-      radius: 4,
-      core: 1.5,
+      radius: noDoorRings ? 0 : 4,
+      core: noDoorRings ? 0 : 1.5,
     },
     {
       id: "case.study.kabri.door.east",
       kind: "door",
       point: snapDoor(centerOf(getRect(layout, "case.study.kabri.door.east"))),
-      radius: 4,
-      core: 1.5,
+      radius: noDoorRings ? 0 : 4,
+      core: noDoorRings ? 0 : 1.5,
     },
   ];
 

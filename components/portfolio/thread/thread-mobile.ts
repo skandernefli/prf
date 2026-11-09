@@ -9,13 +9,15 @@ import {
 /**
  * How the case-study thread is drawn on phones (<= 700px wide).
  *
+ *   "prod"      the route traced from production's own phone layout, re-mapped
+ *               onto the live artwork (thread-phone.ts). Default.
  *   "template"  the hand-drawn reference route, squashed to the phone layout.
  *               This is what the production site does: same route, same
  *               points, only narrower.
  *   "weave"     the margin-to-margin serpentine that was added later. Kept so
  *               the two can be compared; it does not match production.
  */
-export const MOBILE_CASE_STUDY_ROUTE: "template" | "weave" = "template";
+export const MOBILE_CASE_STUDY_ROUTE: "prod" | "template" | "weave" = "prod";
 
 /**
  * PRODUCTION PARITY.
