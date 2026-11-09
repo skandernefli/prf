@@ -9,14 +9,10 @@ import {
   CASE_STUDY_SHOP_OPS,
   CONCLUSION_FINGERPRINT,
   CONTACT_ROUTE,
-  HERO_BACK,
-  HERO_FRONT,
   WORK_INDEX,
 } from "./route-data";
 import { ANCHOR_LABELS } from "./thread-anchors";
-import { moveJunction } from "./thread-junction";
 import { getRect, type MeasuredLayout } from "./thread-measure";
-import { buildPhoneCasePath, phoneEntryX, smoothPath } from "./thread-phone";
 import {
   MOBILE_CASE_STUDY_ROUTE,
   blendKabriSuffix,
@@ -27,11 +23,8 @@ import {
 } from "./thread-mobile";
 import {
   PathBuilder,
-  affineFrom3,
-  alignEndTangent,
   alignStartTangent,
   appendRoundedCorners,
-  applyAffine,
   assertDistance,
   assertPathSmooth,
   assertTangentContinuous,
@@ -41,21 +34,18 @@ import {
   cubicCommand,
   cumulativeLengths,
   distance,
-  endpointTangent,
   flattenPath,
   format,
   lineCommand,
   middle,
   moveCommand,
   parsePath,
-  pathBounds,
   pathEnd,
   pathStart,
   pointAtLength,
   retargetEnd,
   retargetStart,
   serializePath,
-  similarityFrom2,
   smoothPathJoins,
   splitCubic,
   transformPath,
@@ -63,27 +53,11 @@ import {
   type Point,
   type Rect,
 } from "./thread-path";
+import { buildPhoneCasePath, phoneEntryX, smoothPath } from "./thread-phone";
 
 const MOBILE_SPLIT_ROOM = 52;
 const REFERENCE_WIDTH = 1425;
-const REFERENCE_HERO_HEIGHT = 900;
 const REFERENCE_PROJECT_HEIGHT = 1024.703125;
-
-const REFERENCE_HERO_RECTS = {
-  from: { left: 22.5, top: 204.9, width: 580.8, height: 163.4 },
-  concept: { left: 22.5, top: 368.3, width: 955.9, height: 163.4 },
-  launch: { left: 33.4, top: 531.7, width: 1119.5, height: 163.4 },
-  o: { left: 277.8, top: 171.9, width: 151.9, height: 228 },
-  c: { left: 22.5, top: 335.3, width: 139.7, height: 228 },
-  ch: { left: 866, top: 498.7, width: 286.8, height: 228 },
-} as const;
-
-const HERO_REFERENCE = [...HERO_BACK, ...HERO_FRONT].map((d) => ({
-  d,
-  start: pathStart(d),
-  end: pathEnd(d),
-  bounds: pathBounds(d, 4),
-}));
 
 const REF_WORK = {
   start: { x: 1035.2718505859375, y: 879.9199829101562 },
@@ -152,16 +126,6 @@ export type RouteModel = {
   points: Point[];
 };
 
-export type HeroModel = {
-  key: string;
-  back: string[];
-  front: string[];
-  backPoints: Point[][];
-  frontPoints: Point[][];
-  origin: Point;
-  handoff: Point;
-};
-
 export type AboutModel = RouteModel & {
   rect: Rect;
 };
@@ -179,7 +143,6 @@ export type ThreadModel = {
   height: number;
   heroHeight: number;
   pagePad: number;
-  hero: HeroModel;
   work: RouteModel;
   capsEntry: RouteModel;
   capsProduct: RouteModel;
@@ -193,9 +156,12 @@ export type ThreadModel = {
   };
   why: RouteModel;
   conclusion: AboutModel;
-  footer: RouteModel;
   pagePath: string;
   markers: MarkerModel[];
+  /**
+   * Last point of the thread. With no footer route, this is exactly the end
+   * of the conclusion fingerprint — the last stroke of the thread.
+   */
   terminal: Point;
   derived: Map<string, Point>;
   keys: Record<string, string>;
@@ -225,413 +191,22 @@ const reuseRoute = (
 ): RouteModel | undefined =>
   previous && previous.key === key ? previous : undefined;
 
-type Box = Pick<Rect, "left" | "top" | "width" | "height">;
-
-function nearRect(a: Box, b: Box, tolerance = 0.3) {
-  return (
-    Math.abs(a.left - b.left) <= tolerance &&
-    Math.abs(a.top - b.top) <= tolerance &&
-    Math.abs(a.width - b.width) <= tolerance &&
-    Math.abs(a.height - b.height) <= tolerance
-  );
-}
-
-function glyphScale(live: Rect, reference: Box) {
-  return Math.min(
-    live.width / Math.max(1, reference.width),
-    live.height / Math.max(1, reference.height),
-  );
-}
-
-function connectorCenter(
-  reference: { start: Point; end: Point; bounds: Rect },
-  liveStart: Point,
-  liveEnd: Point,
-  scale: number,
-): Point {
-  const referenceMid = {
-    x: (reference.start.x + reference.end.x) / 2,
-    y: (reference.start.y + reference.end.y) / 2,
-  };
-  const referenceCenter = centerOf(reference.bounds);
-  const offset = {
-    x: referenceCenter.x - referenceMid.x,
-    y: referenceCenter.y - referenceMid.y,
-  };
-  const referenceVector = {
-    x: reference.end.x - reference.start.x,
-    y: reference.end.y - reference.start.y,
-  };
-  const referenceLength = Math.max(
-    1,
-    Math.hypot(referenceVector.x, referenceVector.y),
-  );
-  const referenceUnit = {
-    x: referenceVector.x / referenceLength,
-    y: referenceVector.y / referenceLength,
-  };
-  const liveVector = {
-    x: liveEnd.x - liveStart.x,
-    y: liveEnd.y - liveStart.y,
-  };
-  const liveLength = Math.max(1, Math.hypot(liveVector.x, liveVector.y));
-  const liveUnit = {
-    x: liveVector.x / liveLength,
-    y: liveVector.y / liveLength,
-  };
-  const liveNormal = { x: -liveUnit.y, y: liveUnit.x };
-  const referenceNormal = {
-    x: -referenceUnit.y,
-    y: referenceUnit.x,
-  };
-  const parallel = offset.x * referenceUnit.x + offset.y * referenceUnit.y;
-  const perpendicular =
-    offset.x * referenceNormal.x + offset.y * referenceNormal.y;
-  const chordScale = liveLength / referenceLength;
-
-  return {
-    x:
-      liveStart.x +
-      liveVector.x / 2 +
-      liveUnit.x * parallel * chordScale +
-      liveNormal.x * perpendicular * scale,
-    y:
-      liveStart.y +
-      liveVector.y / 2 +
-      liveUnit.y * parallel * chordScale +
-      liveNormal.y * perpendicular * scale,
-  };
-}
-
-function normalizePoint(value: Point, width: number, height: number) {
-  return {
-    x: clamp(value.x, -width, width * 2),
-    y: clamp(value.y, -height, height * 2),
-  };
-}
-
-function buildHero(
-  layout: MeasuredLayout,
-  previous: HeroModel | undefined,
-): HeroModel {
-  const from = getRect(layout, "hero.from");
-  const concept = getRect(layout, "hero.concept");
-  const launch = getRect(layout, "hero.launch");
-  const o = getRect(layout, "hero.from.o");
-  const c = getRect(layout, "hero.concept.c");
-  const ch = getRect(layout, "hero.launch.ch");
-
-  const key = [
-    rectKey(from),
-    rectKey(concept),
-    rectKey(launch),
-    rectKey(o),
-    rectKey(c),
-    rectKey(ch),
-    rectKey(layout.hero),
-    layout.heroOCounter ? rectKey(layout.heroOCounter) : "no-counter",
-    layout.width,
-  ].join("|");
-
-  if (previous && previous.key === key) return previous;
-
-  const exact =
-    Math.abs(layout.width - REFERENCE_WIDTH) < 0.1 &&
-    Math.abs(layout.hero.height - REFERENCE_HERO_HEIGHT) < 0.1 &&
-    nearRect(from, REFERENCE_HERO_RECTS.from) &&
-    nearRect(concept, REFERENCE_HERO_RECTS.concept) &&
-    nearRect(launch, REFERENCE_HERO_RECTS.launch) &&
-    nearRect(o, REFERENCE_HERO_RECTS.o) &&
-    nearRect(c, REFERENCE_HERO_RECTS.c) &&
-    nearRect(ch, REFERENCE_HERO_RECTS.ch);
-
-  let back: string[];
-  let front: string[];
-  let origin: Point;
-  let handoff: Point;
-
-  if (exact) {
-    back = [...HERO_BACK];
-    front = [...HERO_FRONT];
-    origin = pathStart(back[0]);
-    handoff = pathEnd(back[back.length - 1]);
-  } else {
-    origin = {
-      x: from.left + 0.116 * from.width,
-      y: from.top - 0.728 * from.height,
-    };
-    // The turn happens INSIDE the hole of the O. The thread slips behind the
-    // letter, shows up in the counter, curls once and leaves again; both
-    // front/back switches sit in empty space, so nothing pops.
-    const counter = layout.heroOCounter ?? {
-      left: o.left + 0.33 * o.width,
-      top: o.top + 0.3 * o.height,
-      width: 0.34 * o.width,
-      height: 0.4 * o.height,
-      right: o.left + 0.67 * o.width,
-      bottom: o.top + 0.7 * o.height,
-    };
-    const ca = counter.width / 2;
-    const cb = counter.height / 2;
-    const cc = { x: counter.left + ca, y: counter.top + cb };
-    const oEntry = { x: cc.x - 0.8 * ca, y: cc.y - 0.82 * cb };
-    const oQ = { x: cc.x + 0.78 * ca, y: cc.y - 0.02 * cb };
-    const oR = { x: cc.x - 0.1 * ca, y: cc.y + 0.72 * cb };
-    const oExit = { x: cc.x - 0.92 * ca, y: cc.y + 0.86 * cb };
-    const oLoopD = [
-      `M ${format(oEntry.x)} ${format(oEntry.y)}`,
-      `C ${format(oEntry.x + 0.9 * ca)} ${format(oEntry.y + 0.12 * cb)}, ${format(oQ.x)} ${format(oQ.y - 0.75 * cb)}, ${format(oQ.x)} ${format(oQ.y)}`,
-      `C ${format(oQ.x)} ${format(oQ.y + 0.55 * cb)}, ${format(oR.x + 0.9 * ca)} ${format(oR.y)}, ${format(oR.x)} ${format(oR.y)}`,
-      `C ${format(oR.x - 0.5 * ca)} ${format(oR.y)}, ${format(oExit.x + 0.4 * ca)} ${format(oExit.y - 0.04 * cb)}, ${format(oExit.x)} ${format(oExit.y)}`,
-    ].join(" ");
-    const cEntry = {
-      x: c.left + 1.026 * c.width,
-      y: c.top + 0.285 * c.height,
-    };
-    const cMid = {
-      x: c.left + 0.521 * c.width,
-      y: c.top + 0.377 * c.height,
-    };
-    const cLower = {
-      x: c.left + 0.038 * c.width,
-      y: c.top + 0.674 * c.height,
-    };
-    const railY = launch.top + 0.0358 * launch.height;
-    const railStart = {
-      x: c.left + 0.608 * c.width,
-      y: railY,
-    };
-    const railEnd = {
-      x: ch.left + 0.272 * ch.width,
-      y: railY,
-    };
-    const chLoopIn = {
-      x: ch.left + 1.03 * ch.width,
-      y: ch.top + 0.462 * ch.height,
-    };
-    const chLoopMid = {
-      x: ch.left + 0.51 * ch.width,
-      y: ch.top + 0.474 * ch.height,
-    };
-    const chDown = {
-      x: ch.left + 0.767 * ch.width,
-      y: ch.top + 0.833 * ch.height,
-    };
-    const squiggleTwo = {
-      x: chDown.x - 0.1171 * ch.width,
-      y: chDown.y + 0.3267 * ch.height,
-    };
-    handoff = {
-      x: phoneTweak(layout.width, "hero")
-        ? layout.width - clamp(layout.pagePad * 0.45, 6, 14)
-        : ch.left + 0.59 * ch.width,
-      y: layout.hero.bottom - 20,
-    };
-
-    const oLoopCenter = {
-      x: o.left + 1.14 * o.width,
-      y: o.top + 0.4775 * o.height,
-    };
-    const cLoopCenter = {
-      x: c.left + 0.532 * c.width,
-      y: c.top + 0.586 * c.height,
-    };
-    const chLoopCenter = {
-      x: ch.left + 0.6715 * ch.width,
-      y: ch.top + 0.475 * ch.height,
-    };
-
-    const oScale = glyphScale(o, REFERENCE_HERO_RECTS.o);
-    const cScale = glyphScale(c, REFERENCE_HERO_RECTS.c);
-    const chScale = glyphScale(ch, REFERENCE_HERO_RECTS.ch);
-    const oCScale = Math.min(oScale, cScale);
-    const connector = (
-      index: number,
-      channelStart: Point,
-      channelEnd: Point,
-      scale: number,
-    ) =>
-      connectorCenter(
-        HERO_REFERENCE[index],
-        channelStart,
-        channelEnd,
-        Math.max(0.2, scale),
-      );
-
-    const channels: Array<{
-      index: number;
-      start: Point;
-      end: Point;
-      center: Point;
-    }> = [
-      {
-        index: 0,
-        start: origin,
-        end: oEntry,
-        center: connector(0, origin, oEntry, oScale),
-      },
-      {
-        index: 1,
-        start: oExit,
-        end: cEntry,
-        center: connector(1, oExit, cEntry, oCScale),
-      },
-      {
-        index: 2,
-        start: cMid,
-        end: cLower,
-        center: cLoopCenter,
-      },
-      {
-        index: 3,
-        start: railEnd,
-        end: chLoopIn,
-        center: connector(3, railEnd, chLoopIn, chScale),
-      },
-      {
-        index: 4,
-        start: chLoopMid,
-        end: chDown,
-        center: connector(4, chLoopMid, chDown, chScale),
-      },
-      {
-        index: 5,
-        start: chDown,
-        end: squiggleTwo,
-        center: connector(5, chDown, squiggleTwo, chScale),
-      },
-      {
-        index: 6,
-        start: squiggleTwo,
-        end: handoff,
-        center: connector(6, squiggleTwo, handoff, chScale),
-      },
-      {
-        index: 7,
-        start: oEntry,
-        end: oExit,
-        center: oLoopCenter,
-      },
-      {
-        index: 8,
-        start: cEntry,
-        end: cMid,
-        center: cLoopCenter,
-      },
-      {
-        index: 9,
-        start: cLower,
-        end: railEnd,
-        center: railStart,
-      },
-      {
-        index: 10,
-        start: chLoopIn,
-        end: chLoopMid,
-        center: chLoopCenter,
-      },
-    ];
-
-    const loopChannels = new Set([2, 7, 8, 10]);
-
-    const generated = channels.map(({ index, start, end, center }) => {
-      const reference = HERO_REFERENCE[index];
-      // On phones, map the loop's third point as well as its endpoints.
-      // A two-point similarity transform preserves the desktop loop's relative
-      // proportions, which can make a narrow mobile glyph produce an oversized
-      // loop. The three-point affine fit keeps the loop attached to the actual
-      // measured glyph bounds instead.
-      const matrix =
-        loopChannels.has(index) && !phoneTweak(layout.width, "hero")
-          ? similarityFrom2([reference.start, reference.end], [start, end])
-          : affineFrom3(
-              [reference.start, reference.end, centerOf(reference.bounds)],
-              [start, end, normalizePoint(center, layout.width, layout.height)],
-            );
-
-      return applyAffine(reference.d, matrix);
-    });
-
-    generated[7] = oLoopD;
-
-    back = generated.slice(0, 7);
-    front = generated.slice(7);
-
-    if (phoneTweak(layout.width, "hero")) {
-      // Phones: the straight drop crossed the intro paragraph and scroll cue.
-      // Slide over to the right margin before reaching them.
-      const from = pathStart(back[6]);
-      const dy = handoff.y - from.y;
-      // Finish the slide well above the paragraph (about 40% of the way
-      // down), then run straight down the margin.
-      const slideY = from.y + 0.4 * dy;
-      back[6] = `M ${format(from.x)} ${format(from.y)} C ${format(
-        from.x,
-      )} ${format(from.y + 0.16 * dy)}, ${format(handoff.x)} ${format(
-        slideY - 0.18 * dy,
-      )}, ${format(handoff.x)} ${format(slideY)} L ${format(handoff.x)} ${format(
-        handoff.y,
-      )}`;
-    }
+/**
+ * Where the whole thread begins: the empty `start` span that sits absolutely
+ * at the top of the hero, 25% in from the right edge. An empty absolute span
+ * reports a zero-width rect at exactly that anchor, so we just take its left
+ * edge and top. A sensible fallback (75% across the hero top) is used if the
+ * anchor is somehow unmeasurable.
+ */
+function resolveStartPoint(layout: MeasuredLayout): Point {
+  const anchor = layout.anchors.get("start");
+  if (anchor && anchor.rect.height > 0) {
+    return { x: anchor.rect.left, y: anchor.rect.top + anchor.rect.height / 2 };
   }
-
-  const order: Array<{ array: "back" | "front"; index: number }> = [
-    { array: "back", index: 0 },
-    { array: "front", index: 0 },
-    { array: "back", index: 1 },
-    { array: "front", index: 1 },
-    { array: "back", index: 2 },
-    { array: "front", index: 2 },
-    { array: "back", index: 3 },
-    { array: "front", index: 3 },
-    { array: "back", index: 4 },
-    { array: "back", index: 5 },
-    { array: "back", index: 6 },
-  ];
-
-  const read = (slot: (typeof order)[number]) =>
-    slot.array === "back" ? back[slot.index] : front[slot.index];
-  const assign = (slot: (typeof order)[number], value: string) => {
-    if (slot.array === "back") {
-      back[slot.index] = value;
-    } else {
-      front[slot.index] = value;
-    }
-  };
-
-  for (let index = 1; index < order.length; index += 1) {
-    const tangent = endpointTangent(read(order[index - 1]), "end");
-    if (!tangent) continue;
-    assign(order[index], alignStartTangent(read(order[index]), tangent));
+  if (anchor) {
+    return { x: anchor.rect.left, y: anchor.rect.top };
   }
-
-  if (!exact) {
-    // Front/back switches are only invisible in free space. At fitted layouts
-    // three of them land inside a glyph (measured at 1900px wide), so each is
-    // slid along the thread, keeping the piece count, order and shapes. The
-    // distances are fractions of the glyph's own width, so they scale with it.
-    //
-    //  The O's loop now lives inside its counter (see above), so its two
-    //  front/back switches need no sliding.
-    //  3. front[2] → back[3]: the rail ran behind the apex of the C of LAUNCH.
-    //     The front piece now carries it past the C, into the open gap.
-    [front[2], back[3]] = moveJunction(front[2], back[3], 0.16 * ch.width);
-  }
-
-  back[back.length - 1] = alignEndTangent(back[back.length - 1], {
-    x: 0,
-    y: 1,
-  });
-
-  return {
-    key,
-    back,
-    front,
-    backPoints: back.map((d) => flattenPath(d, 10)),
-    frontPoints: front.map((d) => flattenPath(d, 10)),
-    origin,
-    handoff,
-  };
+  return { x: layout.width * 0.75, y: layout.hero.top };
 }
 
 function cubicYRange(cubic: Cubic) {
@@ -704,7 +279,7 @@ function splitCubicAtZones(
 
 function buildWork(
   layout: MeasuredLayout,
-  hero: HeroModel,
+  start: Point,
   capsTop: number,
   previous: RouteModel | undefined,
 ): RouteModel {
@@ -725,7 +300,7 @@ function buildWork(
   const end = { x: stacked ? phoneRailX : workExitX, y: capsTop };
   const tailStart = REF_WORK.drawingBottom - 0.5;
   const key = [
-    pointKey(hero.handoff),
+    pointKey(start),
     pointKey(end),
     rectKey(drawing),
     rectKey(heading),
@@ -735,7 +310,6 @@ function buildWork(
   const cached = reuseRoute(previous, key);
   if (cached) return cached;
 
-  const start = hero.handoff;
   const warp = (value: Point): Point => {
     const refY = value.y;
     const drawingX =
@@ -949,6 +523,7 @@ function buildCapabilities(
     ai?: RouteModel;
     exit?: RouteModel;
   },
+  exitTargetX?: number,
 ) {
   const heading = getRect(layout, "capabilities.heading");
   const orbit = getRect(layout, "capabilities.orbit");
@@ -1044,7 +619,7 @@ function buildCapabilities(
   const entryKey = `${key}|entry`;
   const productKey = `${key}|product`;
   const aiKey = `${key}|ai`;
-  const exitKey = `${key}|exit`;
+  const exitKey = `${key}|exit|${exitTargetX === undefined ? "-" : Math.round(exitTargetX * 10)}`;
 
   const cachedEntry = reuseRoute(previous.entry, entryKey);
   const cachedProduct = reuseRoute(previous.product, productKey);
@@ -1095,10 +670,12 @@ function buildCapabilities(
         { x: railX, y: slideY },
         { x: railX, y: uY - 40 },
         { x: railX - 0.07 * w, y: uY - 6 },
-        { x: 0.66 * w, y: uY },
-        { x: 0.575 * w, y: uY - 10 },
-        { x: splitX + 0.02 * w, y: uY - 26 },
-        { x: splitX, y: uY - 14 },
+        { x: 0.68 * w, y: uY },
+        { x: 0.6 * w, y: uY - 9 },
+        { x: splitX + 0.075 * w, y: uY - 21 },
+        { x: splitX + 0.034 * w, y: uY - 28 },
+        { x: splitX + 0.006 * w, y: uY - 20 },
+        { x: splitX, y: uY - 4 },
         { x: splitX, y: ringTop },
       ]);
     } else {
@@ -1179,10 +756,26 @@ function buildCapabilities(
     }
   }
 
-  const exitD = `${moveCommand({ x: splitX, y: ringBottom })} ${lineCommand({
+  let exitD = `${moveCommand({ x: splitX, y: ringBottom })} ${lineCommand({
     x: splitX,
     y: layout.capabilities.bottom,
   })}`;
+  if (
+    exitTargetX !== undefined &&
+    Math.abs(exitTargetX - splitX) > 4 &&
+    layout.capabilities.bottom - ringBottom > 60
+  ) {
+    // Phones: the first case study is entered on the right, so the thread
+    // leaves the merge, runs straight for a moment and then sweeps across to
+    // that entry in one long S, arriving vertical (as on production).
+    const bottomY = layout.capabilities.bottom;
+    const room = bottomY - ringBottom;
+    const sY = ringBottom + room * 0.3;
+    const k = (bottomY - sY) * 0.55;
+    exitD =
+      `${moveCommand({ x: splitX, y: ringBottom })} ${lineCommand({ x: splitX, y: sY })} ` +
+      `C ${format(splitX)} ${format(sY + k)}, ${format(exitTargetX)} ${format(bottomY - k)}, ${format(exitTargetX)} ${format(bottomY)}`;
+  }
 
   return {
     entry: routeFromPath(entryKey, phoneEntryD ?? entryBuilder.d, 8),
@@ -1943,107 +1536,6 @@ function buildAbout(
   };
 }
 
-/**
- * The owl: one continuous stroke (outline with two ear tufts, a brow ridge
- * that drops between two ringed eyes, a beak notch, then the chest line down
- * to where the thread ends). Drawn in a 100 × 114 box, entry at (50, 0) with a
- * vertical tangent, exit at (50, 114).
- */
-const OWL_PATH = [
-  "M 50 0",
-  "C 50 5, 55 7, 62 6",
-  "C 70 6, 76 5, 79 2",
-  "C 83 12, 86 22, 86 36",
-  "C 88 56, 90 76, 84 92",
-  "C 78 108, 64 114, 50 114",
-  "C 36 114, 22 108, 16 92",
-  "C 10 76, 12 56, 14 36",
-  "C 14 22, 17 12, 21 2",
-  "C 24 5, 30 6, 38 6",
-  "C 44 7, 50 9, 50 18",
-  "L 50 36",
-  "C 50 40, 47 42, 44 44",
-  "A 9 9 0 1 1 26 44",
-  "A 9 9 0 1 1 44 44",
-  "C 47 52, 53 52, 56 44",
-  "A 9 9 0 1 0 74 44",
-  "A 9 9 0 1 0 56 44",
-  "C 56 60, 50 74, 50 92",
-  "L 50 114",
-].join(" ");
-const OWL_WIDTH = 100;
-const OWL_HEIGHT = 114;
-
-function buildContact(
-  layout: MeasuredLayout,
-  previous: RouteModel | undefined,
-  start: Point,
-): { route: RouteModel; terminal: Point } {
-  const section = getRect(layout, "footer.section");
-  const links = getRect(layout, "footer.links");
-  const back = getRect(layout, "footer.back");
-  const narrow = layout.width <= 700;
-
-  // Where the owl sits, and how big it is.
-  let scale: number;
-  let cx: number;
-  let top: number;
-  if (narrow) {
-    const room = back.top - (links.bottom + 28) - 28;
-    scale = clamp(room / OWL_HEIGHT, 0.7, 1.5);
-    cx = layout.width / 2;
-    top = Math.min(links.bottom + 28, back.top - 28 - OWL_HEIGHT * scale);
-  } else {
-    scale = clamp((0.2 * layout.width) / OWL_WIDTH, 1.6, 3);
-    cx =
-      section.right -
-      layout.pagePad -
-      (OWL_WIDTH * scale) / 2 -
-      0.05 * layout.width;
-    const leadRoom = clamp(0.22 * section.height, 90, 220);
-    top = Math.max(start.y + leadRoom, section.top + 0.16 * section.height);
-    const maxScale = (section.bottom - 56 - top) / OWL_HEIGHT;
-    scale = Math.min(scale, Math.max(1, maxScale));
-  }
-
-  const terminal = { x: cx, y: top + OWL_HEIGHT * scale };
-  const key = [
-    pointKey(start),
-    pointKey(terminal),
-    scale.toFixed(3),
-    rectKey(links),
-    layout.pagePad,
-    layout.width,
-    "owl1",
-  ].join("|");
-  const cached = reuseRoute(previous, key);
-  if (cached) return { route: cached, terminal };
-
-  // applyAffine (not transformPath) so the eye arcs' radii scale with it.
-  const owl = applyAffine(OWL_PATH, {
-    a: scale,
-    b: 0,
-    c: 0,
-    d: scale,
-    e: cx - (OWL_WIDTH / 2) * scale,
-    f: top,
-  }).replace(/^M\s+\S+\s+\S+\s*/, "");
-
-  const builder = new PathBuilder(start);
-  const entry = { x: cx, y: top };
-
-  if (narrow) {
-    // Down the margin, clear of the headline and the contact rows, then in.
-    const dropY = Math.max(start.y + 24, links.bottom + 12);
-    if (dropY > start.y + 0.5) builder.line({ x: start.x, y: dropY });
-    meander(builder, entry, 0, 1);
-  } else {
-    meander(builder, entry, 0, 1);
-  }
-
-  return { route: routeFromPath(key, `${builder.d} ${owl}`, 6), terminal };
-}
-
 function workDerivedAnchors(points: Point[], drawing: Rect) {
   const bulbRef = REF_WORK.bulb;
   const bulb = {
@@ -2114,14 +1606,26 @@ export function buildThreadModel(
   layout: MeasuredLayout,
   previous?: ThreadModel,
 ): ThreadModel {
-  const hero = buildHero(layout, previous?.hero);
-  const work = buildWork(layout, hero, layout.capabilities.top, previous?.work);
-  const capabilities = buildCapabilities(layout, work, {
-    entry: previous?.capsEntry,
-    product: previous?.capsProduct,
-    ai: previous?.capsAi,
-    exit: previous?.capsExit,
-  });
+  const startPoint = resolveStartPoint(layout);
+  const work = buildWork(
+    layout,
+    startPoint,
+    layout.capabilities.top,
+    previous?.work,
+  );
+  const capabilities = buildCapabilities(
+    layout,
+    work,
+    {
+      entry: previous?.capsEntry,
+      product: previous?.capsProduct,
+      ai: previous?.capsAi,
+      exit: previous?.capsExit,
+    },
+    layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "prod"
+      ? phoneEntryX(layout, "kabri")
+      : undefined,
+  );
 
   // x where each case study's route begins (the entry the previous one must
   // hand over to). Only phones use it; larger screens anchor to the artwork.
@@ -2171,7 +1675,6 @@ export function buildThreadModel(
   const why = buildWhy(layout, previous?.why, legalexy.end, conclusion.start);
 
   const aboutStart = conclusion.start;
-  const footer = buildContact(layout, previous?.footer, conclusion.end);
 
   const workAnchors = workDerivedAnchors(
     work.points,
@@ -2237,8 +1740,7 @@ export function buildThreadModel(
 
   // Production's phone layout has no door rings (the thread simply runs
   // through the opening in the plan), so on phones they are drawn at zero size.
-  const noDoorRings =
-    layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "prod";
+  const noDoorRings = layout.width <= 700 && MOBILE_CASE_STUDY_ROUTE === "prod";
   const doorMarkers: MarkerModel[] = [
     {
       id: "case.study.kabri.door.north",
@@ -2257,8 +1759,8 @@ export function buildThreadModel(
   ];
 
   const derived = new Map<string, Point>([
-    ["thread.origin", hero.origin],
-    ["hero.handoff", hero.handoff],
+    ["thread.origin", work.start],
+    ["hero.handoff", work.start],
     ["work.bulb", workAnchors.bulb],
     ["work.wave.1", workAnchors.waves[0]],
     ["work.wave.2", workAnchors.waves[1]],
@@ -2295,8 +1797,8 @@ export function buildThreadModel(
     ["conclusion.fingerprint", conclusion.start],
     ["conclusion.fingerprint.start", conclusion.start],
     ["conclusion.fingerprint.end", conclusion.end],
-    ["footer.terminal", footer.terminal],
-    ["thread.terminal", footer.terminal],
+    // No footer route: the thread ends at the last stroke of the fingerprint.
+    ["thread.terminal", conclusion.end],
   ]);
 
   const pagePath = [
@@ -2312,7 +1814,6 @@ export function buildThreadModel(
   ].join(" ");
 
   const keys = {
-    hero: hero.key,
     work: work.key,
     capabilities: capabilities.entry.key,
     kabri: kabri.key,
@@ -2321,34 +1822,9 @@ export function buildThreadModel(
     legalexy: legalexy.key,
     why: why.key,
     conclusion: conclusion.key,
-    footer: footer.route.key,
   };
 
   if (process.env.NODE_ENV !== "production") {
-    const heroSequence = [
-      hero.back[0],
-      hero.front[0],
-      hero.back[1],
-      hero.front[1],
-      hero.back[2],
-      hero.front[2],
-      hero.back[3],
-      hero.front[3],
-      hero.back[4],
-      hero.back[5],
-      hero.back[6],
-    ];
-
-    for (let index = 1; index < heroSequence.length; index += 1) {
-      assertTangentContinuous(
-        heroSequence[index - 1],
-        heroSequence[index],
-        `hero join ${index - 1} → ${index}`,
-        2,
-      );
-    }
-
-    assertTangentContinuous(hero.back[6], work.d, "hero → work", 2);
     assertPathSmooth(work.d, "work route", 1.5);
     assertVerticalEnd(work.d, "work → capabilities connector");
     assertTangentContinuous(
@@ -2359,12 +1835,6 @@ export function buildThreadModel(
     );
     assertTangentContinuous(legalexy.d, why.d, "LEGALEXY → why-me", 2);
     assertTangentContinuous(why.d, conclusion.d, "why-me → conclusion", 2);
-    assertTangentContinuous(
-      conclusion.d,
-      footer.route.d,
-      "conclusion → footer",
-      2,
-    );
     assertPathSmooth(why.d, "why-me route", 1.5);
 
     const whyNodes = [1, 2, 3, 4, 5].map((index) =>
@@ -2385,7 +1855,6 @@ export function buildThreadModel(
       0,
     );
 
-    assertDistance(hero.handoff, work.start, "hero → work");
     assertDistance(work.end, capabilities.entry.start, "work → capabilities");
     assertDistance(capabilities.exit.end, kabri.start, "capabilities → KABRI");
     assertDistance(kabri.end, norma.start, "KABRI → NORMA");
@@ -2393,7 +1862,6 @@ export function buildThreadModel(
     assertDistance(shopops.end, legalexy.start, "SHOPOPS → LEGALEXY");
     assertDistance(legalexy.end, why.start, "LEGALEXY → why-me");
     assertDistance(why.end, conclusion.start, "why-me → conclusion");
-    assertDistance(conclusion.end, footer.route.start, "conclusion → footer");
   }
 
   return {
@@ -2401,7 +1869,6 @@ export function buildThreadModel(
     height: layout.height,
     heroHeight: layout.hero.height,
     pagePad: layout.pagePad,
-    hero,
     work,
     capsEntry: capabilities.entry,
     capsProduct: capabilities.product,
@@ -2410,30 +1877,15 @@ export function buildThreadModel(
     projects: { kabri, norma, shopops, legalexy },
     why,
     conclusion,
-    footer: footer.route,
     pagePath,
     markers: [...capabilityMarkers, ...whyMarkers, ...doorMarkers],
-    terminal: footer.terminal,
+    terminal: conclusion.end,
     derived,
     keys,
   };
 }
 
 export function masterTrack(model: ThreadModel): Point[] {
-  const heroOrder = [
-    model.hero.backPoints[0],
-    model.hero.frontPoints[0],
-    model.hero.backPoints[1],
-    model.hero.frontPoints[1],
-    model.hero.backPoints[2],
-    model.hero.frontPoints[2],
-    model.hero.backPoints[3],
-    model.hero.frontPoints[3],
-    model.hero.backPoints[4],
-    model.hero.backPoints[5],
-    model.hero.backPoints[6],
-  ];
-
   const points: Point[] = [];
   const append = (segment: Point[]) => {
     for (const value of segment) {
@@ -2448,7 +1900,6 @@ export function masterTrack(model: ThreadModel): Point[] {
     }
   };
 
-  for (const segment of heroOrder) append(segment);
   append(model.work.points);
   append(model.capsEntry.points);
   append(model.capsProduct.points);
@@ -2459,7 +1910,6 @@ export function masterTrack(model: ThreadModel): Point[] {
   append(model.projects.legalexy.points);
   append(model.why.points);
   append(model.conclusion.points);
-  append(model.footer.points);
 
   return points;
 }

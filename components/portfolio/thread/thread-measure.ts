@@ -59,7 +59,6 @@ function selectedRect(
   return rectFromElement(element, rootRect);
 }
 
-
 /**
  * Finds the counter (the hole) of a single glyph by rasterising it with the
  * element's own font and scanning for the empty region around the ink centre.
@@ -248,8 +247,10 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
       );
     }
 
+    // Zero-width anchors (e.g. the empty `start` marker) are positional cues,
+    // not content boxes; they don't need a human-readable label.
     const missingLabels = Array.from(anchors.values()).filter(
-      (anchor) => !anchor.label,
+      (anchor) => !anchor.label && anchor.rect.width > 1,
     );
     if (missingLabels.length > 0) {
       throw new Error(
@@ -277,7 +278,9 @@ export function measureLayout(root: HTMLElement): MeasuredLayout {
   );
 
   const oElement = root.querySelector('[data-thread-anchor="hero.from.o"]');
-  const heroOCounter = oElement ? measureGlyphCounter(oElement, rootRect) : null;
+  const heroOCounter = oElement
+    ? measureGlyphCounter(oElement, rootRect)
+    : null;
   if (heroOCounter) {
     signatureParts.push(
       `oc:${round(heroOCounter.left)},${round(heroOCounter.top)},${round(

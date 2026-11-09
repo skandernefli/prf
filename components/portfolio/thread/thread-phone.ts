@@ -1,6 +1,6 @@
-import { PHONE_CASE_ROUTES, type PhoneRouteData } from "./thread-phone-data";
-import { getRect, type MeasuredLayout } from "./thread-measure";
+import { anchorPoint, getRect, type MeasuredLayout } from "./thread-measure";
 import { clamp, type Point } from "./thread-path";
+import { PHONE_CASE_ROUTES, type PhoneRouteData } from "./thread-phone-data";
 
 export type PhoneCaseId = keyof typeof PHONE_CASE_ROUTES;
 
@@ -55,19 +55,65 @@ function liveLandmarks(
   return result;
 }
 
-function mapY(py: number, marks: { prod: number; live: number }[]) {
-  if (marks.length < 2) return py;
-  if (py <= marks[0].prod) return marks[0].live + (py - marks[0].prod);
-  for (let i = 1; i < marks.length; i += 1) {
-    if (py <= marks[i].prod) {
-      const a = marks[i - 1];
-      const b = marks[i];
-      const t = (py - a.prod) / (b.prod - a.prod);
-      return a.live + t * (b.live - a.live);
+/**
+ * Smooth, strictly monotone map from production y to live y (Fritsch-Carlson
+ * monotone cubic through the landmarks). A piecewise-linear map would change
+ * slope at every landmark and put a visible kink in the thread there; this
+ * one stretches the route gradually, so the curvature stays natural.
+ */
+function makeYMap(marks: { prod: number; live: number }[]) {
+  const n = marks.length;
+  if (n < 2) return (py: number) => py;
+
+  const h: number[] = [];
+  const delta: number[] = [];
+  for (let i = 0; i < n - 1; i += 1) {
+    h.push(marks[i + 1].prod - marks[i].prod);
+    delta.push((marks[i + 1].live - marks[i].live) / h[i]);
+  }
+  const m: number[] = new Array(n).fill(0);
+  m[0] = delta[0];
+  m[n - 1] = delta[n - 2];
+  for (let i = 1; i < n - 1; i += 1) {
+    m[i] =
+      delta[i - 1] * delta[i] <= 0
+        ? 0
+        : (3 * (h[i - 1] + h[i])) /
+          ((2 * h[i] + h[i - 1]) / delta[i - 1] +
+            (h[i] + 2 * h[i - 1]) / delta[i]);
+  }
+  for (let i = 0; i < n - 1; i += 1) {
+    if (delta[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i] / delta[i];
+    const b = m[i + 1] / delta[i];
+    const r = Math.hypot(a, b);
+    if (r > 3) {
+      m[i] = (3 * a * delta[i]) / r;
+      m[i + 1] = (3 * b * delta[i]) / r;
     }
   }
-  const last = marks[marks.length - 1];
-  return last.live + (py - last.prod);
+
+  return (py: number) => {
+    if (py <= marks[0].prod) return marks[0].live + (py - marks[0].prod) * m[0];
+    if (py >= marks[n - 1].prod) {
+      return marks[n - 1].live + (py - marks[n - 1].prod) * m[n - 1];
+    }
+    let i = 0;
+    while (py > marks[i + 1].prod) i += 1;
+    const t = (py - marks[i].prod) / h[i];
+    const t2 = t * t;
+    const t3 = t2 * t;
+    return (
+      (2 * t3 - 3 * t2 + 1) * marks[i].live +
+      (t3 - 2 * t2 + t) * h[i] * m[i] +
+      (-2 * t3 + 3 * t2) * marks[i + 1].live +
+      (t3 - t2) * h[i] * m[i + 1]
+    );
+  };
 }
 
 const fmt = (value: number) => Number(value.toFixed(2)).toString();
@@ -122,24 +168,164 @@ export function smoothPath(pts: Point[]): string {
 
     // Never let a control point run backwards past its neighbour vertically
     // by more than the span; keeps long hidden stretches from looping.
-    c1.y = clamp(c1.y, Math.min(p1.y, p2.y) - span, Math.max(p1.y, p2.y) + span);
-    c2.y = clamp(c2.y, Math.min(p1.y, p2.y) - span, Math.max(p1.y, p2.y) + span);
+    c1.y = clamp(
+      c1.y,
+      Math.min(p1.y, p2.y) - span,
+      Math.max(p1.y, p2.y) + span,
+    );
+    c2.y = clamp(
+      c2.y,
+      Math.min(p1.y, p2.y) - span,
+      Math.max(p1.y, p2.y) + span,
+    );
 
     d += ` C ${fmt(c1.x)} ${fmt(c1.y)} ${fmt(c2.x)} ${fmt(c2.y)} ${fmt(p2.x)} ${fmt(p2.y)}`;
   }
   return d;
 }
 
+type Node = { p: Point; t: Point };
+
+const unit = (x: number, y: number): Point => {
+  const length = Math.hypot(x, y) || 1;
+  return { x: x / length, y: y / length };
+};
+
+/**
+ * One cubic between two nodes that each carry a position and a unit tangent.
+ * Handle length follows the distance travelled along each tangent, so a quarter
+ * turn stays a clean quarter turn and a straight run stays straight.
+ */
+function hermite(a: Node, b: Node): Point[] {
+  const dx = b.p.x - a.p.x;
+  const dy = b.p.y - a.p.y;
+  const d = Math.hypot(dx, dy);
+  const handle = (t: Point) =>
+    Math.max(0.18 * d, 0.55 * Math.abs(t.x * dx + t.y * dy));
+  const h0 = handle(a.t);
+  const h1 = handle(b.t);
+  return [
+    a.p,
+    { x: a.p.x + a.t.x * h0, y: a.p.y + a.t.y * h0 },
+    { x: b.p.x - b.t.x * h1, y: b.p.y - b.t.y * h1 },
+    b.p,
+  ];
+}
+
+/**
+ * KABRI on a phone: the production route, except that the part that crosses
+ * the floor plan and the two documents is rebuilt from the live anchors so the
+ * thread
+ *   - enters through the centre of the north door (heading straight down),
+ *   - runs down the hall and leaves through the centre of the east door
+ *     (heading straight right),
+ *   - passes through the centre of the estimate (lease) and
+ *   - through the centre of the before/after drawing (inspection),
+ * then rejoins the production route on the right margin below them.
+ * Returns null (production route unchanged) if an anchor is missing or the
+ * layout is too odd for the chain to make sense.
+ */
+function kabriThroughDoors(
+  layout: MeasuredLayout,
+  segs: Point[][],
+): Point[][] | null {
+  const ids = ["door.north", "door.east", "lease", "inspection", "flat"];
+  if (!ids.every((name) => layout.anchors.has(`case.study.kabri.${name}`))) {
+    return null;
+  }
+
+  const N = anchorPoint(layout, "case.study.kabri.door.north");
+  const E = anchorPoint(layout, "case.study.kabri.door.east");
+  const L = anchorPoint(layout, "case.study.kabri.lease");
+  const I = anchorPoint(layout, "case.study.kabri.inspection");
+  const flat = getRect(layout, "case.study.kabri.flat");
+  const lease = getRect(layout, "case.study.kabri.lease");
+
+  const entry = segs[1];
+  const p = entry[3];
+  const tp = unit(entry[3].x - entry[2].x, entry[3].y - entry[2].y);
+  const tail = segs[8][3];
+
+  const finite = [N, E, L, I, p, tail].every(
+    (pt) => Number.isFinite(pt.x) && Number.isFinite(pt.y),
+  );
+  if (
+    !finite ||
+    N.y < p.y + 16 ||
+    E.y < N.y + 24 ||
+    flat.bottom < E.y + 10 ||
+    L.y <= flat.bottom ||
+    I.y > tail.y - 10 ||
+    layout.width - 8 < E.x + 8
+  ) {
+    return null;
+  }
+
+  // Hall: down from the north door, one quarter turn, then straight east.
+  const r = clamp(0.155 * (E.y - N.y), 10, 24);
+
+  // Outside the east door: out to the right rail, down past the floor plan,
+  // back left above the estimate, round its left edge and into its centre.
+  const gap = lease.top - flat.bottom;
+  const yTop = Math.min(flat.bottom + clamp(0.5 * gap, 14, 34), L.y - 24);
+  if (yTop <= flat.bottom + 6) return null;
+
+  const rail = Math.max(
+    E.x + 8,
+    Math.min(layout.width - 8, E.x + 0.6 * (layout.width - E.x)),
+  );
+  const hookX = clamp(lease.left - 8, 8, Math.max(8, L.x - 30));
+  const x3 = hookX + Math.max(50, 0.5 * (rail - hookX));
+
+  // Before the north door: leave the production bulge, come in under the
+  // paragraph and drop onto the door from straight above.
+  const Q = {
+    x: N.x + clamp(0.4 * (p.x - N.x), 30, 90),
+    y: p.y + 0.55 * (N.y - p.y),
+  };
+
+  const nodes: Node[] = [
+    { p, t: tp },
+    { p: Q, t: unit(-1, 0.2) },
+    { p: N, t: { x: 0, y: 1 } },
+    { p: { x: N.x, y: E.y - r }, t: { x: 0, y: 1 } },
+    { p: { x: N.x + r, y: E.y }, t: { x: 1, y: 0 } },
+    { p: E, t: { x: 1, y: 0 } },
+    {
+      p: { x: rail, y: flat.bottom + 0.4 * (yTop - flat.bottom) },
+      t: { x: 0, y: 1 },
+    },
+    { p: { x: x3, y: yTop }, t: { x: -1, y: 0 } },
+    { p: { x: hookX, y: yTop + 0.5 * (L.y - yTop) }, t: { x: 0, y: 1 } },
+    { p: L, t: { x: 1, y: 0 } },
+    { p: I, t: { x: 1, y: 0 } },
+    { p: tail, t: { x: 0, y: 1 } },
+  ];
+
+  const chain: Point[][] = [];
+  for (let i = 0; i < nodes.length - 1; i += 1) {
+    chain.push(hermite(nodes[i], nodes[i + 1]));
+  }
+
+  // Keep the two opening sweeps and everything from the right margin down.
+  return [segs[0], segs[1], ...chain, ...segs.slice(9)];
+}
+
 /** x where a phone case-study route begins (the entry the previous one meets). */
 export function phoneEntryX(layout: MeasuredLayout, id: PhoneCaseId) {
   const frame = getRect(layout, `case.study.${id}`);
-  const first = PHONE_CASE_ROUTES[id].points[0];
+  const first = PHONE_CASE_ROUTES[id].segments[0];
   return frame.left + first[0] * frame.width;
 }
 
 /**
  * The route for one case study on a phone, from `start` (where the previous
  * section ended) to the bottom edge of the section.
+ *
+ * The route is a short chain of cubic Beziers (a few long sweeps, like the
+ * hand-drawn original). Their control points are mapped onto the live layout:
+ * x scales with the page width, y goes through the smooth landmark map. Both
+ * ends are vertical so every section joins its neighbours without a corner.
  */
 export function buildPhoneCasePath(
   layout: MeasuredLayout,
@@ -148,26 +334,40 @@ export function buildPhoneCasePath(
 ): string {
   const data = PHONE_CASE_ROUTES[id];
   const frame = getRect(layout, `case.study.${id}`);
-  const marks = liveLandmarks(layout, id, data);
-  const margin = 6;
+  const mapY = makeYMap(liveLandmarks(layout, id, data));
+  const X = (xf: number) => frame.left + xf * frame.width;
 
-  const pts: Point[] = data.points.map(([xf, py]) => ({
-    x: clamp(frame.left + xf * frame.width, frame.left + margin, frame.right - margin),
-    y: mapY(py, marks),
-  }));
+  let segs = data.segments.map((seg) => {
+    const p: Point[] = [];
+    for (let i = 0; i < 8; i += 2) {
+      p.push({ x: X(seg[i]), y: mapY(seg[i + 1]) });
+    }
+    return p;
+  });
 
-  // Pin the very end to the section's bottom edge (the next section starts
-  // there) and keep the polyline strictly descending in its first/last vertex.
-  const last = pts[pts.length - 1];
-  last.y = frame.bottom - SECTION_BOTTOM_EPSILON;
-  if (pts.length > 1 && pts[pts.length - 2].y > last.y - 2) {
-    pts[pts.length - 2].y = last.y - 2;
+  // KABRI: thread through the door centres and the centres of the documents.
+  if (id === "kabri") segs = kabriThroughDoors(layout, segs) ?? segs;
+
+  // Pin the very end to the section's bottom edge.
+  const lastSeg = segs[segs.length - 1];
+  const bottom = frame.bottom - SECTION_BOTTOM_EPSILON;
+  const shift = bottom - lastSeg[3].y;
+  lastSeg[3] = { x: lastSeg[3].x, y: bottom };
+  lastSeg[2] = { x: lastSeg[2].x, y: lastSeg[2].y + shift };
+
+  const first = segs[0];
+  let d = `M ${fmt(start.x)} ${fmt(start.y)}`;
+  const gap = first[0].y - start.y;
+  if (gap > 8) {
+    // Vertical-to-vertical S from where the previous section ended.
+    const k = gap * 0.5;
+    d += ` C ${fmt(start.x)} ${fmt(start.y + k)} ${fmt(first[0].x)} ${fmt(first[0].y - k)} ${fmt(first[0].x)} ${fmt(first[0].y)}`;
+  } else if (Math.abs(first[0].x - start.x) > 0.5) {
+    d += ` L ${fmt(first[0].x)} ${fmt(first[0].y)}`;
   }
-
-  const route: Point[] = [];
-  if (start.y < pts[0].y - 1) route.push({ x: start.x, y: start.y });
-  else pts[0] = { x: start.x, y: start.y };
-  route.push(...pts);
-
-  return smoothPath(route);
+  for (const [p0, p1, p2, p3] of segs) {
+    void p0;
+    d += ` C ${fmt(p1.x)} ${fmt(p1.y)} ${fmt(p2.x)} ${fmt(p2.y)} ${fmt(p3.x)} ${fmt(p3.y)}`;
+  }
+  return d;
 }

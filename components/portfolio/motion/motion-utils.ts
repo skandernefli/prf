@@ -214,12 +214,6 @@ export function addFromTo(
   toVars: gsap.TweenVars,
   position?: gsap.Position,
 ) {
-  if (hasTransformProperties(fromVars) || hasTransformProperties(toVars)) {
-    for (const element of Array.isArray(target) ? target : [target]) {
-      assertTransformSafe(element);
-    }
-  }
-
   timeline.fromTo(target, fromVars, toVars, position);
 }
 

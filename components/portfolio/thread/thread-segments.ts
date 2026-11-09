@@ -1,12 +1,7 @@
-import { HERO_BACK, HERO_FRONT } from "./route-data";
 import type { ThreadModel } from "./thread-geometry";
 import {
-  assertDistance,
   closestPointOnPolyline,
   cumulativeLengths,
-  parsePath,
-  pathEnd,
-  serializePath,
   type Point,
   type Rect,
 } from "./thread-path";
@@ -42,8 +37,8 @@ export type ThreadSection =
 
 /**
  * Where a segment is mounted.
- * The hero thread passes behind and in front of the headline, so it lives in
- * two SVGs portalled into the hero. Everything else lives in the page SVG.
+ * The hero no longer carries any thread; every segment lives in the page SVG.
+ * The `hero-back` / `hero-front` values are kept for API compatibility.
  */
 export type ThreadSurface = "hero-back" | "hero-front" | "page";
 
@@ -74,86 +69,28 @@ export type SegmentDef = {
 };
 
 /**
- * The hero load animation draws these 10 pieces, split across two layers. This
- * is the order the thread travels through them, i.e. the order a draw-on
- * animation should follow. The last hero piece (back[6]) is not listed here:
- * it is the opening of the "work" segment (see withHeroTail), so it is drawn by
- * scroll together with the rest of the work route.
- */
-const HERO_TRAVEL = [
-  { layer: "back", index: 0 },
-  { layer: "front", index: 0 },
-  { layer: "back", index: 1 },
-  { layer: "front", index: 1 },
-  { layer: "back", index: 2 },
-  { layer: "front", index: 2 },
-  { layer: "back", index: 3 },
-  { layer: "front", index: 3 },
-  { layer: "back", index: 4 },
-  { layer: "back", index: 5 },
-] as const;
-
-const HERO_SEGMENTS: SegmentDef[] = HERO_TRAVEL.map(
-  ({ layer, index }, order) => ({
-    id: `hero.${String(order + 1).padStart(2, "0")}`,
-    section: "hero",
-    surface: layer === "back" ? "hero-back" : "hero-front",
-    role: "trunk",
-    order,
-    className: "thread-path",
-    initialD: layer === "back" ? HERO_BACK[index] : HERO_FRONT[index],
-    route: (model: ThreadModel) =>
-      layer === "back"
-        ? { d: model.hero.back[index], points: model.hero.backPoints[index] }
-        : { d: model.hero.front[index], points: model.hero.frontPoints[index] },
-  }),
-);
-
-const HERO_COUNT = HERO_SEGMENTS.length;
-
-/**
- * hero.back[6] ends exactly where model.work starts (hero.handoff), so the two
- * are one continuous stroke. The geometry model is unchanged; only the
- * presentation is: the tail is prepended to the work route, and the duplicate
- * "M" of the work route is dropped.
- */
-function withHeroTail(model: ThreadModel): Route {
-  const { back, backPoints } = model.hero;
-  const tail = back[back.length - 1];
-  const tailPoints = backPoints[backPoints.length - 1];
-
-  assertDistance(pathEnd(tail), model.work.start, "hero tail → work start");
-
-  const [, ...rest] = parsePath(model.work.d);
-
-  return {
-    d: `${tail} ${serializePath(rest)}`,
-    points: [...tailPoints, ...model.work.points.slice(1)],
-  };
-}
-
-/**
- * Listed in PAINT order (== DOM order, which is SVG z-order). This matches the
- * previous layer: every trunk piece, then the AI branch, then the signature,
- * then the footer lead. `order` is the travel order and is independent of it.
+ * Listed in PAINT order (== DOM order, which is SVG z-order). `order` is the
+ * travel order and is independent of it.
+ *
+ * The contact / footer section carries no thread: the whole stroke ends with
+ * the last point of the conclusion fingerprint.
  */
 export const SEGMENT_DEFS: readonly SegmentDef[] = [
-  ...HERO_SEGMENTS,
   {
     id: "work",
     section: "work",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT,
+    order: 0,
     className: "thread-path",
-    route: withHeroTail,
+    route: (m) => m.work,
   },
   {
     id: "capabilities.entry",
     section: "capabilities",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 1,
+    order: 1,
     className: "thread-path",
     route: (m) => m.capsEntry,
   },
@@ -162,7 +99,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "capabilities",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 2,
+    order: 2,
     className: "thread-path",
     route: (m) => m.capsProduct,
   },
@@ -171,7 +108,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "capabilities",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 4,
+    order: 4,
     className: "thread-path",
     route: (m) => m.capsExit,
   },
@@ -180,7 +117,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "kabri",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 5,
+    order: 5,
     className: "thread-path",
     route: (m) => m.projects.kabri,
   },
@@ -189,7 +126,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "norma",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 6,
+    order: 6,
     className: "thread-path",
     route: (m) => m.projects.norma,
   },
@@ -198,7 +135,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "shopops",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 7,
+    order: 7,
     className: "thread-path",
     route: (m) => m.projects.shopops,
   },
@@ -207,7 +144,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "legalexy",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 8,
+    order: 8,
     className: "thread-path",
     route: (m) => m.projects.legalexy,
   },
@@ -216,7 +153,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "why",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 9,
+    order: 9,
     className: "thread-path",
     route: (m) => m.why,
   },
@@ -225,7 +162,7 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "capabilities",
     surface: "page",
     role: "branch",
-    order: HERO_COUNT + 3,
+    order: 3,
     className: "thread-branch",
     route: (m) => m.capsAi,
   },
@@ -234,19 +171,10 @@ export const SEGMENT_DEFS: readonly SegmentDef[] = [
     section: "conclusion",
     surface: "page",
     role: "trunk",
-    order: HERO_COUNT + 10,
+    order: 10,
     className: "thread-fingerprint",
     clipId: CONCLUSION_CLIP_ID,
     route: (m) => m.conclusion,
-  },
-  {
-    id: "footer",
-    section: "footer",
-    surface: "page",
-    role: "trunk",
-    order: HERO_COUNT + 11,
-    className: "thread-path thread-footer",
-    route: (m) => m.footer,
   },
 ];
 
@@ -313,7 +241,16 @@ export type ThreadFrame = {
   paths: Record<string, string>;
   markers: FrameMarker[];
   conclusionClip: Rect;
+  /**
+   * Start of the whole thread (previously the hero origin dot position; now
+   * the beginning of the work route). Kept on the type for downstream
+   * consumers.
+   */
   origin: Point;
+  /**
+   * Last point of the thread. With no footer route this is exactly the end of
+   * the conclusion fingerprint.
+   */
   terminal: Point;
 };
 
@@ -364,7 +301,7 @@ export function buildFrame(model: ThreadModel): ThreadFrame {
     paths,
     markers,
     conclusionClip: model.conclusion.rect,
-    origin: model.hero.origin,
+    origin: model.work.start,
     terminal: model.terminal,
   };
 }

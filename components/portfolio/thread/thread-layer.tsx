@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
 
 import { THREAD_UPDATED_EVENT } from "./thread-dom";
 import { buildThreadModel } from "./thread-geometry";
@@ -19,14 +18,7 @@ const subscribeToClient = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-const HERO_BACK_SEGMENTS = segmentsOn("hero-back");
-const HERO_FRONT_SEGMENTS = segmentsOn("hero-front");
 const PAGE_SEGMENTS = segmentsOn("page");
-
-type HeroSlots = {
-  back: HTMLElement | null;
-  front: HTMLElement | null;
-};
 
 const bind =
   <T extends Element>(store: Map<string, T>, id: string) =>
@@ -42,26 +34,12 @@ export function ThreadLayer() {
     getServerSnapshot,
   );
 
-  const slots: HeroSlots = mounted
-    ? {
-        back: document.querySelector<HTMLElement>(
-          '[data-thread-slot="hero-back"]',
-        ),
-        front: document.querySelector<HTMLElement>(
-          '[data-thread-slot="hero-front"]',
-        ),
-      }
-    : { back: null, front: null };
-
   // The DOM is created once from the static segment table; the effect below
   // only updates attributes, so GSAP can hold on to these elements.
   const pathRefs = useRef(new Map<string, SVGPathElement>());
   const markerRefs = useRef(new Map<string, SVGGElement>());
   const pageSvgRef = useRef<SVGSVGElement>(null);
-  const backSvgRef = useRef<SVGSVGElement>(null);
-  const frontSvgRef = useRef<SVGSVGElement>(null);
   const clipRectRef = useRef<SVGRectElement>(null);
-  const originRef = useRef<SVGCircleElement>(null);
   const terminalRingRef = useRef<SVGCircleElement>(null);
   const terminalCoreRef = useRef<SVGCircleElement>(null);
 
@@ -95,16 +73,9 @@ export function ThreadLayer() {
         pageSvg.style.height = `${frame.height}px`;
       }
 
-      const heroViewBox = `0 0 ${frame.width} ${frame.heroHeight}`;
-      set(backSvgRef.current, "viewBox", heroViewBox);
-      set(frontSvgRef.current, "viewBox", heroViewBox);
-
       for (const [id, d] of Object.entries(frame.paths)) {
         set(pathRefs.current.get(id), "d", d);
       }
-
-      set(originRef.current, "cx", String(frame.origin.x));
-      set(originRef.current, "cy", String(frame.origin.y));
 
       const clip = frame.conclusionClip;
       set(clipRectRef.current, "x", String(clip.left));
@@ -187,108 +158,64 @@ export function ThreadLayer() {
   );
 
   return (
-    <>
-      {mounted &&
-        slots.back &&
-        createPortal(
-          <svg
-            ref={backSvgRef}
-            className="hero-thread-svg"
-            data-thread-scene="hero"
-            data-thread-layer="back"
-            viewBox="0 0 1425 900"
-            preserveAspectRatio="none"
-            aria-hidden="true"
+    <svg
+      ref={pageSvgRef}
+      className="thread-layer"
+      viewBox="0 0 1425 900"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <clipPath id={CONCLUSION_CLIP_ID}>
+          <rect ref={clipRectRef} x="0" y="0" width="0" height="0" />
+        </clipPath>
+      </defs>
+
+      {PAGE_SEGMENTS.map(renderPath)}
+
+      <g>
+        {MARKER_DEFS.map((marker) => (
+          <g
+            key={marker.id}
+            ref={bind(markerRefs.current, marker.id)}
+            data-thread-marker={marker.id}
+            data-thread-section={marker.section}
+            data-thread-on={marker.segment}
+            data-thread-progress="0"
           >
-            {HERO_BACK_SEGMENTS.map(renderPath)}
+            <circle className="thread-marker" cx="0" cy="0" r="0" />
+            <circle className="thread-marker-core" cx="0" cy="0" r="0" />
+          </g>
+        ))}
+      </g>
 
-            <circle
-              ref={originRef}
-              className="thread-origin-dot"
-              cx="0"
-              cy="0"
-              r="3.2"
-            />
-          </svg>,
-          slots.back,
-        )}
-
-      {mounted &&
-        slots.front &&
-        createPortal(
-          <svg
-            ref={frontSvgRef}
-            className="hero-thread-svg"
-            data-thread-scene="hero"
-            data-thread-layer="front"
-            viewBox="0 0 1425 900"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            {HERO_FRONT_SEGMENTS.map(renderPath)}
-          </svg>,
-          slots.front,
-        )}
-
-      <svg
-        ref={pageSvgRef}
-        className="thread-layer"
-        viewBox="0 0 1425 900"
-        preserveAspectRatio="none"
-        aria-hidden="true"
+      {/* The pen: rides the tip of the thread while it is being drawn.
+          Positioned by the motion layer (see motion/thread-pen.ts). */}
+      <g
+        className="thread-pen-group"
+        data-thread-pen
+        transform="translate(0 0)"
       >
-        <defs>
-          <clipPath id={CONCLUSION_CLIP_ID}>
-            <rect ref={clipRectRef} x="0" y="0" width="0" height="0" />
-          </clipPath>
-        </defs>
+        <circle className="thread-pen" cx="0" cy="0" r="9" />
+        <circle className="thread-pen-core" cx="0" cy="0" r="3" />
+      </g>
 
-        {PAGE_SEGMENTS.map(renderPath)}
-
-        <g>
-          {MARKER_DEFS.map((marker) => (
-            <g
-              key={marker.id}
-              ref={bind(markerRefs.current, marker.id)}
-              data-thread-marker={marker.id}
-              data-thread-section={marker.section}
-              data-thread-on={marker.segment}
-              data-thread-progress="0"
-            >
-              <circle className="thread-marker" cx="0" cy="0" r="0" />
-              <circle className="thread-marker-core" cx="0" cy="0" r="0" />
-            </g>
-          ))}
-        </g>
-
-        {/* The pen: rides the tip of the thread while it is being drawn.
-            Positioned by the motion layer (see motion/thread-pen.ts). */}
-        <g
-          className="thread-pen-group"
-          data-thread-pen
-          transform="translate(0 0)"
-        >
-          <circle className="thread-pen" cx="0" cy="0" r="9" />
-          <circle className="thread-pen-core" cx="0" cy="0" r="3" />
-        </g>
-
-        <g className="thread-terminal-group">
-          <circle
-            ref={terminalRingRef}
-            className="thread-terminal"
-            cx="0"
-            cy="0"
-            r="7"
-          />
-          <circle
-            ref={terminalCoreRef}
-            className="thread-terminal-core"
-            cx="0"
-            cy="0"
-            r="2.6"
-          />
-        </g>
-      </svg>
-    </>
+      <g className="thread-terminal-group">
+        <circle
+          ref={terminalRingRef}
+          className="thread-terminal"
+          cx="0"
+          cy="0"
+          r="7"
+        />
+        <circle
+          ref={terminalCoreRef}
+          className="thread-terminal-core"
+          cx="0"
+          cy="0"
+          r="2.6"
+        />
+      </g>
+    </svg>
   );
 }

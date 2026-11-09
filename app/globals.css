@@ -227,13 +227,72 @@ body {
 .hero {
   position: relative;
   z-index: 2;
+  isolation: isolate;
+
   min-height: 100svh;
   overflow: hidden;
   padding: 0 var(--page-pad) var(--hero-bottom-inset);
-  background: var(--black);
+  background: #050505;
   color: var(--ivory);
 }
+.hero-visual {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
 
+.hero-visual-image {
+  position: absolute;
+  inset: -3%;
+
+  background-image: url("/hero-bg.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center 45%;
+
+  filter: brightness(0.65) contrast(1.2) saturate(0.55);
+
+  transform: scale(1.02);
+}
+
+.hero-visual-grade {
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    90deg,
+    rgba(5, 5, 5, 0.92) 0%,
+    rgba(5, 5, 5, 0.55) 35%,
+    rgba(5, 5, 5, 0.12) 75%,
+    rgba(5, 5, 5, 0.35) 100%
+  );
+}
+
+.hero-visual-vignette {
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    ellipse at 65% 40%,
+    transparent 15%,
+    rgba(5, 5, 5, 0.25) 65%,
+    #050505 110%
+  );
+}
+
+.hero-visual-fade {
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    to bottom,
+    transparent 65%,
+    rgba(5, 5, 5, 0.65) 85%,
+    #050505 100%
+  );
+}
 .hero-copy {
   position: relative;
   z-index: 4;
@@ -352,43 +411,85 @@ body {
   width: 100%;
   max-width: 30rem;
   aspect-ratio: 5 / 8;
+  /* Lets the step labels size and space themselves from the drawing's own
+     width (cqw), so they stay glued to the bulb at every screen size. */
+  container-type: inline-size;
 }
 
+/* Every label is positioned from the thread's reference drawing (480 x 768):
+   `top` is the vertical CENTRE of the label, and left / right are measured
+   from the curve it sits next to, plus a small gap that scales with the
+   drawing. */
 .work-flow-label {
+  --wf-gap: 2.2cqw;
   position: absolute;
-  left: 86%;
   font-family: var(--font-mono);
-  font-size: clamp(0.55rem, 0.85vw, 0.8rem);
+  font-size: clamp(0.45rem, 2.5cqw, 0.8rem);
+  line-height: 1.25;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  transform: translateY(-50%);
 }
 
+/* Top of the bulb, just right of the incoming thread. */
 .practice-step-problem {
-  top: 27.2%;
+  top: 5%;
+  left: calc(46.95% + var(--wf-gap));
 }
 
+/* Widest point of the bulb: left of it... */
 .practice-step-investigate {
-  top: 36.8%;
+  top: 27.2%;
+  right: calc(88.15% + var(--wf-gap));
 }
 
+/* ...and right of it, on the same level. */
 .practice-step-design {
-  top: 46.4%;
+  top: 27.2%;
+  left: calc(82.05% + var(--wf-gap));
+  /* Two short lines so it never runs off the right edge on narrow screens. */
+  width: 11ch;
+  white-space: normal;
 }
 
+/* Base (neck) of the bulb. */
 .practice-step-build {
-  top: 56%;
+  top: 56.5%;
+  left: calc(36.55% + var(--wf-gap));
 }
 
+/* First and second curves after the base, on the right. */
 .practice-step-verify {
-  top: 65.6%;
+  top: 67.8%;
+  left: calc(70.96% + var(--wf-gap));
 }
 
 .practice-step-ship {
-  top: 75.2%;
+  top: 81.8%;
+  left: calc(70.96% + var(--wf-gap));
 }
 
+/* Right of the last curve. */
 .practice-step-operate {
-  top: 84.8%;
+  top: 91.6%;
+  left: calc(41% + var(--wf-gap));
+}
+
+@media (min-width: 1300px) {
+  .practice-step-design {
+    width: auto;
+    white-space: nowrap;
+  }
+}
+
+/* "Investigate" has to fit in the thin strip left of the bulb, so on small
+   screens the labels get a touch smaller and tighter. */
+@media (max-width: 700px) {
+  .work-flow-label {
+    --wf-gap: 1.4cqw;
+    font-size: clamp(0.4rem, 2.1cqw, 0.8rem);
+    letter-spacing: 0;
+  }
 }
 
 .work-flow-description {
@@ -1645,6 +1746,7 @@ body {
   font: 790 clamp(1.25rem, 2.2vw, 2rem) / 1 var(--font-display);
   letter-spacing: -0.055em;
   white-space: nowrap;
+  overflow: visible;
 }
 
 .footer-bottom {
@@ -2047,11 +2149,6 @@ body {
 
   .work-flow-drawing {
     margin-bottom: 15rem;
-  }
-
-  .work-flow-label {
-    left: 62%;
-    font-size: 0.52rem;
   }
 
   .capability-heading {
@@ -2684,10 +2781,6 @@ body {
     align-content: start;
   }
 
-  .footer-statement {
-    font-size: clamp(1.9rem, 8.4vw, 3.6rem);
-  }
-
   .footer-list {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2749,10 +2842,6 @@ body {
 }
 
 @media (max-width: 360px) {
-  .work-flow-label {
-    left: 60%;
-  }
-
   .capability-orbit {
     width: 24%;
     height: 70rem;
@@ -2831,5 +2920,20 @@ body {
   }
   .work-flow-description {
     max-width: min(62%, 17rem);
+  }
+  /* The capability tab titles are long on phones: wrap them into balanced
+     two-line labels on either side of the centre line instead of clipping. */
+  .capability-discipline h3 {
+    white-space: normal;
+    width: max-content;
+    max-width: 41vw;
+    text-wrap: balance;
+    top: -3.7rem;
+  }
+  .capability-product h3 {
+    text-align: right;
+  }
+  .capability-ai h3 {
+    text-align: left;
   }
 }
