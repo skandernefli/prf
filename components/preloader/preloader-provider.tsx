@@ -73,6 +73,7 @@ export function PreloaderProvider({ children }: PreloaderProviderProps) {
   }, []);
 
   const handleExitStart = useCallback(() => {
+    document.documentElement.dataset.siteRevealing = "true";
     document.dispatchEvent(new CustomEvent("site:revealing"));
     setPhase((current) => (current === "loading" ? "exiting" : current));
   }, []);

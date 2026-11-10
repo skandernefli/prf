@@ -1749,8 +1749,6 @@ body {
 .footer-stage {
   display: grid;
   flex: 1;
-  grid-template-columns: 55% 41%;
-  grid-template-rows: auto auto;
   align-items: center;
   align-content: center;
   column-gap: 4%;

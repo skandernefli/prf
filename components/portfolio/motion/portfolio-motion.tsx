@@ -66,9 +66,16 @@ export function PortfolioMotion() {
 
           const heroEntrance = buildHeroScene(root);
           const playHeroEntrance = () => heroEntrance.play();
-          document.addEventListener("site:revealing", playHeroEntrance, {
-            once: true,
-          });
+          if (
+            document.documentElement.dataset.siteRevealing === "true" ||
+            !document.querySelector("[data-site-preloader]")
+          ) {
+            playHeroEntrance();
+          } else {
+            document.addEventListener("site:revealing", playHeroEntrance, {
+              once: true,
+            });
+          }
           buildWorkFlowScene(root);
           buildCapabilitiesScene(root);
           buildKabriScene(root, mobile);
