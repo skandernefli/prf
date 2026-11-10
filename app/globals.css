@@ -1769,6 +1769,7 @@ body {
   letter-spacing: -0.06em;
   line-height: 0.94;
   overflow: visible;
+  color: var(--signal);
 }
 
 .footer-statement span {
