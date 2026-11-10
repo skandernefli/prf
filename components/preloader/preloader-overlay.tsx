@@ -13,13 +13,13 @@ if (typeof window !== "undefined") {
 }
 
 type PreloaderOverlayProps = {
-  assetsReady: boolean;
+  readyToExit: boolean;
   onExitStart: () => void;
   onExited: () => void;
 };
 
 export function PreloaderOverlay({
-  assetsReady,
+  readyToExit,
   onExitStart,
   onExited,
 }: PreloaderOverlayProps) {
@@ -119,7 +119,7 @@ export function PreloaderOverlay({
   useGSAP(
     () => {
       const container = containerRef.current;
-      if (!container || !drawn) {
+      if (!container || !drawn || !readyToExit) {
         return;
       }
 
@@ -167,7 +167,7 @@ export function PreloaderOverlay({
     },
     {
       scope: containerRef,
-      dependencies: [drawn, assetsReady, onExitStart, onExited],
+      dependencies: [drawn, readyToExit, onExitStart, onExited],
     },
   );
 

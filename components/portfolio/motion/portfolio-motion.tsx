@@ -45,14 +45,12 @@ export function PortfolioMotion() {
     let started = false;
     let disposed = false;
     let fontsReady = false;
-    let siteReady = !document.querySelector("[data-site-preloader]");
-    let observer: MutationObserver | null = null;
     let mm: ReturnType<typeof gsap.matchMedia> | null = null;
     let refreshFrame: number | null = null;
     let stopThread: (() => void) | null = null;
 
     const start = () => {
-      if (started || disposed || !fontsReady || !siteReady) return;
+      if (started || disposed || !fontsReady) return;
       started = true;
 
       mm = gsap.matchMedia(root);
@@ -66,7 +64,11 @@ export function PortfolioMotion() {
 
           const mobile = Boolean(context.conditions?.mobile);
 
-          buildHeroScene(root);
+          const heroEntrance = buildHeroScene(root);
+          const playHeroEntrance = () => heroEntrance.play();
+          document.addEventListener("site:revealing", playHeroEntrance, {
+            once: true,
+          });
           buildWorkFlowScene(root);
           buildCapabilitiesScene(root);
           buildKabriScene(root, mobile);
@@ -80,11 +82,16 @@ export function PortfolioMotion() {
           // The thread is built after layout has settled, as a single
           // timeline (see thread-scroll.ts).
           refreshFrame = window.requestAnimationFrame(() => {
+            if (disposed) return;
+
             ScrollTrigger.refresh();
             stopThread = buildThreadScroll(root);
+            document.documentElement.dataset.motionReady = "true";
+            document.dispatchEvent(new CustomEvent("site:motion-ready"));
           });
 
           return () => {
+            document.removeEventListener("site:revealing", playHeroEntrance);
             stopThread?.();
             stopThread = null;
             restoreMotionWrappers();
@@ -93,28 +100,6 @@ export function PortfolioMotion() {
       );
     };
 
-    const onSiteReady = () => {
-      siteReady = true;
-      observer?.disconnect();
-      start();
-    };
-
-    document.addEventListener("site:ready", onSiteReady, { once: true });
-
-    if (!siteReady) {
-      observer = new MutationObserver(() => {
-        if (!document.querySelector("[data-site-preloader]")) {
-          siteReady = true;
-          observer?.disconnect();
-          start();
-        }
-      });
-      observer.observe(document.documentElement, {
-        childList: true,
-        subtree: true,
-      });
-    }
-
     void (document.fonts?.ready ?? Promise.resolve()).then(() => {
       fontsReady = true;
       start();
@@ -122,8 +107,7 @@ export function PortfolioMotion() {
 
     return () => {
       disposed = true;
-      document.removeEventListener("site:ready", onSiteReady);
-      observer?.disconnect();
+      delete document.documentElement.dataset.motionReady;
       if (refreshFrame !== null) window.cancelAnimationFrame(refreshFrame);
       mm?.revert();
       restoreMotionWrappers();

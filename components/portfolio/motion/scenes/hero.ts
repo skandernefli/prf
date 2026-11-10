@@ -14,7 +14,7 @@ export function buildHeroScene(root: HTMLElement) {
   // The pen (a separate ring) is not used in the hero anymore — no thread
   // draw happens here — so keep it hidden for this scene.
 
-  const timeline = gsap.timeline({ delay: 0.15 });
+  const timeline = gsap.timeline({ delay: 0.15, paused: true });
 
   // 1. Headline reveal — vertical rise behind an overflow mask, staggered,
   // decelerating, with the text resolving from a blur as it settles. Mask does

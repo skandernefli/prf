@@ -26,12 +26,31 @@ const subscribeToClient = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
+function subscribeToMotionReady(onChange: () => void) {
+  document.addEventListener("site:motion-ready", onChange);
+  return () => document.removeEventListener("site:motion-ready", onChange);
+}
+
+function getMotionReadySnapshot() {
+  return (
+    !document.querySelector(".portfolio") ||
+    document.documentElement.dataset.motionReady === "true"
+  );
+}
+
+const getMotionReadyServerSnapshot = () => false;
+
 export function PreloaderProvider({ children }: PreloaderProviderProps) {
-  const [phase, setPhase] = useState<PreloaderPhase>("ready");
+  const [phase, setPhase] = useState<PreloaderPhase>("loading");
   const mounted = useSyncExternalStore(
     subscribeToClient,
     getClientSnapshot,
     getServerSnapshot,
+  );
+  const motionReady = useSyncExternalStore(
+    subscribeToMotionReady,
+    getMotionReadySnapshot,
+    getMotionReadyServerSnapshot,
   );
   const hasExitedRef = useRef(false);
   const { ready: assetsReady } = usePageReady();
@@ -54,6 +73,7 @@ export function PreloaderProvider({ children }: PreloaderProviderProps) {
   }, []);
 
   const handleExitStart = useCallback(() => {
+    document.dispatchEvent(new CustomEvent("site:revealing"));
     setPhase((current) => (current === "loading" ? "exiting" : current));
   }, []);
 
@@ -80,15 +100,13 @@ export function PreloaderProvider({ children }: PreloaderProviderProps) {
 
   return (
     <PreloaderContext.Provider value={value}>
-      {
-        /* phase !== "ready" */ false && (
-          <PreloaderOverlay
-            assetsReady={assetsReady}
-            onExitStart={handleExitStart}
-            onExited={handleExited}
-          />
-        )
-      }
+      {phase !== "ready" && (
+        <PreloaderOverlay
+          readyToExit={assetsReady && motionReady}
+          onExitStart={handleExitStart}
+          onExited={handleExited}
+        />
+      )}
       <div
         style={{ display: "contents" }}
         inert={contentLocked ? true : undefined}
