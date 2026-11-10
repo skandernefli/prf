@@ -31,6 +31,9 @@ export function FooterSection() {
         <ContactButtons />
       </div>
       <div className="footer-bottom">
+        <a className="footer-top" href="/privacy">
+          PRIVACY &amp; COOKIES
+        </a>
         <a
           className="footer-top"
           href="#top"

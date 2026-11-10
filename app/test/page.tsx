@@ -14,6 +14,14 @@ import {
   WORK_INDEX,
 } from "@/components/portfolio/thread/route-data";
 
+export const metadata = {
+  title: "Test Route",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 const threadPaths = [
   ...HERO_BACK.map((d) => ({ d, className: "thread-path" })),
   ...HERO_FRONT.map((d) => ({ d, className: "thread-path" })),

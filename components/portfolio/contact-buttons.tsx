@@ -109,7 +109,7 @@ export function ContactButtons() {
 
   const emailValue = "skander.nefli@gmail.com";
   const linkedInValue = "https://www.linkedin.com/in/skander-nefli/";
-  const phoneValue = "+216 2106799";
+  const phoneValue = "+216 21067995";
 
   return (
     <section
@@ -252,11 +252,11 @@ export function ContactButtons() {
               </a>
               <a
                 className="footer-action"
-                href="https://wa.me/2162106799"
+                href="https://wa.me/21621067995"
                 target="_blank"
                 rel="noopener noreferrer"
                 draggable={false}
-                aria-label="Message +216 2106799 on WhatsApp"
+                aria-label="Message +216 21067995 on WhatsApp"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />

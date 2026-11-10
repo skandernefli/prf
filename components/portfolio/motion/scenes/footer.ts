@@ -15,7 +15,7 @@ export function buildFooterScene(root: HTMLElement) {
     section.querySelectorAll<HTMLElement>(".footer-statement > span"),
   );
   const statementInners = statementLines
-    .map(maskLine)
+    .map((line) => maskLine(line))
     .filter((inner): inner is HTMLElement => inner !== null);
 
   if (statement && statementInners.length > 0) {

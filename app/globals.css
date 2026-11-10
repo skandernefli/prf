@@ -63,6 +63,43 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.site-footer {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem var(--page-pad);
+  border-top: 1px solid rgb(241 238 230 / 14%);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+}
+
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: clamp(1rem, 3vw, 2.5rem);
+}
+
+.site-footer a {
+  color: var(--ivory);
+  text-decoration: none;
+  text-underline-offset: 0.25em;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+}
+
+.site-footer a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
 .portfolio {
   min-width: 0;
   color: var(--ivory);
@@ -224,6 +261,12 @@ body {
   letter-spacing: 0.1em;
 }
 
+.menu-button:focus-visible,
+.primary-navigation a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 5px;
+}
+
 .hero {
   position: relative;
   z-index: 2;
@@ -247,7 +290,7 @@ body {
   position: absolute;
   inset: -3%;
 
-  background-image: url("/hero-bg.png");
+  background-image: url("/hero-bg.avif");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center 45%;
@@ -2076,8 +2119,28 @@ body {
     display: block;
   }
 
-  .site-header nav {
+  .site-header .primary-navigation {
     display: none;
+  }
+
+  .site-header .primary-navigation[data-open="true"] {
+    position: absolute;
+    top: calc(100% - 0.25rem);
+    right: var(--page-pad);
+    display: flex;
+    min-width: 12rem;
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--muted);
+    background: var(--black);
+    color: var(--ivory);
+    font-size: 0.75rem;
+    mix-blend-mode: normal;
+  }
+
+  .site-header .primary-navigation[data-open="true"] a {
+    padding-block: 0.85rem;
   }
 
   .hero-title {
@@ -2806,6 +2869,110 @@ body {
   .footer-bottom {
     margin-top: 1rem;
     font-size: 9px;
+  }
+}
+
+.legal-page,
+.site-message {
+  min-height: 100svh;
+  padding: clamp(6rem, 12vh, 10rem) var(--page-pad);
+  background: var(--black);
+  color: var(--ivory);
+}
+
+.legal-page {
+  width: min(100%, 56rem);
+  margin-inline: auto;
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.7;
+}
+
+.legal-page h1,
+.site-message h1 {
+  max-width: 16ch;
+  margin: 0 0 1.25rem;
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.legal-page h2 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+  line-height: 1.2;
+}
+
+.legal-page section {
+  margin-top: clamp(2rem, 5vw, 3.5rem);
+}
+
+.legal-page a,
+.site-message-link {
+  color: var(--ivory);
+  text-decoration-color: var(--signal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+.legal-page a:focus-visible,
+.site-message-link:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+.legal-back {
+  display: inline-block;
+  margin-bottom: clamp(3rem, 7vw, 5rem);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.legal-eyebrow,
+.site-message-code {
+  color: var(--signal);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+}
+
+.legal-updated {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.site-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.site-message p {
+  max-width: 50ch;
+}
+
+.site-message-link {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ivory);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 500px) {
+  .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-block: 1.25rem;
+  }
+
+  .site-footer nav {
+    justify-content: flex-start;
+    gap: 1.25rem;
   }
 }
 

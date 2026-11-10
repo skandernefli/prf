@@ -202,23 +202,6 @@ export function assertTransformSafe(target: Element) {
 
 type MotionTarget = Element | Element[];
 
-const TRANSFORM_PROPERTIES = new Set([
-  "x",
-  "y",
-  "scale",
-  "scaleX",
-  "scaleY",
-  "rotate",
-  "rotation",
-  "yPercent",
-]);
-
-function hasTransformProperties(vars: gsap.TweenVars) {
-  return Object.keys(vars).some((property) =>
-    TRANSFORM_PROPERTIES.has(property),
-  );
-}
-
 export function addFromTo(
   timeline: gsap.core.Timeline,
   target: MotionTarget,

@@ -40,7 +40,7 @@ export function buildWhyMeScene(root: HTMLElement) {
     section.querySelectorAll<HTMLElement>(".why-me-title > span"),
   );
   const titleInners = titleLines
-    .map(maskLine)
+    .map((line) => maskLine(line))
     .filter((inner): inner is HTMLElement => inner !== null);
 
   if (title && titleInners.length > 0) {

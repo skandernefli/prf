@@ -21,10 +21,10 @@ const getServerSnapshot = () => false;
 const PAGE_SEGMENTS = segmentsOn("page");
 
 const bind =
-  <T extends Element>(store: Map<string, T>, id: string) =>
+  <T extends Element>(store: { current: Map<string, T> }, id: string) =>
   (element: T | null) => {
-    if (element) store.set(id, element);
-    else store.delete(id);
+    if (element) store.current.set(id, element);
+    else store.current.delete(id);
   };
 
 export function ThreadLayer() {
@@ -146,7 +146,7 @@ export function ThreadLayer() {
   const renderPath = (segment: SegmentDef) => (
     <path
       key={segment.id}
-      ref={bind(pathRefs.current, segment.id)}
+      ref={bind(pathRefs, segment.id)}
       className={segment.className}
       d={segment.initialD ?? ""}
       clipPath={segment.clipId ? `url(#${segment.clipId})` : undefined}
@@ -171,13 +171,13 @@ export function ThreadLayer() {
         </clipPath>
       </defs>
 
-      {PAGE_SEGMENTS.map(renderPath)}
+      {PAGE_SEGMENTS.map((segment) => renderPath(segment))}
 
       <g>
         {MARKER_DEFS.map((marker) => (
           <g
             key={marker.id}
-            ref={bind(markerRefs.current, marker.id)}
+            ref={bind(markerRefs, marker.id)}
             data-thread-marker={marker.id}
             data-thread-section={marker.section}
             data-thread-on={marker.segment}

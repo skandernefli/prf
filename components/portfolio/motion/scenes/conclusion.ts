@@ -15,7 +15,7 @@ export function buildConclusionScene(root: HTMLElement) {
     section.querySelectorAll<HTMLElement>(".conclusion-heading > span"),
   );
   const headingInners = headingLines
-    .map(maskLine)
+    .map((line) => maskLine(line))
     .filter((inner): inner is HTMLElement => inner !== null);
 
   if (heading && headingInners.length > 0) {
