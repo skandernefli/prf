@@ -1456,7 +1456,7 @@ function buildAbout(
 ): AboutModel {
   const section = getRect(layout, "conclusion.section");
   const profile = getRect(layout, "conclusion.profile");
-  const key = [rectKey(section), rectKey(profile), layout.width, "v2"].join(
+  const key = [rectKey(section), rectKey(profile), layout.width, "v3"].join(
     "|",
   );
   if (previous && previous.key === key) return previous;
@@ -1483,32 +1483,55 @@ function buildAbout(
   // profile and run the thread down the margin to reach it.
   const sideBySide = free >= 200 && rawScale >= 0.42;
   if (!sideBySide && profile.width > section.width * 0.7) {
-    // Phones: the profile text fills the width. Run the thread down the left
-    // margin (clear of the text), then draw the fingerprint at full width,
-    // centred, below the profile.
+    // Phones: the profile text fills the width, so no vertical line at the
+    // fingerprint axis can reach the print without crossing the copy. The
+    // thread therefore starts on the right-hand rail (the same rail the
+    // Why Me section uses, so the hand-over stays natural), runs down the
+    // open margin past the whole profile, and only below the last line of
+    // text swings in to the centred fingerprint with one long S-curve.
     const rail = clamp(layout.pagePad * 0.45, 6, 14);
-    const top = Math.max(section.top + 1, profile.bottom + 24);
-    // Production shows the print at under half the screen width on phones.
-    const s = clamp(
-      Math.min(
-        0.46,
-        (layout.width - 2 * rail) / reference.width,
-        (section.bottom - top - 16) / reference.height,
-      ),
-      0.3,
-      0.46,
-    );
+    const railX = layout.width - rail;
     const axisOffset = 869.25 - reference.left;
-    const bboxLeft = (layout.width - reference.width * s) / 2;
-    const axisX = bboxLeft + axisOffset * s;
+    // Production shows the print at under half the screen width on phones.
+    const fit = (top: number) =>
+      clamp(
+        Math.min(
+          0.46,
+          (layout.width - 2 * rail) / reference.width,
+          (section.bottom - top - 16) / reference.height,
+        ),
+        0.3,
+        0.46,
+      );
+    const axisFor = (s: number) =>
+      (layout.width - reference.width * s) / 2 + axisOffset * s;
+
+    // The S-curve needs some height below the text to stay clear of it: the
+    // wider the sideways run, the more room it gets.
+    const probeTop = Math.max(section.top + 1, profile.bottom + 24);
+    const drop = clamp(0.3 * Math.abs(railX - axisFor(fit(probeTop))), 56, 96);
+    const top = Math.max(section.top + 1, profile.bottom + drop);
+    const s = fit(top);
+    const axisX = axisFor(s);
+
     const mapped = transformPath(CONCLUSION_FINGERPRINT, (value) => ({
       x: axisX + (value.x - 869.25) * s,
       y: top + (value.y - reference.top) * s,
     }));
     const tail = mapped.replace(/^M\s+\S+\s+\S+\s*/, "");
-    const lead = `M ${format(axisX)} ${format(section.top)} L ${format(
+
+    // Down the rail until the last line of text is behind us...
+    const exitY = Math.max(section.top + 1, profile.bottom);
+    let lead = `M ${format(railX)} ${format(section.top)} `;
+    if (exitY > section.top + 0.5) {
+      lead += `L ${format(railX)} ${format(exitY)} `;
+    }
+    // ...then a vertical-to-vertical S into the fingerprint's start, so both
+    // joins stay free of corners.
+    const dy = top - exitY;
+    lead += `C ${format(railX)} ${format(exitY + 0.55 * dy)} ${format(
       axisX,
-    )} ${format(top)} `;
+    )} ${format(top - 0.55 * dy)} ${format(axisX)} ${format(top)} `;
     return { ...routeFromPath(key, lead + tail, 6), rect: section };
   }
 
