@@ -40,6 +40,7 @@ export function LegalLexy() {
         <ProjectTitle
           id="lega-lexy-title"
           className="case-study-title credit-title"
+          href="/legalexy"
           threadAnchor="case.study.legalexy.title"
           threadLabel="LEGALEXY · title"
         >
@@ -121,7 +122,7 @@ export function LegalLexy() {
           </div>
         </section>
       </div>
-      <ProjectLink />{" "}
+      <ProjectLink href="/legalexy" />{" "}
     </article>
   );
 }

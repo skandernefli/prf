@@ -1,0 +1,1467 @@
+/* ==========================================================================
+   Kabri case study — context section
+   Phone  : max-width 700px
+   Tablet : 701px – 1100px
+   Desktop: min-width 1101px
+   ========================================================================== */
+
+.context {
+  --k-bg: var(--ivory);
+  --k-ink: var(--ink);
+  --k-red: var(--signal);
+  --k-muted: var(--muted);
+  --k-mono: var(--font-mono);
+  --k-sans: var(--font-display);
+  position: relative;
+  padding-top: clamp(4rem, 8vw, 7rem);
+  padding-bottom: clamp(6rem, 12vw, 10rem);
+  overflow: clip;
+  background: var(--k-bg);
+  color: var(--k-ink);
+  font-family: var(--k-sans);
+}
+
+.flow {
+  position: relative;
+  z-index: 0;
+}
+
+.flow > :global(section),
+.flow > :global(div:not([aria-hidden="true"])) {
+  position: relative;
+  z-index: 2;
+}
+
+/* --------------------------------------------------------------------------
+   Thread
+   -------------------------------------------------------------------------- */
+
+.threadPaths,
+.threadPenLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.threadPaths {
+  z-index: 1;
+}
+
+.threadPenLayer {
+  z-index: 10;
+}
+
+.threadStroke {
+  fill: none;
+  stroke: var(--k-red);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.threadPenGroup {
+  opacity: 0;
+}
+
+.threadPenRing {
+  fill: none;
+  stroke: var(--k-red);
+  stroke-width: 1.8px;
+  vector-effect: non-scaling-stroke;
+}
+
+.threadPenCore {
+  fill: var(--k-red);
+}
+
+/* --------------------------------------------------------------------------
+   Anchors
+   -------------------------------------------------------------------------- */
+
+.anchor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.anchorLeft {
+  left: -1px;
+  top: 50%;
+}
+
+.anchorRight {
+  right: -1px;
+  top: 50%;
+}
+
+.startAnchor {
+  left: 0;
+  top: 1.5rem;
+}
+
+.introArc {
+  left: 52%;
+  top: 0;
+}
+
+.deliveryArc {
+  left: 46%;
+  top: 16%;
+}
+
+.factoryIn {
+  left: 20%;
+  top: 0;
+}
+
+.factoryOut {
+  right: 0;
+  top: 56%;
+}
+
+.truckIn {
+  right: 8%;
+  top: 10%;
+}
+
+.truckOut {
+  right: 8%;
+  bottom: 6%;
+}
+
+.beforeRail {
+  right: 2%;
+  top: 22%;
+}
+
+.bondRail {
+  left: 30%;
+  top: 18%;
+}
+
+.effectIn {
+  left: 31%;
+  top: 8%;
+}
+
+.effectMid {
+  left: 44%;
+  top: 58%;
+}
+
+.effectEnd {
+  right: 8%;
+  bottom: -3rem;
+}
+
+/* --------------------------------------------------------------------------
+   Message bubbles
+   -------------------------------------------------------------------------- */
+
+.bubble {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.bubbleIn {
+  align-self: flex-start;
+}
+
+.bubbleOut {
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.bubbleLabel {
+  display: block;
+  margin-bottom: 0.45rem;
+  font: 400 0.68rem/1.2 var(--k-mono);
+  text-align: left;
+}
+
+.bubbleBody {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.95rem 1.25rem;
+  border: 1px solid var(--k-ink);
+  border-radius: 0.55rem;
+  background: var(--k-bg);
+  color: var(--k-ink);
+  font: 400 clamp(1rem, 1.35vw, 1.15rem) / 1.45 var(--k-sans);
+}
+
+.bubbleDark .bubbleBody {
+  background: var(--k-ink);
+  color: var(--k-bg);
+}
+
+.bubbleText {
+  margin: 0;
+}
+
+.bubbleTail {
+  position: absolute;
+  bottom: -9px;
+  width: 16px;
+  height: 10px;
+  overflow: visible;
+}
+
+.bubbleIn .bubbleTail {
+  left: 1.25rem;
+}
+
+.bubbleOut .bubbleTail {
+  right: 1.25rem;
+}
+
+.bubbleTailFill {
+  fill: var(--k-bg);
+}
+
+.bubbleDark .bubbleTailFill {
+  fill: var(--k-ink);
+}
+
+.bubbleTailStroke {
+  fill: none;
+  stroke: var(--k-ink);
+  stroke-width: 1px;
+}
+
+.bubbleDark .bubbleTailStroke {
+  stroke: none;
+}
+
+/* --------------------------------------------------------------------------
+   Browser frame
+   -------------------------------------------------------------------------- */
+
+.browser {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  border: 1px solid var(--k-ink);
+  background: var(--k-bg);
+}
+
+.browserChrome {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 2.6rem;
+  padding: 0 0.9rem;
+  border-bottom: 1px solid rgb(0 0 0 / 45%);
+  font-family: var(--k-mono);
+}
+
+.chromeLeft,
+.chromeRight {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.9rem;
+}
+
+.chromeRight {
+  justify-content: flex-end;
+}
+
+.chromeIcon {
+  line-height: 1;
+}
+
+.chromeDisabled {
+  opacity: 0.25;
+}
+
+.dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgb(45 48 57 / 16%);
+}
+
+.sidebarIcon {
+  width: 14px;
+  height: 12px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+
+.sidebarIcon::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 100%;
+  margin-left: 4px;
+  background: currentColor;
+}
+
+.lockIcon {
+  width: 12px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.address {
+  padding: 0 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.browserBody {
+  padding: 1.1rem 1.1rem 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Quote document
+   -------------------------------------------------------------------------- */
+
+.quoteDoc {
+  position: relative;
+  z-index: 2;
+  background: #f4f1e9;
+  border: 1px solid rgb(17 16 15 / 14%);
+  padding: 6% 7%;
+  color: var(--k-ink);
+  font-family: var(--k-mono);
+  transform-origin: center;
+}
+
+.quoteTop {
+  display: flex;
+  justify-content: space-between;
+}
+
+.quoteBrand {
+  margin: 0;
+  font: 400 1rem/1.2 var(--k-sans);
+  letter-spacing: 0.04em;
+}
+
+.quoteTagline {
+  margin: 0.25rem 0 0;
+  font-size: 0.55rem;
+  color: var(--k-muted);
+}
+
+.quoteCategories {
+  margin: 0;
+  font-size: 0.55rem;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.quoteTitle {
+  margin: 1.2rem 0 0.6rem;
+  font: 800 clamp(1.6rem, 2.8vw, 2.8rem) / 0.9 var(--k-sans);
+  letter-spacing: -0.05em;
+}
+
+.quoteRule {
+  border-top: 1px solid rgb(17 16 15 / 25%);
+}
+
+.quoteIdRow {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 1rem;
+  padding: 0.8rem 0;
+}
+
+.quoteIdField {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.55rem;
+}
+
+.quoteIdField strong {
+  font: 500 1rem/1.2 var(--k-sans);
+}
+
+.quoteSkeleton {
+  display: grid;
+  align-content: center;
+  gap: 0.28rem;
+  padding-top: 0.5rem;
+}
+
+.quoteSkeleton i,
+.quoteTable i,
+.quoteSignatureBars i {
+  display: block;
+  height: 0.42rem;
+  background: #bdb9af;
+}
+
+.quoteTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid rgb(17 16 15 / 40%);
+  font-size: 0.55rem;
+}
+
+.quoteTable th {
+  padding: 0.35rem 0.45rem;
+  border: 1px solid rgb(17 16 15 / 30%);
+  text-align: left;
+  font-weight: 400;
+}
+
+.quoteTable td {
+  padding: 0.45rem;
+  border: 1px solid rgb(17 16 15 / 20%);
+  vertical-align: top;
+}
+
+.quoteTable i + i {
+  margin-top: 0.25rem;
+}
+
+.quoteBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.8rem;
+}
+
+.quoteBottom span {
+  display: block;
+  font-size: 0.55rem;
+}
+
+.quoteBottom strong {
+  font: 500 1rem/1.2 var(--k-sans);
+}
+
+.quoteTotal {
+  text-align: right;
+}
+
+.quoteTotal strong {
+  font-size: 1.15rem;
+}
+
+.quoteSignatureBars {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 2.5rem;
+  width: 55%;
+}
+
+.quoteAnchorIn {
+  top: 14%;
+}
+
+.quoteAnchorOut {
+  top: 54%;
+}
+
+/* --------------------------------------------------------------------------
+   System chip
+   -------------------------------------------------------------------------- */
+
+.systemChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.8rem 1.1rem;
+  border-radius: 0.4rem;
+  background: var(--k-ink);
+  color: var(--k-bg);
+  font: 400 0.85rem/1 var(--k-mono);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Overview
+   -------------------------------------------------------------------------- */
+
+.overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 5vw, 5rem);
+  padding-bottom: clamp(6rem, 10vw, 9rem);
+}
+
+.sheds {
+  position: relative;
+  height: clamp(20rem, 32vw, 30rem);
+}
+
+.shedPrimary {
+  position: absolute;
+  left: 0;
+  top: 12%;
+  width: 52%;
+  height: auto;
+}
+
+.shedEcho {
+  position: absolute;
+  left: 32%;
+  top: 0;
+  width: 64%;
+  height: auto;
+  opacity: 0.45;
+  mix-blend-mode: multiply;
+}
+
+.overviewTitle {
+  margin: 0 0 clamp(2rem, 4vw, 3rem);
+  font: 800 clamp(4.5rem, 9vw, 9.5rem) / 0.82 var(--k-sans);
+  letter-spacing: -0.075em;
+}
+
+.overviewCopy p {
+  max-width: 44rem;
+  margin: 0;
+  font: 400 clamp(1.05rem, 1.55vw, 1.25rem) / 1.75 var(--k-sans);
+}
+
+.overviewCopy p + p {
+  margin-top: 1.1em;
+}
+
+/* --------------------------------------------------------------------------
+   What's happening
+   -------------------------------------------------------------------------- */
+
+.intro {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(2rem, 5vw, 5rem);
+  min-height: 105vh;
+  padding-top: clamp(5rem, 8vw, 8rem);
+  padding-bottom: clamp(5rem, 8vw, 8rem);
+}
+
+.introTitle {
+  margin: 0;
+  font: 800 clamp(5rem, 13vw, 13rem) / 0.8 var(--k-sans);
+  letter-spacing: -0.08em;
+}
+
+.introTitle span {
+  display: block;
+}
+
+.introBody {
+  width: min(34rem, 100%);
+  margin: clamp(2.5rem, 4vw, 4.5rem) 0 0;
+  font: 400 clamp(1rem, 1.4vw, 1.15rem) / 1.75 var(--k-sans);
+}
+
+.bubbleStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(2.5rem, 4vw, 4rem);
+  padding-top: clamp(4rem, 7vw, 7rem);
+}
+
+/* --------------------------------------------------------------------------
+   Factory + truck
+   -------------------------------------------------------------------------- */
+
+.delivery {
+  position: relative;
+  min-height: clamp(32rem, 52vw, 46rem);
+  margin-top: clamp(2rem, 4vw, 4rem);
+}
+
+.factoryFigure {
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 36%;
+  margin: 0;
+  background: var(--k-bg);
+  z-index: 2;
+}
+
+.truckFigure {
+  position: absolute;
+  right: 3%;
+  bottom: 4%;
+  width: 46%;
+  margin: 0;
+  background: var(--k-bg);
+  z-index: 2;
+}
+
+.factoryFigure img,
+.truckFigure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Before reaching out
+   -------------------------------------------------------------------------- */
+
+.before {
+  padding-top: clamp(6rem, 10vw, 10rem);
+  padding-bottom: clamp(5rem, 8vw, 7rem);
+}
+
+.beforeTitle {
+  margin: 0 0 clamp(2.5rem, 4vw, 3.5rem);
+  font: 800 clamp(4rem, 10.6vw, 10.5rem) / 0.84 var(--k-sans);
+  letter-spacing: -0.075em;
+  white-space: nowrap;
+}
+
+.beforeBody {
+  display: grid;
+  grid-template-columns: 0.58fr 0.42fr;
+  gap: clamp(2rem, 4vw, 4rem);
+}
+
+.story {
+  max-width: 48rem;
+}
+
+.story p {
+  margin: 0 0 1.15em;
+  font: 400 clamp(1rem, 1.4vw, 1.15rem) / 1.75 var(--k-sans);
+}
+
+.requestNote {
+  margin: 0;
+  font: 400 0.75rem/1.6 var(--k-mono);
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   Browser A + annotations
+   -------------------------------------------------------------------------- */
+
+.browserBlock {
+  position: relative;
+  margin-top: clamp(6rem, 10vw, 10rem);
+}
+
+.browserA {
+  width: 62%;
+  margin-left: 30%;
+}
+
+.enterNote {
+  position: absolute;
+  right: 0;
+  top: -3.5rem;
+  margin: 0;
+  font: 400 0.75rem/1.6 var(--k-mono);
+  text-align: right;
+}
+
+.callouts {
+  position: absolute;
+  left: 0;
+  top: 22%;
+  width: 24%;
+  display: grid;
+  gap: 3.5rem;
+}
+
+.callouts p {
+  margin: 0;
+  font: 400 0.78rem/1.65 var(--k-mono);
+}
+
+.calloutConnectors {
+  position: absolute;
+  left: 22%;
+  top: 8%;
+  width: 28%;
+  height: 74%;
+  fill: none;
+  stroke: var(--k-red);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formTitle {
+  margin: 0 0 0.55rem;
+  font: 400 0.95rem/1.2 var(--k-sans);
+}
+
+.customerFields {
+  display: grid;
+  grid-template-columns: 0.8fr 0.8fr 1.4fr 1fr;
+  gap: 1.1rem;
+}
+
+.paperField {
+  border-bottom: 1px solid rgb(17 16 15 / 28%);
+  padding-bottom: 0.2rem;
+  font: 400 0.9rem/1.3 var(--k-sans);
+}
+
+.trace {
+  outline: 1px solid var(--k-red);
+  outline-offset: 4px;
+}
+
+.quoteGrid {
+  display: grid;
+  grid-template-columns: 0.95fr 2.05fr;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+
+.productField .formTitle + .formTitle {
+  margin-top: 0.9rem;
+}
+
+.componentsTable {
+  font: 400 0.8rem/1.35 var(--k-sans);
+}
+
+.tableHead,
+.tableRow {
+  display: grid;
+  grid-template-columns: 2.1fr 0.75fr 0.9fr;
+  gap: 0.8rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgb(17 16 15 / 28%);
+}
+
+.tableHead {
+  font-size: 0.78rem;
+}
+
+/* --------------------------------------------------------------------------
+   Quote 1 + reply bubbles
+   -------------------------------------------------------------------------- */
+
+.quoteScene {
+  position: relative;
+  margin-top: clamp(7rem, 10vw, 10rem);
+  min-height: clamp(30rem, 44vw, 40rem);
+}
+
+.quote1 {
+  width: 38%;
+  margin-left: 11%;
+  transform: rotate(-7deg);
+}
+
+.exportNote {
+  position: absolute;
+  left: 55%;
+  top: -2.5rem;
+  margin: 0;
+  font: 400 0.75rem/1.6 var(--k-mono);
+}
+
+.readyBubble {
+  position: absolute;
+  right: 3%;
+  top: 8%;
+  width: 34%;
+}
+
+.shedBubble {
+  position: absolute;
+  right: 12%;
+  top: 34%;
+  width: 24%;
+}
+
+.updateNote {
+  position: absolute;
+  right: 32%;
+  top: 56%;
+  margin: 0;
+  font: 400 0.75rem/1.6 var(--k-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Browser A again + quote 2
+   -------------------------------------------------------------------------- */
+
+.updateScene {
+  position: relative;
+  margin-top: clamp(7rem, 12vw, 13rem);
+}
+
+.browser2 {
+  width: 62%;
+  margin-left: 3%;
+}
+
+.exportNote2 {
+  position: absolute;
+  left: 67%;
+  top: 5%;
+  margin: 0;
+  font: 400 0.75rem/1.6 var(--k-mono);
+}
+
+.quote2 {
+  position: absolute;
+  right: 0;
+  top: 18%;
+  width: 39%;
+  transform: rotate(-5deg);
+}
+
+/* --------------------------------------------------------------------------
+   Wallet + bond + browser B
+   -------------------------------------------------------------------------- */
+
+.bondScene {
+  position: relative;
+  margin-top: clamp(4rem, 7vw, 8rem);
+}
+
+.wallet {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 34%;
+  min-width: 22rem;
+  margin-left: 8%;
+  padding: 1rem 1.2rem;
+  border-radius: 0.65rem;
+  background: var(--k-ink);
+  color: var(--k-bg);
+  font-family: var(--k-mono);
+}
+
+.walletIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.walletLabel {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.walletAmount {
+  margin-left: auto;
+  font-size: 1rem;
+  text-align: right;
+}
+
+.walletAmount small {
+  display: block;
+  font-size: 0.68rem;
+  opacity: 0.7;
+}
+
+.walletApproved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.58rem;
+}
+
+.walletApproved i {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-style: normal;
+}
+
+.bondNote {
+  position: absolute;
+  left: 33%;
+  top: 1rem;
+  width: 28%;
+  margin: 0;
+  font: 400 0.78rem/1.7 var(--k-mono);
+}
+
+.browser3 {
+  width: 68%;
+  margin-left: 1%;
+  margin-top: clamp(8rem, 14vw, 14rem);
+}
+
+.exportFactoryNote {
+  position: absolute;
+  right: 0;
+  bottom: 14%;
+  margin: 0;
+  font: 400 0.75rem/1.6 var(--k-mono);
+}
+
+.orderGrid {
+  display: grid;
+  grid-template-columns: 0.5fr 1.5fr;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.orderTable .tableHead,
+.orderTable .tableRow {
+  grid-template-columns: 2.3fr 0.7fr;
+}
+
+/* --------------------------------------------------------------------------
+   Effect
+   -------------------------------------------------------------------------- */
+
+.effect {
+  padding-top: clamp(7rem, 12vw, 12rem);
+  padding-bottom: clamp(6rem, 10vw, 10rem);
+}
+
+.effectTop {
+  display: grid;
+  grid-template-columns: 0.42fr 0.58fr;
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+
+.effectTitle {
+  margin: 0;
+  font: 800 clamp(4rem, 10vw, 10rem) / 0.84 var(--k-sans);
+  letter-spacing: -0.075em;
+}
+
+.systemsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 3rem;
+}
+
+.systemLink {
+  position: relative;
+  flex: 0 0 clamp(3rem, 5vw, 5.5rem);
+  height: 1px;
+  border-top: 1px dashed var(--k-red);
+}
+
+.systemLink::after {
+  content: "×";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 0.25rem;
+  background: var(--k-bg);
+  color: var(--k-red);
+  font: 400 0.8rem/1 var(--k-mono);
+}
+
+.effectList {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.4rem);
+  width: 86%;
+  margin: clamp(4rem, 8vw, 8rem) 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.effectList li {
+  margin-left: calc(var(--i) * clamp(0.75rem, 4vw, 5.4rem));
+  font: 400 clamp(0.8rem, 1.05vw, 1rem) / 1.5 var(--k-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Solution
+   -------------------------------------------------------------------------- */
+
+.solution {
+  padding-top: clamp(4rem, 8vw, 8rem);
+  padding-bottom: clamp(6rem, 10vw, 10rem);
+}
+
+.solutionTitle {
+  margin: 0;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--k-ink);
+  font: 800 clamp(4rem, 9vw, 9rem) / 0.84 var(--k-sans);
+  letter-spacing: -0.075em;
+}
+
+.solutionSubtitle {
+  margin: 2.5rem 0 1.5rem;
+  font: 500 clamp(1.6rem, 2.6vw, 2.4rem) / 1.15 var(--k-sans);
+  letter-spacing: -0.03em;
+}
+
+.solution p {
+  max-width: 72rem;
+  margin: 0 0 1.1em;
+  font: 400 clamp(1rem, 1.3vw, 1.1rem) / 1.75 var(--k-sans);
+}
+
+.solutionDiagram {
+  position: relative;
+  height: clamp(12rem, 20vw, 16rem);
+  margin-top: 4rem;
+}
+
+.solutionConnectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--k-red);
+  stroke-width: 2;
+  stroke-dasharray: 4 6;
+  stroke-linecap: round;
+}
+
+.solutionChipA,
+.solutionChipB,
+.solutionChipC,
+.solutionChipAll {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.solutionChipA {
+  left: 16.5%;
+  top: 0;
+}
+
+.solutionChipB {
+  left: 50%;
+  top: 0;
+}
+
+.solutionChipC {
+  left: 83.5%;
+  top: 0;
+}
+
+.solutionChipAll {
+  left: 50%;
+  bottom: 0;
+}
+
+/* ==========================================================================
+   Tablet — 701px to 1100px
+   ========================================================================== */
+
+@media (max-width: 1100px) {
+  .overview {
+    grid-template-columns: 1fr;
+  }
+
+  .sheds {
+    height: 22rem;
+  }
+
+  .overviewTitle {
+    font-size: 13vw;
+  }
+
+  .intro {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .introTitle {
+    font-size: 15vw;
+  }
+
+  .bubbleStack {
+    margin-top: 4rem;
+    padding-top: 0;
+  }
+
+  .bubbleStack .bubble {
+    max-width: 75%;
+  }
+
+  .delivery {
+    min-height: 34rem;
+  }
+
+  .factoryFigure {
+    left: 1%;
+    width: 48%;
+  }
+
+  .truckFigure {
+    right: 0;
+    width: 58%;
+  }
+
+  .beforeTitle {
+    font-size: 12.5vw;
+    white-space: normal;
+  }
+
+  .beforeBody {
+    grid-template-columns: 1fr;
+  }
+
+  .requestNote {
+    text-align: left;
+  }
+
+  .browserBlock {
+    margin-top: 4rem;
+  }
+
+  .browserA {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .callouts {
+    position: static;
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .calloutConnectors {
+    display: none;
+  }
+
+  .enterNote {
+    position: static;
+    text-align: left;
+    margin-bottom: 1rem;
+  }
+
+  .quoteScene {
+    min-height: 0;
+  }
+
+  .quote1 {
+    width: 56%;
+    margin-left: 4%;
+  }
+
+  .readyBubble {
+    width: 38%;
+  }
+
+  .shedBubble {
+    width: 28%;
+  }
+
+  .browser2 {
+    width: 92%;
+    margin-left: 0;
+  }
+
+  .quote2 {
+    position: static;
+    width: 56%;
+    margin: 3rem 0 0 auto;
+  }
+
+  .wallet {
+    width: 48%;
+    min-width: 0;
+  }
+
+  .bondNote {
+    position: static;
+    width: 100%;
+    margin: 2rem 0;
+  }
+
+  .browser3 {
+    width: 92%;
+    margin-left: 0;
+    margin-top: 4rem;
+  }
+
+  .exportFactoryNote {
+    position: static;
+    margin-top: 1rem;
+    text-align: right;
+  }
+
+  .effectTop {
+    grid-template-columns: 1fr;
+  }
+
+  .systemsRow {
+    margin-top: 1.5rem;
+  }
+
+  .effectList {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   Phone — up to 700px
+   ========================================================================== */
+
+@media (max-width: 700px) {
+  .browserChrome {
+    min-height: 2.1rem;
+    padding: 0 0.6rem;
+  }
+
+  .chromeLeft .sidebarIcon,
+  .chromeLeft .chromeIcon,
+  .lockIcon,
+  .chromeRight .chromeIcon:not(:last-child) {
+    display: none;
+  }
+
+  .address {
+    font-size: 0.6rem;
+    padding: 0 0.4rem;
+  }
+
+  .browserBody {
+    padding: 0.8rem 0.7rem 1rem;
+  }
+
+  .sheds {
+    height: 11rem;
+  }
+
+  .shedPrimary {
+    width: 70%;
+  }
+
+  .shedEcho {
+    width: 75%;
+    left: 25%;
+  }
+
+  .overviewTitle {
+    font-size: 22vw;
+  }
+
+  .overviewCopy p {
+    font-size: 1rem;
+  }
+
+  .introTitle {
+    font-size: 21vw;
+  }
+
+  .introBody {
+    font-size: 1rem;
+  }
+
+  .bubbleStack {
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .bubbleStack .bubble {
+    max-width: 92%;
+  }
+
+  .bubbleStack .bubbleOut {
+    max-width: 76%;
+  }
+
+  .startAnchor {
+    top: 0.75rem;
+  }
+
+  .delivery {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-height: 0;
+  }
+
+  .factoryFigure,
+  .truckFigure {
+    position: static;
+    width: 88%;
+  }
+
+  .truckFigure {
+    width: 104%;
+    margin-left: -2%;
+  }
+
+  .beforeTitle {
+    font-size: 17vw;
+  }
+
+  .story p {
+    font-size: 0.95rem;
+  }
+
+  .browserA {
+    width: 100%;
+  }
+
+  .callouts {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .callouts p {
+    border-left: 1px dashed var(--k-red);
+    padding-left: 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .customerFields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quoteGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tableHead,
+  .tableRow {
+    grid-template-columns: 1.6fr 0.7fr 0.75fr;
+    font-size: 0.62rem;
+  }
+
+  .orderTable .tableHead,
+  .orderTable .tableRow {
+    grid-template-columns: 1.7fr 0.7fr;
+  }
+
+  .quoteScene {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 5rem;
+  }
+
+  .quote1 {
+    width: 100%;
+    margin: 0;
+    transform: rotate(-3deg);
+  }
+
+  .readyBubble,
+  .shedBubble {
+    position: static;
+    width: 100%;
+  }
+
+  .exportNote,
+  .updateNote {
+    position: static;
+  }
+
+  .browser2 {
+    width: 100%;
+  }
+
+  .quote2 {
+    width: 100%;
+    margin: 3rem 0 0;
+    transform: rotate(-3deg);
+  }
+
+  .exportNote2 {
+    position: static;
+    margin-top: 1rem;
+  }
+
+  .wallet {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+
+  .walletAmount {
+    margin-left: 0;
+  }
+
+  .browser3 {
+    width: 100%;
+    margin: 3rem 0 0;
+  }
+
+  .effectTitle {
+    font-size: 21vw;
+  }
+
+  .systemsRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .systemLink {
+    width: 1px;
+    height: 1.5rem;
+    margin-left: 1.5rem;
+    border-top: 0;
+    border-left: 1px dashed var(--k-red);
+    flex: none;
+  }
+
+  .systemLink::after {
+    left: 0;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .effectList {
+    gap: 1.2rem;
+  }
+
+  .effectList li {
+    font-size: 0.72rem;
+    margin-left: calc(var(--i) * 0.65rem);
+  }
+
+  .solutionTitle {
+    font-size: 21vw;
+  }
+
+  .solutionSubtitle {
+    font-size: 1.35rem;
+  }
+
+  .solution p {
+    font-size: 0.95rem;
+  }
+
+  .solutionDiagram {
+    height: 12rem;
+  }
+
+  .solutionChipA {
+    left: 12%;
+  }
+
+  .solutionChipC {
+    left: 88%;
+  }
+
+  .solution .systemChip {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.55rem;
+  }
+}

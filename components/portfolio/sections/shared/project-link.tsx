@@ -1,7 +1,9 @@
-export function ProjectLink() {
+import { Link } from "next-view-transitions";
+
+export function ProjectLink({ href }: { href: string }) {
   return (
-    <span className="case-study-link" aria-label="Explore project">
+    <Link className="case-study-link" href={href} aria-label="Explore project">
       EXPLORE PROJECT <span aria-hidden="true">↗</span>
-    </span>
+    </Link>
   );
 }

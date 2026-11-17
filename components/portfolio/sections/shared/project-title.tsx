@@ -1,12 +1,16 @@
+import { Link } from "next-view-transitions";
+
 export function ProjectTitle({
   children,
   id,
+  href,
   className = "case-study-title",
   threadAnchor,
   threadLabel,
 }: {
   children: string;
   id: string;
+  href: string;
   className?: string;
   threadAnchor?: string;
   threadLabel?: string;
@@ -18,7 +22,9 @@ export function ProjectTitle({
       data-thread-anchor={threadAnchor}
       data-thread-label={threadLabel}
     >
-      <span>{children}</span>
+      <span>
+        <Link href={href}>{children}</Link>
+      </span>
     </h3>
   );
 }

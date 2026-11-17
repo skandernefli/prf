@@ -149,6 +149,7 @@ export function ShopOps() {
         </figure>
         <ProjectTitle
           id="shop-ops-title"
+          href="/shopops"
           threadAnchor="case.study.shopops.title"
           threadLabel="SHOPOPS · title"
         >
@@ -227,7 +228,7 @@ export function ShopOps() {
           threadLabel="SHOPOPS · dashboard"
         />
       </div>
-      <ProjectLink />{" "}
+      <ProjectLink href="/shopops" />{" "}
     </article>
   );
 }

@@ -174,6 +174,7 @@ export function Kabri() {
         </figure>{" "}
         <ProjectTitle
           id="kabri-title"
+          href="/kabri"
           threadAnchor="case.study.kabri.title"
           threadLabel="KABRI · title"
         >
@@ -274,7 +275,7 @@ export function Kabri() {
           />
         </figure>{" "}
       </div>
-      <ProjectLink />
+      <ProjectLink href="/kabri" />
     </article>
   );
 }

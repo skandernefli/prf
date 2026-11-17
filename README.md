@@ -10,6 +10,14 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
+## Page transitions
+
+The shared `ViewTransitions` provider in the root layout enables the
+slide-over transition between routes. Use `Link` from `next-view-transitions`
+for route navigation; it also applies the same transition to browser
+back/forward navigation. The transition styles and reduced-motion behavior
+are defined in `app/globals.css`.
+
 Run the production checks before deployment:
 
 ```bash

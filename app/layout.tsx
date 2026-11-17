@@ -3,6 +3,7 @@ import { Archivo, Geist, Geist_Mono, IBM_Plex_Mono } from "next/font/google";
 
 import { PreloaderProvider } from "@/components/preloader/preloader-provider";
 import { SmoothScroll } from "@/components/smooth-scroll/smooth-scroll";
+import { ViewTransitions } from "next-view-transitions";
 
 import CustomCursor from "@/components/custom-cursor";
 import { SiteFooter } from "@/components/site-footer";
@@ -88,13 +89,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             }
           `}</style>
         </noscript>
-        <PreloaderProvider>
-          <CustomCursor />
-          <SmoothScroll>
-            {children}
-            <SiteFooter />
-          </SmoothScroll>
-        </PreloaderProvider>
+        <ViewTransitions>
+          <PreloaderProvider>
+            <CustomCursor />
+            <SmoothScroll>
+              {children}
+              <SiteFooter />
+            </SmoothScroll>
+          </PreloaderProvider>
+        </ViewTransitions>
       </body>
     </html>
   );

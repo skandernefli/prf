@@ -55,6 +55,7 @@ export function Norma() {
         </figure>
         <ProjectTitle
           id="norma-title"
+          href="/norma"
           threadAnchor="case.study.norma.title"
           threadLabel="NORMA · title"
         >
@@ -108,7 +109,7 @@ export function Norma() {
         />
         <ScanConnectors />
       </div>
-      <ProjectLink />{" "}
+      <ProjectLink href="/norma" />{" "}
     </article>
   );
 }
