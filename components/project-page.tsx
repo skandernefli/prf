@@ -41,7 +41,7 @@ export function ProjectPage({
 
       <section className="project-page-content" id="project-content">
         <h1 className="project-page-heading">
-          CASES<span>.</span>
+          PROJECTS<span>.</span>
         </h1>
         <div className="project-page-detail">
           <p className="project-page-kicker">

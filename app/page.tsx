@@ -1,3 +1,4 @@
+import { PortfolioMotion } from "@/components/portfolio/motion/portfolio-motion";
 import {
   CapabilitiesSection,
   CaseStudiesSection,
@@ -7,7 +8,6 @@ import {
   WhyMeSection,
   WorkFlowSection,
 } from "@/components/portfolio/sections";
-import { PortfolioMotion } from "@/components/portfolio/motion/portfolio-motion";
 import { ThreadLayer } from "@/components/portfolio/thread/thread-layer";
 import { SiteHeader } from "@/components/site-header";
 

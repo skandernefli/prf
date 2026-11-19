@@ -929,6 +929,7 @@ body {
   align-items: end;
   gap: clamp(1.5rem, 4vw, 4rem);
   padding-top: clamp(2rem, 5vw, 4.5rem);
+  border-top: 1px solid rgb(241 238 230 / 24%);
 }
 
 .project-page-kicker {
@@ -977,66 +978,6 @@ body {
 .project-page-back span {
   color: var(--signal);
   font-size: 1.25em;
-}
-
-.project-page-light {
-  color-scheme: light;
-  background: var(--ivory);
-  color: var(--ink);
-}
-
-.project-page-light .project-page-detail {
-  border-color: rgb(17 16 15 / 24%);
-}
-
-.project-page-detail-kabri {
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr);
-  align-items: start;
-}
-
-.project-page-overview {
-  display: grid;
-  align-content: start;
-  gap: 1.25rem;
-}
-
-.project-page-detail-kabri .project-page-description {
-  color: var(--muted);
-}
-
-.project-page-meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(1.25rem, 3vw, 2.5rem);
-  margin: 0;
-}
-
-.project-page-meta div {
-  padding-top: 0.9rem;
-}
-
-.project-page-meta dt {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: var(--meta-size);
-  letter-spacing: 0.08em;
-}
-
-.project-page-meta dd {
-  margin: 0.65rem 0 0;
-  font-family: var(--font-mono);
-  font-size: var(--support-size);
-  line-height: 1.7;
-}
-
-.project-page-responsibilities {
-  grid-column: 1 / -1;
-}
-
-.project-page-detail-kabri .project-page-back {
-  grid-column: 1 / -1;
-  justify-self: end;
-  color: var(--ink);
 }
 
 .case-study-kabri .case-study-title {
@@ -2494,14 +2435,6 @@ body {
     padding-top: 1.5rem;
   }
 
-  .project-page-detail.project-page-detail-kabri {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .project-page-meta {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .project-page-detail h2 {
     font-size: clamp(2.5rem, 12vw, 4rem);
   }
@@ -3493,15 +3426,4 @@ body {
   .capability-ai h3 {
     text-align: left;
   }
-}
-
-/* Kabri case study: the hero stays full-height, the context grows below it. */
-.project-page-kabri {
-  display: block;
-}
-
-.project-page-kabri .project-page-content {
-  min-height: calc(
-    100svh - (var(--header-pad-y) * 2 + var(--wordmark-size))
-  );
 }
