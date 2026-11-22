@@ -1,4 +1,5 @@
 export { CaseStudyHeader } from "./case-study-header";
+export { CaseStudyContent } from "./case-study-content-shell";
 export {
   CaseStudyChapter,
   CaseStudySection,

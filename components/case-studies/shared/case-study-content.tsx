@@ -58,6 +58,99 @@ type CodeExcerptProps = {
   code: string;
 };
 
+type MdxSectionProps = {
+  id: string;
+  title: string;
+  index?: string | number;
+  subsections?: string | string[];
+  children: ReactNode;
+};
+
+export type CaseStudySectionMeta = {
+  id: string;
+  title: string;
+  subsections: string[];
+};
+
+export function parseSectionTitle(title: string, fallbackIndex: number) {
+  const match = title.match(/^\s*(\d+)\s*[.)]\s*(.+)$/);
+
+  if (match) {
+    return {
+      number: match[1].padStart(2, "0"),
+      label: match[2].trim(),
+    };
+  }
+
+  return {
+    number: String(fallbackIndex).padStart(2, "0"),
+    label: title.trim(),
+  };
+}
+
+function parseSubsections(value: MdxSectionProps["subsections"]) {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+
+  if (typeof value !== "string") return [];
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function CaseStudyMdxSection({
+  id,
+  title,
+  index = 1,
+  subsections,
+  children,
+}: MdxSectionProps) {
+  const numericIndex = Number(index) || 1;
+  const { number, label } = parseSectionTitle(title, numericIndex);
+  const outline = parseSubsections(subsections);
+
+  return (
+    <section
+      className={styles.mdxSection}
+      id={`${id}-section`}
+      aria-labelledby={id}
+      data-case-section
+      data-case-section-id={id}
+      data-case-section-title={title}
+      data-case-section-index={numericIndex}
+      data-case-section-subsections={JSON.stringify(outline)}
+    >
+      <header className={styles.mdxSectionHeader}>
+        <h3 className={styles.mdxSectionTitle} id={id}>
+          <span className={styles.mdxSectionNumber} aria-hidden="true">
+            {number}
+          </span>
+          <span className={styles.mdxSectionLabel}>{label}</span>
+        </h3>
+        {outline.length > 0 ? (
+          <div className={styles.sectionOutline}>
+            <p className={styles.sectionOutlineLabel}>In this section</p>
+            <ul data-case-outline>
+              {outline.map((item, itemIndex) => (
+                <li key={`${item}-${itemIndex}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </header>
+      <div className={styles.mdxSectionContent}>{children}</div>
+    </section>
+  );
+}
+
+
 export function CaseStudyChapter({
   id,
   title,
@@ -75,6 +168,9 @@ export function CaseStudyChapter({
       className={chapterClass}
       id={id}
       aria-labelledby={`${id}-title`}
+      data-case-chapter
+      data-case-chapter-id={id}
+      data-case-chapter-title={title}
     >
       <div className={styles.chapterInner}>
         <header className={styles.chapterHeader}>

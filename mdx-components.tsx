@@ -1,8 +1,12 @@
 import type { MDXComponents } from "mdx/types";
 
+import {
+  CaseStudyMdxSection,
+} from "./components/case-studies/shared/case-study-content";
 import styles from "./components/case-studies/shared/case-study-content.module.css";
 
 const components: MDXComponents = {
+  CaseStudyMdxSection,
   h2: ({ children, ...props }) => (
     <h3 {...props}>
       {children}

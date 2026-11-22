@@ -1,5 +1,11 @@
 import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
+import path from "node:path";
+
+const caseStudySectionsPlugin = path.resolve(
+  process.cwd(),
+  "lib/remark-case-study-sections.mjs",
+);
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -81,7 +87,7 @@ const nextConfig: NextConfig = {
 
 const withMDX = createMDX({
   options: {
-    remarkPlugins: ["remark-gfm"],
+    remarkPlugins: ["remark-gfm", caseStudySectionsPlugin],
   },
 });
 
