@@ -1,0 +1,408 @@
+import {
+  DecisionNote,
+  ImpactLedger,
+  ProcessFlow,
+  ProjectTimeline,
+  TechnologyStack,
+} from "../../components/case-studies/shared/case-study-content";
+
+*Understanding the business environment, identifying the operational problems, and defining the direction of the solution.*
+
+## 01. Overview
+
+### The business
+
+KABRI is a Canadian company specializing in the design, manufacturing, and commercialization of cabanons (sheds) and related structures.
+
+Its business operations involve managing customers, handling product requirements, configuring customized products, preparing quotations, and coordinating the information required to move from a customer request to an order ready for production.
+
+Unlike businesses selling standardized products, customized manufacturing introduces additional complexity. Product specifications, dimensions, configurations, options, pricing, and customer requirements must remain consistent throughout the commercial and operational processes.
+
+### The project
+
+The objective of this project was to develop a centralized full-stack application capable of supporting the company's business operations through a unified digital environment.
+
+The application was designed around several core business capabilities:
+
+- Customer and business management.
+- Custom product configuration.
+- Product and configuration management.
+- Business operations and associated workflows.
+- Centralized information management.
+- [Additional business capabilities to document.]
+
+The challenge was not simply to develop another management interface. It was to understand how the company's business processes worked, identify the limitations of the existing environment, and translate those requirements into a coherent software solution.
+
+---
+
+## 02. What's happening?
+
+### Understanding the business workflow
+
+Before discussing the technical solution, it is important to understand what actually happens inside the business.
+
+A typical business process can involve several interconnected operations:
+
+<ProcessFlow
+  label="Typical business workflow"
+  steps={[
+    {
+      title: "Customer request",
+      description: "A customer expresses interest in a product or requests a quotation.",
+    },
+    {
+      title: "Requirements",
+      description: "Customer information and specific requirements are collected.",
+    },
+    {
+      title: "Configuration",
+      description: "The requested product is configured according to the customer's needs.",
+    },
+    {
+      title: "Specifications",
+      description: "Product specifications and associated options are determined.",
+    },
+    {
+      title: "Business information",
+      description: "Relevant business information is prepared and managed.",
+    },
+    {
+      title: "Internal workflow",
+      description: "The information progresses through the company's internal workflow.",
+    },
+  ]}
+/>
+
+Each operation introduces information that must be preserved and made accessible to the next operation.
+
+For example, a custom product configuration is not an isolated piece of information. It is associated with a particular product, a customer requirement, and potentially a commercial operation.
+
+This means that the application must support relationships between different business entities rather than treating each feature as an independent CRUD interface.
+
+### The underlying complexity
+
+The complexity comes from the relationships between business operations.
+
+A customer may have multiple requirements. A product may support multiple configurations. A configuration may contain several options and specifications. Business users need to access and manipulate this information without introducing inconsistencies.
+
+The software must therefore reflect the actual business domain instead of imposing an artificial technical structure on it.
+
+---
+
+## 03. Before the project came to me
+
+### The existing environment
+
+Before introducing the new application, the company's operational environment needs to be examined to understand how information was created, stored, accessed, and transferred.
+
+The investigation should identify whether existing applications, spreadsheets, databases, manual procedures, or disconnected workflows were being used.
+
+For each existing system, the following questions must be answered:
+
+- What responsibility does this system handle?
+- Which business users depend on it?
+- What information does it store?
+- Does it communicate with other systems?
+- Are users required to manually transfer information?
+- Does it duplicate information already maintained elsewhere?
+- What happens when information changes?
+- Which business processes depend on it?
+
+### Existing systems inventory
+
+| System | Responsibility | Information managed | Limitations |
+|---|---|---|---|
+| System A | [Purpose] | [Data] | [Limitations] |
+| System B | [Purpose] | [Data] | [Limitations] |
+| System C | [Purpose] | [Data] | [Limitations] |
+| Manual processes | [Purpose] | [Data] | [Limitations] |
+
+*The systems above are placeholders until the actual environment is documented.*
+
+### Existing workflow analysis
+
+Beyond individual applications, the investigation must cover how employees move information between systems.
+
+A process may technically work while still requiring unnecessary manual operations. For example, information might be entered in one application, exported, modified elsewhere, and subsequently entered again into another system.
+
+Such workflows create dependencies on employees, increase the possibility of inconsistent information, and make it difficult to maintain a reliable overview of business operations.
+
+The objective of this analysis is to identify not only what applications exist, but also how the company actually operates through them.
+
+---
+
+## 04. Effects of the existing environment
+
+### Operational consequences
+
+A fragmented information environment can create consequences that extend beyond the limitations of individual applications.
+
+<ImpactLedger
+  items={[
+    {
+      area: "Fragmented data",
+      description: "Business information is distributed across multiple locations, making it difficult to maintain a consistent understanding of customers, products, and business operations.",
+    },
+    {
+      area: "Customer experience",
+      description: "When information is distributed across different systems, employees may not have access to the same context when handling customer requests.",
+    },
+    {
+      area: "Manual dependency",
+      description: "Employees become responsible for transferring, reconciling, and maintaining information that could otherwise be handled through connected application workflows.",
+    },
+    {
+      area: "Operational bottlenecks",
+      description: "Processes that depend on several disconnected operations become slower and more difficult to coordinate.",
+    },
+    {
+      area: "Duplicated information",
+      description: "The same information may be entered or maintained in multiple locations, increasing maintenance effort and the risk of inconsistencies.",
+    },
+    {
+      area: "Scalability",
+      description: "As the number of customers, products, configurations, and business operations increases, the complexity of maintaining the existing environment can grow disproportionately.",
+    },
+  ]}
+/>
+
+### Business impact
+
+These consequences should be evaluated in terms of their actual effects on the organization.
+
+The investigation should distinguish between measurable consequences, such as processing time or duplication frequency, and qualitative consequences, such as reduced visibility or increased operational complexity.
+
+The objective is to establish a clear baseline against which the proposed solution can be evaluated.
+
+---
+
+## 05. The proposed solution
+
+### One centralized application
+
+The proposed direction was to develop a centralized application that brings the company's relevant business operations into a unified environment.
+
+Instead of requiring employees to navigate disconnected applications and independently maintained information, the platform would provide a common foundation for managing customers, products, configurations, and associated business processes.
+
+### Solution principles
+
+**Centralized information management**
+
+Business entities should have a consistent representation within the application, reducing unnecessary duplication and providing a common source of information.
+
+**Connected business operations**
+
+Features should interact through defined relationships and workflows rather than operating as isolated modules.
+
+**Flexible product configuration**
+
+The platform should support the company's product customization requirements while maintaining consistency between product definitions, configuration options, and associated information.
+
+**Maintainable architecture**
+
+The application should be structured so that business capabilities can evolve without requiring unrelated parts of the platform to be redesigned.
+
+**Operational usability**
+
+The interface should reflect the actual responsibilities and workflows of business users, making complex operations accessible through a coherent experience.
+
+### Expected transformation
+
+The intended transformation is a move from disconnected operational processes toward a centralized application in which business information and operations can be managed within a shared environment.
+
+---
+
+## 06. Existing environment and feasibility study
+
+Before implementation, the existing environment must be studied in enough detail to determine what should be retained, integrated, replaced, or redesigned.
+
+This phase establishes the technical and operational boundaries of the project.
+
+### Business requirements investigation
+
+Each business requirement should be translated into an explicit functional responsibility.
+
+For example, customer management requires more than displaying a customer list. It requires understanding how customer information is created, updated, associated with business operations, and retrieved throughout the application.
+
+Similarly, product configuration requires identifying which properties are configurable, which combinations are valid, and how configuration information is represented and persisted.
+
+### Existing technology assessment
+
+The assessment should cover:
+
+- Existing databases and data structures.
+- Existing application interfaces.
+- Available APIs and external integrations.
+- Authentication and access management.
+- Existing data formats and business rules.
+- Infrastructure and deployment constraints.
+- Data ownership and migration requirements.
+
+### Gap analysis
+
+The gap analysis compares the existing environment with the capabilities required by the proposed platform.
+
+| Area | Existing situation | Required capability | Proposed direction |
+|---|---|---|---|
+| Customers | [Current process] | Centralized management | Customer module |
+| Products | [Current process] | Structured product management | Product module |
+| Configuration | [Current process] | Flexible customization | Configuration engine |
+| Business operations | [Current process] | Connected workflows | Business management module |
+| Data | [Current process] | Consistent information | Centralized data model |
+
+### Feasibility and constraints
+
+The feasibility study should also identify technical constraints, dependencies, and implementation risks.
+
+<DecisionNote
+  question="Which existing processes should be retained, integrated, replaced, or redesigned?"
+  direction="Some processes may be simplified, others integrated, and others redesigned entirely."
+  tradeoff="Define a realistic technical scope that satisfies the business requirements without introducing unnecessary complexity."
+/>
+
+---
+
+## 07. Implementation strategy and project plan
+
+### Defining the implementation approach
+
+Once the business requirements and existing environment have been understood, the next step is to translate them into an implementation plan.
+
+The application should be developed around clearly defined business capabilities, with dependencies between modules identified before implementation begins.
+
+A possible decomposition is:
+
+1. Core application foundation.
+2. Customer and business management.
+3. Product and configuration management.
+4. Business workflows and operations.
+5. API integration and data communication.
+6. Validation, testing, and refinement.
+7. Deployment and stabilization.
+
+### Dependency analysis
+
+The implementation order matters.
+
+For example, product configuration depends on a clear understanding of product definitions and their relationships. Similarly, business workflows may depend on customer and product information being available through consistent interfaces.
+
+Developing dependent modules without first establishing their underlying data structures can introduce unnecessary rework.
+
+### Scope management
+
+Each feature should be associated with:
+
+- A defined business requirement.
+- Its corresponding application responsibility.
+- Its dependencies.
+- Its expected inputs and outputs.
+- Its validation rules.
+- Its acceptance criteria.
+
+This creates traceability between what the business needs and what the engineering team implements.
+
+---
+
+## 08. Tools and technology stack
+
+### Application technologies
+
+<TechnologyStack
+  groups={[
+    {
+      category: "Frontend",
+      tools: ["Next.js"],
+      responsibility: "Application interface and frontend architecture",
+    },
+    {
+      category: "Backend",
+      tools: ["Node.js"],
+      responsibility: "Server-side application logic",
+    },
+    {
+      category: "API",
+      tools: ["GraphQL", "REST"],
+      responsibility: "Structured data operations, resource-oriented communication, and integrations",
+    },
+    {
+      category: "Language",
+      tools: ["[Confirm language]"],
+      responsibility: "Application implementation",
+    },
+    {
+      category: "Database",
+      tools: ["[Confirm database]"],
+      responsibility: "Persistent business information",
+    },
+    {
+      category: "UI",
+      tools: ["[Confirm UI libraries]"],
+      responsibility: "Interface components and styling",
+    },
+    {
+      category: "Infrastructure",
+      tools: ["[Confirm environment]"],
+      responsibility: "Hosting and deployment",
+    },
+  ]}
+/>
+
+### Technology selection rationale
+
+The technology choices should be evaluated according to their contribution to the application's requirements.
+
+Next.js provides the foundation for the frontend application, while Node.js supports the server-side implementation and business logic.
+
+GraphQL and REST provide complementary communication approaches. Their respective responsibilities should be documented according to the actual API design, rather than assuming that both interfaces expose identical functionality.
+
+The final architecture should explain why each technology was selected, what responsibility it owns, and how it interacts with the rest of the platform.
+
+---
+
+## 09. Project timeline
+
+**February 2025 – May 2025**
+
+The project covered approximately four months of development.
+
+<ProjectTimeline
+  entries={[
+    {
+      timing: "February 2025",
+      phase: "Discovery and foundation",
+      description: "Business understanding, requirements, technical investigation, initial architecture",
+    },
+    {
+      timing: "March 2025",
+      phase: "Core development",
+      description: "Application foundation, primary business modules, API implementation",
+    },
+    {
+      timing: "April 2025",
+      phase: "Feature development",
+      description: "Product configuration, business workflows, integration and refinement",
+    },
+    {
+      timing: "May 2025",
+      phase: "Finalization",
+      description: "Testing, corrections, stabilization and delivery",
+    },
+  ]}
+/>
+
+*This is a provisional phase allocation, not a verified historical task log. Replace it with the actual milestones and dates.*
+
+### Project constraints
+
+The timeline should also document the conditions under which the project was delivered:
+
+- Available development resources.
+- Business stakeholder availability.
+- Technical dependencies.
+- Existing system constraints.
+- Scope changes during development.
+- Testing and delivery expectations.
+
+Understanding these constraints is essential when evaluating engineering decisions and implementation trade-offs.
+
+---

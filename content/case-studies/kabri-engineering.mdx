@@ -1,0 +1,685 @@
+import {
+  CaseStudySection,
+  CodeExcerpt,
+  PullStatement,
+  SystemMap,
+} from "../../components/case-studies/shared/case-study-content";
+
+*The technical investigation, architecture, implementation, and engineering decisions behind the application.*
+
+## 01. Engineering overview
+
+The engineering phase translates the business requirements into a functional software architecture.
+
+At this stage, the focus shifts from understanding what the business needs to determining how those needs should be represented, implemented, validated, and maintained.
+
+The application must support multiple interconnected business domains while preserving clear responsibilities between the frontend, backend, API interfaces, and persistence layer.
+
+The engineering study should therefore cover the complete application lifecycle, beginning with domain analysis and ending with deployment, maintenance, and future evolution.
+
+### Engineering objectives
+
+- Establish a coherent application architecture.
+- Translate business concepts into technical domain models.
+- Define clear responsibilities between frontend and backend.
+- Design the GraphQL and REST communication layers.
+- Implement customer and business management capabilities.
+- Develop a flexible custom product configuration mechanism.
+- Maintain data consistency across related entities.
+- Establish predictable validation and error-handling behavior.
+- Ensure the platform can evolve without excessive coupling.
+
+---
+
+## 02. Functional and technical requirements
+
+### Functional requirements
+
+Functional requirements describe the operations that the application must allow its users to perform.
+
+Each requirement should be expressed from the perspective of a business operation, independently of its technical implementation.
+
+For example, customer management may involve creating customer records, updating their information, retrieving existing records, and associating customers with other business entities.
+
+Product configuration introduces a different set of responsibilities: presenting configurable product options, collecting selections, validating combinations, and preserving the resulting configuration.
+
+These operations must be documented individually, including their expected behavior and dependencies.
+
+### Non-functional requirements
+
+Non-functional requirements describe the qualities that the application must maintain while performing its business operations.
+
+The technical study should evaluate:
+
+- **Maintainability:** Whether application responsibilities are sufficiently separated to support future modifications.
+- **Scalability:** Whether the architecture can accommodate growth in users, products, and business information.
+- **Performance:** Whether data retrieval, configuration operations, and application interactions remain responsive.
+- **Reliability:** Whether operations produce predictable results and preserve data integrity.
+- **Security:** Whether access to business information and application operations is properly controlled.
+- **Usability:** Whether the application supports actual business workflows without unnecessary complexity.
+- **Consistency:** Whether the same business entity maintains a coherent representation across different modules.
+
+### Requirements traceability
+
+Each functional requirement should be linked to its implementation location, API operations, data entities, and corresponding tests.
+
+This creates a traceable relationship between the original business need and the technical solution.
+
+---
+
+## 03. Domain analysis and business modeling
+
+### Understanding the business domain
+
+Before designing the database or API, the business concepts must be identified and their relationships understood.
+
+The application should reflect the company's actual business domain.
+
+A customer, for example, is not simply a database record. It is a business entity with attributes, lifecycle operations, and relationships to other entities.
+
+Likewise, a configurable product should be modeled according to its actual business rules rather than as an arbitrary collection of frontend form fields.
+
+### Domain boundaries
+
+The application can be studied through several logical domains:
+
+**Customer domain**
+
+Responsible for customer identity, contact information, customer records, and relationships with other business operations.
+
+**Business management domain**
+
+Responsible for the business-related entities and processes that users need to manage.
+
+**Product domain**
+
+Responsible for product definitions, properties, availability, and product-related information.
+
+**Configuration domain**
+
+Responsible for configurable properties, available options, selection rules, and the representation of customized products.
+
+**Operational domain**
+
+Responsible for the workflows that connect the different business capabilities.
+
+These are conceptual boundaries. Their exact implementation should be established from the actual source code and data model.
+
+### Entity relationship analysis
+
+For every domain entity, the engineering study should identify:
+
+- Its unique identity.
+- Its attributes.
+- Its relationships with other entities.
+- Its ownership and lifecycle.
+- Its validation rules.
+- Its persistence requirements.
+- Its dependencies on other domains.
+
+The resulting model should become the foundation for API contracts and database design.
+
+---
+
+## 04. System architecture
+
+### Architectural overview
+
+The platform should be documented as a system of cooperating application layers.
+
+The frontend is responsible for presenting business operations and collecting user interactions. The backend owns server-side responsibilities, including business logic, validation, and data operations. API interfaces expose the required capabilities to the frontend and other consumers.
+
+The persistence layer maintains the application's business information.
+
+The architecture documentation should explain how requests move between these layers and where each responsibility is implemented.
+
+### Logical architecture
+
+<SystemMap
+  label="Conceptual architecture only. The actual project implementation may differ."
+  layers={[
+    { name: "Users", components: ["Business users"] },
+    { name: "Frontend", components: ["Next.js application"] },
+    { name: "Interfaces", components: ["GraphQL API", "REST API"] },
+    { name: "Backend", components: ["Node.js", "Business logic", "Data access"] },
+    { name: "Persistence", components: ["Database"] },
+  ]}
+/>
+
+### Architectural responsibilities
+
+The frontend should not become the owner of business rules that must remain consistent across different consumers.
+
+Likewise, the API layer should not become a place where unrelated business responsibilities are mixed together.
+
+The backend should provide the authoritative implementation of business operations, while the data access layer should manage persistence and retrieval.
+
+The exact boundaries between these responsibilities should be verified against the implementation.
+
+---
+
+## 05. Frontend engineering — Next.js
+
+### Application structure
+
+The frontend is the primary interaction layer between business users and the platform.
+
+Its responsibility extends beyond rendering interfaces. It must organize business functionality into coherent modules, manage application navigation, communicate with backend services, and present business information in a predictable manner.
+
+The frontend architecture should document how pages, layouts, reusable components, and feature-specific modules are organized.
+
+### Feature organization
+
+The application should be studied according to its functional areas rather than only its route structure.
+
+For each feature, document:
+
+- Its entry points and navigation.
+- Its main components.
+- Its data dependencies.
+- Its communication with backend APIs.
+- Its state management responsibilities.
+- Its loading, validation, and error states.
+- Its interactions with other application modules.
+
+### Data and state management
+
+An important engineering consideration is the distinction between server-owned data and temporary interface state.
+
+Customer information, product definitions, and persisted configurations should be treated as application data with explicit backend ownership.
+
+Temporary selections, modal visibility, form interactions, and other interface-specific values have different lifecycles.
+
+Documenting this distinction helps prevent duplicated sources of truth and unnecessary synchronization logic.
+
+### Component architecture
+
+Reusable components should represent stable interface responsibilities, while business-specific components should remain associated with the features that own their behavior.
+
+The goal is to avoid both extremes: excessive duplication and an overly generic component system that makes business-specific behavior difficult to understand.
+
+---
+
+## 06. Backend engineering — Node.js
+
+### Backend responsibilities
+
+The backend is responsible for implementing the application's business operations and maintaining the integrity of business information.
+
+It receives requests through the exposed API interfaces, validates incoming data, executes the corresponding operations, and communicates with the persistence layer.
+
+The backend should be studied in terms of its internal organization, not just its exposed endpoints.
+
+### Business logic organization
+
+A technical investigation should identify where each responsibility lives.
+
+For example:
+
+- Request handling and API resolvers.
+- Business service operations.
+- Input validation.
+- Domain-specific rules.
+- Data access and persistence.
+- External service communication.
+- Error translation and handling.
+
+A clear separation makes it possible to understand whether a business operation is implemented once and reused across different entry points.
+
+### Request lifecycle
+
+For each important operation, document the full lifecycle. The sequence below restates the conceptual steps above; it is not a verified trace of the project's implementation.
+
+<CodeExcerpt
+  title="Request lifecycle"
+  language="Conceptual sequence · not source code"
+  code={`1. The frontend initiates a request.
+2. The API layer receives and validates the request structure.
+3. The appropriate backend operation is executed.
+4. Business rules are evaluated.
+5. Required data is retrieved or modified.
+6. The result is returned through the API.
+7. The frontend updates its representation of the business state.`}
+/>
+
+This lifecycle should be documented with actual implementation examples for the most important operations.
+
+---
+
+## 07. API engineering — GraphQL and REST
+
+### API architecture
+
+The application uses GraphQL and REST as communication interfaces.
+
+The engineering study should identify the responsibility of each interface and the reasons behind its usage.
+
+Using multiple API paradigms requires clear boundaries. Without them, the application can develop duplicated operations, inconsistent validation, and multiple representations of the same business information.
+
+### GraphQL
+
+The GraphQL implementation should be documented through its schema, types, queries, mutations, resolvers, and associated business operations.
+
+The schema represents the data structures and operations exposed to GraphQL consumers.
+
+Queries are responsible for retrieving information, while mutations expose operations that modify application state.
+
+Resolvers connect these operations to the backend implementation.
+
+The technical analysis should examine how types relate to domain entities, how nested data is retrieved, how input objects are validated, and how authorization and error handling are applied.
+
+### REST
+
+The REST interface should be documented through its resources, HTTP methods, request structures, response formats, and status codes.
+
+For each endpoint, establish:
+
+- Its business responsibility.
+- Its HTTP method and route.
+- Required parameters.
+- Request body structure.
+- Response structure.
+- Validation behavior.
+- Error responses.
+- Authentication and authorization requirements.
+
+### GraphQL and REST coexistence
+
+An important part of the study is identifying whether the two interfaces serve separate responsibilities or expose overlapping business capabilities.
+
+If both interfaces interact with the same underlying domain, their behavior should remain consistent.
+
+Shared business rules should ideally reside in common backend operations rather than being independently reimplemented in GraphQL resolvers and REST controllers.
+
+---
+
+## 08. Data architecture and persistence
+
+### Data modeling
+
+The database is responsible for maintaining the persistent representation of the application's business domain.
+
+Its design should be evaluated against the relationships identified during domain analysis.
+
+The study should identify entities, attributes, primary keys, foreign keys, cardinality, constraints, and indexing requirements.
+
+Particular attention should be given to entities that participate in multiple business workflows.
+
+### Data integrity
+
+The platform must preserve consistency when related information is created, updated, or deleted.
+
+For example, changes to product information may affect how product configurations are interpreted. Similarly, customer records may be referenced by several business operations.
+
+The engineering study should establish how referential integrity is maintained, how dependent operations are handled, and whether transactional boundaries are necessary.
+
+### Persistence strategy
+
+Document how the backend interacts with the database, including the use of repositories, ORM models, query builders, or direct database operations.
+
+Also identify how migrations, schema evolution, data initialization, and backup procedures are handled.
+
+### Data lifecycle
+
+For each major entity, document its creation, modification, archival, and deletion behavior.
+
+This is especially important for business information that may need to remain historically consistent even when its original source data changes.
+
+---
+
+## 09. Custom product configuration engine
+
+### Business requirement
+
+Custom product configuration is one of the central technical challenges of the platform.
+
+Unlike a conventional product catalog, a configuration system must represent the relationship between a product and its possible variations.
+
+The user must be able to select relevant properties and options while the application ensures that the resulting configuration follows the business rules.
+
+### Configuration model
+
+The technical investigation should identify:
+
+- Configurable product attributes.
+- Available options for each attribute.
+- Required and optional selections.
+- Dependencies between options.
+- Mutually exclusive combinations.
+- Default values.
+- Validation rules.
+- Pricing or calculation dependencies.
+- The persisted representation of a completed configuration.
+
+### Configuration lifecycle
+
+A configuration can be studied as a sequence of operations:
+
+1. Select a product.
+2. Retrieve its available configurable properties.
+3. Present the available options.
+4. Collect user selections.
+5. Validate selections against business rules.
+6. Calculate or retrieve dependent values where applicable.
+7. Produce a structured configuration.
+8. Persist the configuration when required.
+9. Retrieve it for subsequent business operations.
+
+### Configuration consistency
+
+A crucial design decision is determining where configuration rules are evaluated.
+
+Interface-level validation improves usability, but business-critical constraints should be enforced by the backend.
+
+This prevents invalid configurations from being persisted simply because a request bypassed the frontend.
+
+### Configuration persistence
+
+The data model must preserve enough information to reconstruct the configured product.
+
+The study should determine whether configurations are stored as relational records, structured data, or a combination of approaches.
+
+It should also explain how historical configurations behave when the underlying product definition changes.
+
+---
+
+## 10. Customer and business management
+
+### Customer management
+
+The customer module should be documented as a complete business capability.
+
+Its responsibilities may include creating, retrieving, updating, and managing customer information, but the technical study should go further by identifying its relationships with products, configurations, and other business operations.
+
+Important questions include how customer identity is maintained, how duplicate records are prevented, and how updates propagate through the application.
+
+### Business management
+
+Business management should be studied independently from customer management, even when both domains share information.
+
+The analysis must establish what constitutes a business entity in the application's domain, which attributes it owns, how it relates to customers, and which operations can be performed on it.
+
+### Cross-domain relationships
+
+The most important part is understanding how these modules interact.
+
+For example, an operation involving a customer and a configured product must preserve references to both entities without introducing duplicated or inconsistent data.
+
+The application should maintain explicit relationships between domains and ensure that changes respect the lifecycle of associated records.
+
+---
+
+## 11. Application workflows and data flows
+
+### End-to-end operation analysis
+
+Individual modules do not explain the complete behavior of the platform.
+
+A more useful engineering study follows information across the application, from the initial user interaction to the final persisted result.
+
+For each major workflow, document the participating modules, requests, validations, business operations, and database interactions.
+
+### Data flow documentation
+
+Each flow should identify:
+
+- The initiating user action.
+- The frontend component responsible.
+- The API interface used.
+- The backend operation executed.
+- The entities involved.
+- The database reads and writes.
+- The response returned.
+- The resulting application state.
+
+### Cross-module dependencies
+
+When multiple modules depend on the same business entity, the architecture must define how they share information.
+
+This analysis helps identify unnecessary dependencies, duplicated requests, repeated business logic, and potential consistency problems.
+
+---
+
+## 12. Validation, error handling, and reliability
+
+### Input validation
+
+Validation should be considered at multiple levels.
+
+The frontend provides immediate feedback and prevents avoidable invalid submissions. The backend independently validates incoming data before executing business operations.
+
+Database constraints provide another layer of protection for persistent information.
+
+The technical study should identify which rules are enforced at each level and why.
+
+### Error handling
+
+Errors should be predictable and meaningful.
+
+The application should distinguish between invalid input, missing resources, authorization failures, conflicts, unexpected server errors, and failures involving external dependencies.
+
+GraphQL and REST may represent errors differently, but the underlying business meaning should remain consistent.
+
+### Reliability
+
+The study should identify how the application behaves when operations fail partially.
+
+For example, when a business operation involves multiple database modifications, the implementation must consider whether those changes should succeed or fail together.
+
+Transactional behavior, retry strategies, idempotency, and recovery procedures should be documented where relevant.
+
+---
+
+## 13. Authentication, authorization, and security
+
+Security must be considered across the entire application rather than as an isolated backend feature.
+
+The study should document how users are authenticated, how their identity is maintained, and how permissions are evaluated when accessing business information.
+
+Authentication establishes who is making a request. Authorization determines which resources and operations that user is allowed to access.
+
+The analysis should examine access restrictions at both GraphQL and REST entry points, ensuring that sensitive operations cannot be accessed simply by bypassing the frontend.
+
+Additional considerations include:
+
+- Secure session or token management.
+- Password and credential handling.
+- Input sanitization.
+- Protection against unauthorized data access.
+- Sensitive information exposure.
+- Environment variable management.
+- API abuse and request restrictions.
+- Secure communication between application layers.
+
+Only controls actually implemented should be described as existing security capabilities.
+
+---
+
+## 14. Testing strategy and quality assurance
+
+Testing should verify both individual application responsibilities and the behavior of the complete system.
+
+### Unit testing
+
+Unit tests should focus on isolated business rules and functions.
+
+For example, configuration validation, data transformation, and business calculations should be testable independently of the interface.
+
+### Integration testing
+
+Integration tests should verify communication between components such as API resolvers, REST controllers, business services, and the persistence layer.
+
+These tests are particularly important when multiple API interfaces share the same business operations.
+
+### End-to-end testing
+
+End-to-end tests should reproduce important business workflows from the user's perspective.
+
+A test might begin with creating a customer, continue through configuring a product, and verify that the resulting information is correctly persisted and retrieved.
+
+### Quality criteria
+
+The testing strategy should also define acceptance criteria, expected results, regression coverage, and the process used to verify fixes.
+
+The objective is not simply to confirm that individual features work, but to establish confidence that the application behaves consistently as an integrated system.
+
+---
+
+## 15. Performance and optimization
+
+Performance should be evaluated at the level of the complete request lifecycle.
+
+The frontend, API interfaces, backend operations, and database can all contribute to perceived application latency.
+
+The technical analysis should identify expensive queries, unnecessary data retrieval, repeated API requests, large payloads, and inefficient rendering behavior.
+
+For GraphQL in particular, the study should consider how nested queries affect database access and whether resolver execution can introduce excessive query counts.
+
+For REST, attention should be given to response sizes, pagination, caching opportunities, and unnecessary repeated requests.
+
+Performance improvements should be justified through measurements or reproducible observations rather than assumptions.
+
+---
+
+## 16. Deployment and environment management
+
+### Environment architecture
+
+The deployment study should identify the environments used during development, testing, and production.
+
+It should explain how application configuration changes between environments and how secrets and external service credentials are managed.
+
+### Build and deployment process
+
+Document the complete process used to prepare and deploy the application.
+
+This includes dependency installation, compilation, environment configuration, database migrations, application startup, and post-deployment verification.
+
+### Operational considerations
+
+A production-ready application also requires an understanding of:
+
+- Logging and error reporting.
+- Application health.
+- Database availability.
+- Backup and recovery.
+- Dependency updates.
+- Configuration management.
+- Rollback procedures.
+- Operational troubleshooting.
+
+The final document should distinguish between implemented infrastructure and recommended operational practices.
+
+---
+
+## 17. Engineering challenges and technical decisions
+
+This section should explain the difficult engineering problems encountered during development and, more importantly, how they were approached.
+
+For each challenge, document the original problem, the available alternatives, the selected implementation, and the consequences of that decision.
+
+Examples of areas worth investigating include:
+
+**Domain complexity:** Translating business-specific operations into clear technical entities and relationships.
+
+**Configuration flexibility:** Supporting different product options without introducing an excessively rigid data structure.
+
+**API coexistence:** Maintaining consistent business behavior across GraphQL and REST interfaces.
+
+**Data consistency:** Preserving reliable relationships between customers, products, configurations, and business operations.
+
+**Frontend/backend responsibilities:** Avoiding duplicated business logic and ensuring that important rules are enforced by the backend.
+
+**Maintainability:** Keeping the system understandable as additional features and business requirements are introduced.
+
+### Technical decision record
+
+For significant architectural decisions, use the following format:
+
+| Field | Description |
+|---|---|
+| Problem | What needed to be solved? |
+| Context | What technical or business constraints existed? |
+| Alternatives | Which approaches were considered? |
+| Decision | What was selected? |
+| Reasoning | Why was it selected? |
+| Consequences | What trade-offs did it introduce? |
+
+This makes the documentation useful beyond the immediate project because future developers can understand not only what was built, but why.
+
+---
+
+## 18. Results and final system evaluation
+
+The final evaluation should compare the delivered application against the original business requirements.
+
+The assessment should cover functional completeness, architectural consistency, reliability, usability, and maintainability.
+
+### Business evaluation
+
+Evaluate whether the platform successfully supports the intended business capabilities:
+
+- Centralized customer management.
+- Business information management.
+- Custom product configuration.
+- Connected application workflows.
+- Consistent access to business information.
+
+### Engineering evaluation
+
+Evaluate the quality of the technical implementation:
+
+- Separation of application responsibilities.
+- API consistency.
+- Domain model quality.
+- Data integrity.
+- Error handling.
+- Maintainability.
+- Performance.
+- Test coverage.
+- Deployment readiness.
+
+### Limitations and remaining work
+
+A complete engineering document should also acknowledge limitations.
+
+Features that were outside the original scope, unfinished integrations, technical debt, or areas requiring additional validation should be documented explicitly.
+
+A project evaluation should reflect what was actually delivered rather than presenting the intended architecture as though every aspect was implemented.
+
+---
+
+## 19. Future improvements and evolution
+
+The final section should identify opportunities for evolving the platform.
+
+Potential areas for further investigation include:
+
+- Additional business automation.
+- Expanded product configuration capabilities.
+- More advanced pricing and calculation rules.
+- Improved reporting and business analytics.
+- Additional integrations.
+- Enhanced access control.
+- More comprehensive automated testing.
+- Performance optimization.
+- Improved operational monitoring.
+
+These improvements should be prioritized according to business value, technical dependencies, and implementation complexity.
+
+---
+
+## Conclusion
+
+KABRI represents a full-stack application project in which business requirements, interconnected operational workflows, and custom product configuration had to be translated into a coherent software solution.
+
+The engineering process extends beyond implementing frontend components and backend endpoints. It requires understanding the business domain, structuring its information, defining application responsibilities, establishing communication contracts, and ensuring that individual features operate as part of a unified system.
+
+<CaseStudySection title="Engineering objective">
+  <PullStatement attribution="Central engineering objective">
+    The central engineering objective is to build an application whose architecture reflects the business it supports, while remaining sufficiently maintainable and flexible to accommodate future requirements.
+  </PullStatement>
+</CaseStudySection>
+
+**Project period:** February 2025 – May 2025  
+**Primary technologies:** Next.js, Node.js, GraphQL, REST
