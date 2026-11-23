@@ -9,7 +9,6 @@ import {
   WorkFlowSection,
 } from "@/components/portfolio/sections";
 import { ThreadLayer } from "@/components/portfolio/thread/thread-layer";
-import { SiteHeader } from "@/components/site-header";
 
 export default function Home() {
   const structuredData = {
@@ -45,7 +44,6 @@ export default function Home() {
       </a>
       <ThreadLayer />
       <PortfolioMotion />
-      <SiteHeader />
 
       <main id="main-content" tabIndex={-1}>
         <HeroSection />

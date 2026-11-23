@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import KabriContext, {
   caseSections as contextSections,
 } from "../../../content/case-studies/kabri-context.mdx";
@@ -20,6 +21,9 @@ const sections = [
     chapterId: "engineering",
   })),
 ];
+
+const KabriContextComponent = KabriContext as unknown as ComponentType;
+const KabriEngineeringComponent = KabriEngineering as unknown as ComponentType;
 
 export function KabriPage() {
   return (
@@ -62,7 +66,7 @@ export function KabriPage() {
           title="Context"
           summary="The business environment, its existing processes, and the decisions that shaped the direction of the work."
         >
-          <KabriContext />
+          <KabriContextComponent />
         </CaseStudyChapter>
 
         <CaseStudyChapter
@@ -71,7 +75,7 @@ export function KabriPage() {
           summary="The architecture, technical investigation, implementation, and decisions behind the application."
           tone="dark"
         >
-          <KabriEngineering />
+          <KabriEngineeringComponent />
         </CaseStudyChapter>
       </CaseStudyContent>
     </main>

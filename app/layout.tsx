@@ -7,6 +7,7 @@ import { ViewTransitions } from "next-view-transitions";
 
 import CustomCursor from "@/components/custom-cursor";
 import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -93,6 +94,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <PreloaderProvider>
             <CustomCursor />
             <SmoothScroll>
+              <SiteHeader />
               {children}
               <SiteFooter />
             </SmoothScroll>

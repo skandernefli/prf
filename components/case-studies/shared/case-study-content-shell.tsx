@@ -22,6 +22,7 @@ import styles from "./case-study-content.module.css";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const STATIC_QUERY = "(max-width: 700px), (prefers-reduced-motion: reduce)";
+const NAV_SCROLL_STEP = 0.75;
 
 export type CaseStudySection = CaseStudySectionMeta & {
   chapter: string;
@@ -139,6 +140,8 @@ export function CaseStudyContent({
 
   const [domSections, setDomSections] = useState<CaseStudySection[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [navCanScrollUp, setNavCanScrollUp] = useState(false);
+  const [navCanScrollDown, setNavCanScrollDown] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
   const lenis = useLenis();
 
@@ -182,9 +185,7 @@ export function CaseStudyContent({
         const max = pin.getMaxTranslation();
         const offsets = pin.getAnchorOffsets();
         const translation =
-          target > 0
-            ? Math.min(max, Math.max(0, offsets[target - 1] ?? 0))
-            : 0;
+          target > 0 ? Math.min(max, Math.max(0, offsets[target - 1] ?? 0)) : 0;
         const progress = max > 0 ? translation / max : 0;
         const top =
           pin.trigger.start + progress * (pin.trigger.end - pin.trigger.start);
@@ -205,7 +206,8 @@ export function CaseStudyContent({
       }
 
       const viewport = viewportRef.current;
-      const anchor = target > 0 ? findSectionAnchor(sections, target - 1) : null;
+      const anchor =
+        target > 0 ? findSectionAnchor(sections, target - 1) : null;
 
       if (!anchor) {
         if (viewport) viewport.scrollTo({ top: 0, behavior: "auto" });
@@ -238,6 +240,59 @@ export function CaseStudyContent({
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
 
+  // Go up / Go down only scroll the nav list itself. They never touch the
+  // global pinned scroll and never change the active item.
+  const updateNavScrollState = useCallback(() => {
+    const nav = navListRef.current;
+    if (!nav) return;
+
+    const canUp = nav.scrollTop > 1;
+    const canDown = nav.scrollTop + nav.clientHeight < nav.scrollHeight - 1;
+
+    setNavCanScrollUp(canUp);
+    setNavCanScrollDown(canDown);
+  }, []);
+
+  const scrollNav = useCallback(
+    (direction: -1 | 1) => {
+      const nav = navListRef.current;
+      if (!nav) return;
+
+      nav.scrollBy({
+        top: direction * nav.clientHeight * NAV_SCROLL_STEP,
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+    },
+    [reducedMotion],
+  );
+
+  useEffect(() => {
+    const nav = navListRef.current;
+    if (!nav) return;
+
+    updateNavScrollState();
+
+    const onTransitionEnd = (event: TransitionEvent) => {
+      if (event.propertyName === "grid-template-rows") updateNavScrollState();
+    };
+
+    nav.addEventListener("scroll", updateNavScrollState, { passive: true });
+    nav.addEventListener("transitionend", onTransitionEnd);
+
+    // Items grow/shrink when expanded, so watch each item as well as the list.
+    const observer = new ResizeObserver(() => updateNavScrollState());
+    observer.observe(nav);
+    Array.from(nav.children).forEach((child) => observer.observe(child));
+
+    return () => {
+      nav.removeEventListener("scroll", updateNavScrollState);
+      nav.removeEventListener("transitionend", onTransitionEnd);
+      observer.disconnect();
+    };
+  }, [sectionsKey, updateNavScrollState]);
+
+  // Keep the active item inside the nav viewport when the page scroll
+  // advances to a section whose nav item would otherwise be clipped.
   useEffect(() => {
     const nav = navListRef.current;
     if (!nav || activeIndex === 0) return;
@@ -380,7 +435,8 @@ export function CaseStudyContent({
 
           const refresh = () => {
             if (disposed) return;
-            if (refreshFrame !== null) window.cancelAnimationFrame(refreshFrame);
+            if (refreshFrame !== null)
+              window.cancelAnimationFrame(refreshFrame);
             refreshFrame = window.requestAnimationFrame(() => {
               refreshFrame = null;
               if (!disposed) ScrollTrigger.refresh();
@@ -430,10 +486,7 @@ export function CaseStudyContent({
 
             const max = getMaxTranslation();
             const offsets = getAnchorOffsets();
-            const translation = Math.min(
-              max,
-              Math.max(0, offsets[index] ?? 0),
-            );
+            const translation = Math.min(max, Math.max(0, offsets[index] ?? 0));
             const progress = max > 0 ? translation / max : 0;
             const top =
               trigger.start + progress * (trigger.end - trigger.start);
@@ -515,10 +568,16 @@ export function CaseStudyContent({
 
         <div className={styles.navArea}>
           <nav className={styles.nav} aria-label="Case study sections">
+            {/*
+              The nav list is never scrolled by the user's wheel/touch: it is
+              overflow-hidden and only moves via the Go up / Go down buttons
+              (and the auto-reveal of the active item). No data-lenis-prevent,
+              so wheel input over it scrolls the page like everywhere else.
+            */}
             <ol
               className={styles.navList}
               ref={navListRef}
-              data-lenis-prevent
+              style={{ overflowY: "hidden", overscrollBehavior: "auto" }}
             >
               {sections.map((section, index) => {
                 const itemIndex = index + 1;
@@ -590,7 +649,9 @@ export function CaseStudyContent({
               <button
                 className={styles.controlButton}
                 type="button"
-                onClick={() => goTo(activeIndex - 1)}
+                aria-label="Scroll navigation up"
+                onClick={() => scrollNav(-1)}
+                disabled={!navCanScrollUp}
               >
                 <span aria-hidden="true">↑</span>
                 Go up
@@ -598,8 +659,9 @@ export function CaseStudyContent({
               <button
                 className={styles.controlButton}
                 type="button"
-                onClick={() => goTo(activeIndex + 1)}
-                disabled={activeIndex >= sections.length}
+                aria-label="Scroll navigation down"
+                onClick={() => scrollNav(1)}
+                disabled={!navCanScrollDown}
               >
                 Go down
                 <span aria-hidden="true">↓</span>
@@ -619,12 +681,17 @@ export function CaseStudyContent({
         </header>
 
         <div className={styles.leftBody}>
+          {/*
+            No data-lenis-prevent here: in the pinned layout the track is moved
+            by GSAP from the page scroll, so wheel input must reach Lenis.
+            Only in reduced-motion mode does this region scroll natively.
+          */}
           <div
             className={styles.contentViewport}
             ref={viewportRef}
             role="region"
             aria-label="Case study content"
-            data-lenis-prevent
+            data-lenis-prevent={reducedMotion ? true : undefined}
             tabIndex={0}
           >
             <div className={styles.contentTrack} ref={trackRef}>

@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Link } from "next-view-transitions";
 
 import styles from "./case-study-header.module.css";
 
@@ -37,17 +36,6 @@ export function CaseStudyHeader({
       aria-labelledby="case-study-title"
       aria-label={`${title} case study`}
     >
-      <div className={styles.topbar}>
-        <Link className={styles.wordmark} href="/" aria-label="SN home">
-          SN
-        </Link>
-        <nav className={styles.navigation} aria-label="Primary navigation">
-          <Link href="/#projects">PROJECTS</Link>
-          <Link href="/#conclusion">ABOUT</Link>
-          <Link href="/#footer">CONTACT</Link>
-        </nav>
-      </div>
-
       <div className={styles.intro}>
         <h1 className={styles.title} id="case-study-title">
           {title}
