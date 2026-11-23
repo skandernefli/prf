@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
-import { THREAD_UPDATED_EVENT } from "./thread-dom";
-import { buildThreadModel } from "./thread-geometry";
+import { THREAD_MODEL_READY_EVENT, THREAD_UPDATED_EVENT } from "./thread-dom";
+import type { ThreadModel } from "./thread-geometry";
 import { measureLayout } from "./thread-measure";
 import {
   CONCLUSION_CLIP_ID,
@@ -49,9 +49,17 @@ export function ThreadLayer() {
     const root = document.querySelector<HTMLElement>(".portfolio");
     if (!root) return;
 
-    let model: ReturnType<typeof buildThreadModel> | null = null;
+    let model: ThreadModel | null = null;
     let lastSignature = "";
     let disposed = false;
+    let loadStarted = false;
+    // The route planner pulls in the whole route data set (~200 KB of source),
+    // which does not need to be part of the initial hydration graph: the static
+    // segment table above is enough to paint the SVG. It is loaded as a
+    // separate chunk as soon as the layer mounts.
+    let modelBuilder:
+      | typeof import("./thread-geometry").buildThreadModel
+      | null = null;
 
     const apply = (frame: ThreadFrame) => {
       let changed = false;
@@ -111,11 +119,32 @@ export function ThreadLayer() {
     const renderThread = () => {
       if (disposed) return;
 
+      // The SVG is absolutely positioned, so its geometry never changes page
+      // layout. Only the `d` values have to wait for the chunk.
+      if (!modelBuilder) {
+        if (!loadStarted) {
+          loadStarted = true;
+          void import("./thread-geometry").then(
+            (module) => {
+              if (disposed) return;
+              modelBuilder = module.buildThreadModel;
+              renderThread();
+            },
+            (error: unknown) => {
+              // The page still works without the drawn thread (and the motion
+              // layer has its own timeout), so degrade quietly but visibly.
+              console.error("[thread] failed to load route geometry", error);
+            },
+          );
+        }
+        return;
+      }
+
       const layout = measureLayout(root);
 
       if (model && layout.signature === lastSignature) return;
 
-      model = buildThreadModel(layout, model ?? undefined);
+      model = modelBuilder(layout, model ?? undefined);
       lastSignature = layout.signature;
 
       if (apply(buildFrame(model))) {
@@ -123,6 +152,11 @@ export function ThreadLayer() {
           new CustomEvent(THREAD_UPDATED_EVENT, { bubbles: true }),
         );
       }
+
+      // Real path geometry is now in the DOM: the scroll timeline can be
+      // measured against final lengths and marker positions.
+      document.documentElement.dataset.threadReady = "true";
+      document.dispatchEvent(new CustomEvent(THREAD_MODEL_READY_EVENT));
     };
 
     renderThread();
@@ -140,6 +174,7 @@ export function ThreadLayer() {
       disposed = true;
       observer.disconnect();
       window.removeEventListener("resize", renderThread);
+      delete document.documentElement.dataset.threadReady;
     };
   }, [mounted]);
 

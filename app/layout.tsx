@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Geist, Geist_Mono, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 
 import { PreloaderProvider } from "@/components/preloader/preloader-provider";
 import { SmoothScroll } from "@/components/smooth-scroll/smooth-scroll";
@@ -9,16 +9,6 @@ import CustomCursor from "@/components/custom-cursor";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -79,7 +69,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${archivo.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <noscript>

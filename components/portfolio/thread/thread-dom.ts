@@ -19,6 +19,14 @@ import type { ThreadRole, ThreadSection } from "./thread-segments";
 
 export const THREAD_UPDATED_EVENT = "thread:updated";
 
+/**
+ * Fired on `document` the first time real route geometry has been applied to
+ * the DOM (and again after every rebuild). The motion layer waits for it
+ * before building the scroll timeline, because the geometry itself is loaded
+ * in a separate chunk (see thread-layer.tsx).
+ */
+export const THREAD_MODEL_READY_EVENT = "thread:model-ready";
+
 const byOrder = (a: SVGPathElement, b: SVGPathElement) =>
   Number(a.dataset.threadOrder) - Number(b.dataset.threadOrder);
 

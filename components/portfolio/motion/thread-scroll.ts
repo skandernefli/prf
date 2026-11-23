@@ -186,7 +186,10 @@ export function buildThreadScroll(root: HTMLElement): () => void {
         Math.max(0, (time - start) / Math.max(end - start, 0.001)),
       );
 
-      placePenOnPath(root, path, path.getTotalLength() * ratio);
+      // Compute totalLength once; pass the cached value to the pen so it can
+      // skip its own duplicate getTotalLength call.
+      const totalLength = path.getTotalLength();
+      placePenOnPath(root, path, totalLength * ratio, totalLength);
     };
 
     // Markers appear when the pen reaches them, like beads on the thread.
@@ -202,6 +205,10 @@ export function buildThreadScroll(root: HTMLElement): () => void {
       };
     });
 
+    // Track last-written opacity per marker so we skip DOM writes when the
+    // visibility boolean has not changed (avoids unnecessary style recalc).
+    const markerLastOpacity = new Map<SVGGElement, string>();
+
     const updateMarkers = () => {
       const time = tl.time();
       for (const { element, legIndex, progress } of markers) {
@@ -210,7 +217,11 @@ export function buildThreadScroll(root: HTMLElement): () => void {
         const end =
           legIndex + 1 < legs.length ? legs[legIndex + 1].start : maxScroll;
         const ratio = (time - start) / Math.max(end - start, 0.001);
-        element.style.opacity = ratio >= progress - 0.002 ? "1" : "0";
+        const opacity = ratio >= progress - 0.002 ? "1" : "0";
+        if (markerLastOpacity.get(element) !== opacity) {
+          markerLastOpacity.set(element, opacity);
+          element.style.opacity = opacity;
+        }
       }
     };
 

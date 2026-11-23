@@ -24,11 +24,36 @@
 
 export const penState = { introRunning: false };
 
-const penOf = (root: ParentNode) =>
-  root.querySelector<SVGGElement>("g[data-thread-pen]");
+// Cached DOM references — queried once per root, invalidated when the caller
+// passes a different root (no explicit invalidation needed; thread-layer owns
+// the SVG and never swaps it without a rebuild).
+let _cachedRoot: ParentNode | null = null;
+let _cachedPen: SVGGElement | null = null;
+let _cachedPageSvg: SVGSVGElement | null = null;
 
-const pageSvgOf = (root: ParentNode) =>
-  root.querySelector<SVGSVGElement>("svg.thread-layer");
+const penOf = (root: ParentNode) => {
+  if (_cachedRoot !== root) {
+    _cachedRoot = root;
+    _cachedPen = null;
+    _cachedPageSvg = null;
+  }
+  if (!_cachedPen) {
+    _cachedPen = root.querySelector<SVGGElement>("g[data-thread-pen]");
+  }
+  return _cachedPen;
+};
+
+const pageSvgOf = (root: ParentNode) => {
+  if (_cachedRoot !== root) {
+    _cachedRoot = root;
+    _cachedPen = null;
+    _cachedPageSvg = null;
+  }
+  if (!_cachedPageSvg) {
+    _cachedPageSvg = root.querySelector<SVGSVGElement>("svg.thread-layer");
+  }
+  return _cachedPageSvg;
+};
 
 /** How long the pen stays visible after its last placement. */
 const IDLE_MS = 180;
@@ -82,19 +107,30 @@ export function placePen(root: ParentNode, x: number, y: number) {
   }, IDLE_MS);
 }
 
-/** Puts the pen on `path` at `length` (user units of the path). */
+/** Puts the pen on `path` at `length` (user units of the path).
+ *
+ * Pass `cachedTotalLength` when it was already computed by the caller to
+ * avoid a duplicate `getTotalLength()` call per frame. */
 export function placePenOnPath(
   root: ParentNode,
   path: SVGPathElement,
   length: number,
+  cachedTotalLength?: number,
 ) {
-  const total = path.getTotalLength();
+  const total = cachedTotalLength ?? path.getTotalLength();
   const point = path.getPointAtLength(Math.min(Math.max(length, 0), total));
-  const pageSvg = pageSvgOf(root);
-  const from = path.getScreenCTM();
-  const to = pageSvg?.getScreenCTM();
 
-  if (!pageSvg || !from || !to || path.ownerSVGElement === pageSvg) {
+  // Fast path: when the path lives in the page SVG, no CTM conversion needed.
+  const pageSvg = pageSvgOf(root);
+  if (!pageSvg || path.ownerSVGElement === pageSvg) {
+    placePen(root, point.x, point.y);
+    return;
+  }
+
+  // Cross-SVG coordinate conversion (hero paths in their own SVGs).
+  const from = path.getScreenCTM();
+  const to = pageSvg.getScreenCTM();
+  if (!from || !to) {
     placePen(root, point.x, point.y);
     return;
   }
